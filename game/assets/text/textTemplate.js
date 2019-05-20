@@ -45,7 +45,6 @@ const english = {
         messageFromVc: 'Congrats again on your latest investment. Now\'s time to execute the idea. Hire the best people, as quickly as you can. Hiring good talent is a war these days... keep us updated. ',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
-        taskDescription: 'Task: Hire 3 new employees',
     },
 
     mediumOfficeStage: {
@@ -55,7 +54,6 @@ const english = {
             'I can do that!',
         ],
         hiringGoal: 5,
-        taskDescription: 'Task: Hire 5 new employees in 1 minute',
         retryMessage: 'You ran out of time. There\'s a board meeting next month - try again to meet your targets. You have to hire faster.',
         retryResponses: ['I will hire faster this time.'],
         duration: 30
@@ -68,11 +66,18 @@ const english = {
             'I am a little overwhelmed.',
         ],
         hiringGoal: 10,
-        taskDescription: 'Task: Hire 10 new employees in 1 minute',
         retryMessage: 'You ran out of time. The progress is not good enough. Hire faster to outrun your competitors. Try again.',
         retryResponses: ['I will grow aggressively this time.'],
         duration: 60
 
+    },
+
+    mlTransition: {
+        messageFromVc: 'Talk to your engineers. Maybe they have a smart way to hire faster.',
+        responses: [
+            'Oh yeah, they are smart.',
+            'Hmm. Would they?',
+        ],
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
 
@@ -172,6 +177,8 @@ const english = {
     // would, but at a much faster pace! Your role now is to sit back and
     // supervise the algorithm.', answer_choice: [ { text: 'OK', }, ], }, ],
     mlLabStage: {
+        //How should this hiringGoal be synced with the delay number of the last pop up instruction in ML lab?
+        hiringGoal: 30,
         onboarding: [
             {
                 text: "People’s CVs are now scanned and evaluated by a computer program"
