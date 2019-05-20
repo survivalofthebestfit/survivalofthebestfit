@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.5' };
+var core = module.exports = { version: '2.6.6' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -2804,6 +2804,7 @@ module.exports.f = function (C) {
 },{"./_a-function":45}],109:[function(require,module,exports){
 'use strict';
 // 19.1.2.1 Object.assign(target, source, ...)
+var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var gOPS = require('./_object-gops');
 var pIE = require('./_object-pie');
@@ -2833,11 +2834,14 @@ module.exports = !$assign || require('./_fails')(function () {
     var length = keys.length;
     var j = 0;
     var key;
-    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+    while (length > j) {
+      key = keys[j++];
+      if (!DESCRIPTORS || isEnum.call(S, key)) T[key] = S[key];
+    }
   } return T;
 } : $assign;
 
-},{"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
+},{"./_descriptors":70,"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -3007,6 +3011,7 @@ module.exports = function (KEY, exec) {
 };
 
 },{"./_core":64,"./_export":74,"./_fails":76}],122:[function(require,module,exports){
+var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var toIObject = require('./_to-iobject');
 var isEnum = require('./_object-pie').f;
@@ -3018,13 +3023,17 @@ module.exports = function (isEntries) {
     var i = 0;
     var result = [];
     var key;
-    while (length > i) if (isEnum.call(O, key = keys[i++])) {
-      result.push(isEntries ? [key, O[key]] : O[key]);
-    } return result;
+    while (length > i) {
+      key = keys[i++];
+      if (!DESCRIPTORS || isEnum.call(O, key)) {
+        result.push(isEntries ? [key, O[key]] : O[key]);
+      }
+    }
+    return result;
   };
 };
 
-},{"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
+},{"./_descriptors":70,"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
 // all object keys, includes non-enumerable and symbols
 var gOPN = require('./_object-gopn');
 var gOPS = require('./_object-gops');
@@ -6804,12 +6813,14 @@ var enumKeys = require('./_enum-keys');
 var isArray = require('./_is-array');
 var anObject = require('./_an-object');
 var isObject = require('./_is-object');
+var toObject = require('./_to-object');
 var toIObject = require('./_to-iobject');
 var toPrimitive = require('./_to-primitive');
 var createDesc = require('./_property-desc');
 var _create = require('./_object-create');
 var gOPNExt = require('./_object-gopn-ext');
 var $GOPD = require('./_object-gopd');
+var $GOPS = require('./_object-gops');
 var $DP = require('./_object-dp');
 var $keys = require('./_object-keys');
 var gOPD = $GOPD.f;
@@ -6936,7 +6947,7 @@ if (!USE_NATIVE) {
   $DP.f = $defineProperty;
   require('./_object-gopn').f = gOPNExt.f = $getOwnPropertyNames;
   require('./_object-pie').f = $propertyIsEnumerable;
-  require('./_object-gops').f = $getOwnPropertySymbols;
+  $GOPS.f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !require('./_library')) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -6987,6 +6998,16 @@ $export($export.S + $export.F * !USE_NATIVE, 'Object', {
   getOwnPropertySymbols: $getOwnPropertySymbols
 });
 
+// Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
+// https://bugs.chromium.org/p/v8/issues/detail?id=3443
+var FAILS_ON_PRIMITIVES = $fails(function () { $GOPS.f(1); });
+
+$export($export.S + $export.F * FAILS_ON_PRIMITIVES, 'Object', {
+  getOwnPropertySymbols: function getOwnPropertySymbols(it) {
+    return $GOPS.f(toObject(it));
+  }
+});
+
 // 24.3.2 JSON.stringify(value [, replacer [, space]])
 $JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
   var S = $Symbol();
@@ -7020,7 +7041,7 @@ setToStringTag(Math, 'Math', true);
 // 24.3.3 JSON[@@toStringTag]
 setToStringTag(global.JSON, 'JSON', true);
 
-},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
+},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-object":154,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
 'use strict';
 var $export = require('./_export');
 var $typed = require('./_typed');
@@ -19211,7 +19232,7 @@ function isAnyArray(object) {
 module.exports = isAnyArray;
 
 },{}],334:[function(require,module,exports){
-!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,l=/\bAndroid(?:.+)SD4930UR\b/i,b=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,u=/\bWindows(?:.+)ARM\b/i,c=/BlackBerry/i,s=/BB10/i,v=/Opera Mini/i,h=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/\Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(l,i),tablet:!m(l,i)&&m(b,i),device:m(l,i)||m(b,i)},android:{phone:!m(f,i)&&m(l,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(l,i)&&!m(a,i)&&(m(b,i)||m(p,i)),device:!m(f,i)&&(m(l,i)||m(b,i)||m(a,i)||m(p,i))},windows:{phone:m(f,i),tablet:m(u,i),device:m(f,i)||m(u,i)},other:{blackberry:m(c,i),blackberry10:m(s,i),opera:m(v,i),firefox:m(w,i),chrome:m(h,i),device:m(c,i)||m(s,i)||m(v,i)||m(w,i)||m(h,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?module.exports=i():"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
+!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,b=/\bAndroid(?:.+)SD4930UR\b/i,l=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,s=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,c=/BB10/i,h=/Opera Mini/i,v=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(b,i),tablet:!m(b,i)&&m(l,i),device:m(b,i)||m(l,i)},android:{phone:!m(f,i)&&m(b,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(b,i)&&!m(a,i)&&(m(l,i)||m(p,i)),device:!m(f,i)&&(m(b,i)||m(l,i)||m(a,i)||m(p,i))||m(/\bokhttp\b/i,i)},windows:{phone:m(f,i),tablet:m(s,i),device:m(f,i)||m(s,i)},other:{blackberry:m(u,i),blackberry10:m(c,i),opera:m(h,i),firefox:m(w,i),chrome:m(v,i),device:m(u,i)||m(c,i)||m(h,i)||m(w,i)||m(v,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?(module.exports=i(),module.exports.isMobile=i):"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
 },{}],335:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.4.1
@@ -96989,8 +97010,6 @@ function (_UIBase) {
     _this._resumeFeatures = options ? options.features : undefined;
     _this._resumes = options ? options.scores : undefined;
     _this._candidateId = options.candidateId || 0;
-    _this.acceptedAverageScore = options.acceptedAverageScore ? options.acceptedAverageScore : undefined;
-    _this.candidatesAverageScore = options.candidatesAverageScore ? options.candidatesAverageScore : undefined;
     _this.type = options.type || 'manual'; // this.setContent(); // set content
 
     if (_this.type === 'ml') {
@@ -96999,28 +97018,16 @@ function (_UIBase) {
       _this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
     }
 
-    if (options && options.show) {
-      _this.show();
-
-      _this.newCV();
+    if (_this._resumes === undefined || _this._resumeFeatures === undefined) {
+      throw new Error('You need to pass CV scores to the CV viewer upon instantiation');
     }
 
+    ;
+    if (_this._candidateId === _this._resumes.length) alert('we have no CVs left');
     return _this;
   }
 
   _createClass(_default, [{
-    key: "newCV",
-    value: function newCV() {
-      if (this._resumes === undefined || this._resumeFeatures === undefined) {
-        throw new Error('You need to pass CV scores to the CV viewer upon instantiation');
-      }
-
-      ;
-      if (this._candidateId === this._resumes.length) alert('we have no CVs left');else {
-        this.showCV(this._resumes[this._candidateId]); // this._candidateId++;
-      }
-    }
-  }, {
     key: "showCV",
     value: function showCV(cv) {
       var _this2 = this;
@@ -97028,7 +97035,6 @@ function (_UIBase) {
       this.setColor(cv.color);
       this.$nameEl.html(cv.name);
       this.$taglineEl.html('personal tagline comes here');
-      var skillBarWidth;
 
       this._resumeFeatures.forEach(function (feature, index) {
         var skillScore = cv.qualifications[index] * 10;
@@ -97038,35 +97044,7 @@ function (_UIBase) {
 
         $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__name")).html(feature.name);
         $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
-        skillBarWidth = $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__skillbar")).width();
       });
-
-      if (this.candidatesAverageScore != undefined && this.candidatesAverageScore[0] != 0) {
-        this.candidatesAverageScore.forEach(function (score, index) {
-          var skillScore = skillBarWidth * (score / 10);
-          var skillClass = ".".concat(_classes["default"].CV_CATEGORY, "--").concat(_this2._resumeFeatures[index]["class"]);
-
-          var $skillEl = _this2.$el.find(skillClass);
-
-          $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__candidate")).css('margin-left', "".concat((0, _utils.clamp)(skillScore, 0, 100), "px"));
-        });
-      }
-
-      if (this.acceptedAverageScore != undefined && this.acceptedAverageScore[0] != 0) {
-        this.$el.find(".".concat(_classes["default"].CV_CATEGORY, "__hired")).css('opacity', 0.8);
-        this.acceptedAverageScore.forEach(function (score, index) {
-          var absoluteScore = skillBarWidth * (score / 10);
-          var skillClass = ".".concat(_classes["default"].CV_CATEGORY, "--").concat(_this2._resumeFeatures[index]["class"]);
-
-          var $skillEl = _this2.$el.find(skillClass);
-
-          var parentMargin = parseFloat($skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__candidate")).css('margin-left')).toFixed(2);
-          var relativeMargin = absoluteScore - parentMargin;
-          $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__hired")).css('margin-left', "".concat((0, _utils.clamp)(relativeMargin, 0, 100), "px"));
-        });
-      } else {
-        this.$el.find(".".concat(_classes["default"].CV_CATEGORY, "__hired")).css('opacity', 0);
-      }
 
       if (this.$el.hasClass(_classes["default"].IS_INACTIVE)) this.show();
     }
@@ -97235,6 +97213,7 @@ function (_UIBase) {
     _this.hiresQuota = options.hires || undefined;
     _this.hiresNum = 0;
     _this._content = options.content || null;
+    _this.placeLeft = options.placeLeft || false;
 
     _this.setContent();
 
@@ -97244,6 +97223,20 @@ function (_UIBase) {
       _this.$timer.removeClass(_classes["default"].IS_INACTIVE);
 
       _this.startTimer();
+    }
+
+    if (options.placeLeft) {
+      var mlLabCoordinates = {
+        left: 10,
+        top: 17,
+        minWidth: 150
+      };
+
+      _this.$el.css({
+        'top': "".concat(mlLabCoordinates.top, "%"),
+        'left': "".concat(mlLabCoordinates.left, "%"),
+        'min-width': "".concat(mlLabCoordinates.minWidth, "px")
+      });
     }
 
     _this._addEventListeners();
@@ -97350,6 +97343,8 @@ function (_UIBase) {
       this.hide();
 
       this._removeEventListeners();
+
+      this.$timer.addClass(_classes["default"].IS_INACTIVE);
     }
   }]);
 
@@ -97375,6 +97370,8 @@ var _events = _interopRequireDefault(require("../../../controllers/constants/eve
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
+
+var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -97426,7 +97423,9 @@ function (_UIBase) {
     _this.stageNumber = options.stageNumber;
     _this.isRetry = options.isRetry || false;
     _this.isLastMessage = options.isLastMessage;
+    _this.isTransition = options.isTransition || false;
     _this.callback = options.callback;
+    _this.displayScore = options.displayScore || false;
     if (options.show) _this.show();
 
     _this.setContent(); // set content
@@ -97444,6 +97443,17 @@ function (_UIBase) {
 
       if (!this.overlay) this.$el.addClass(_classes["default"].IS_TRANSPARENT);
       this.$textEl.html(this._mainContent);
+
+      if (this.displayScore) {
+        this.$el.find('.Score').removeClass(_classes["default"].IS_INACTIVE);
+        ;
+        this.$el.find('.Score_content').html(_dataModule.dataModule._calculateScore());
+        this.$el.find('.Score_content').css('padding-bottom', '1em');
+      } else {
+        this.$el.find('.Score').addClass(_classes["default"].IS_INACTIVE);
+        ;
+      }
+
       this.$buttons.addClass(_classes["default"].IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
@@ -97466,6 +97476,10 @@ function (_UIBase) {
 
       if (this.isRetry) {
         _gameSetup.eventEmitter.emit(_events["default"].RETRY_INSTRUCTION_ACKED, {
+          stageNumber: this.stageNumber
+        });
+      } else if (this.isTransition) {
+        _gameSetup.eventEmitter.emit(_events["default"].TRANSITION_INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       } else {
@@ -97517,7 +97531,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":581,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":581,"../../../controllers/machine-learning/dataModule.js":585,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98252,6 +98266,11 @@ function () {
       parent: this.personContainer,
       stage: 'manual'
     });
+    this.resumeUI = new _uiResume["default"]({
+      features: _cvCollection.cvCollection.cvFeatures,
+      scores: _cvCollection.cvCollection.cvData,
+      candidateId: candidateClicked
+    });
     this.doors = [new _door["default"]({
       type: 'doorAccepted',
       floor: 'first_floor',
@@ -98341,8 +98360,7 @@ function () {
       this.task = new _uiTask["default"]({
         showTimer: showTimer,
         hires: this.stageText.hiringGoal,
-        duration: this.stageText.duration,
-        content: this.stageText.taskDescription
+        duration: this.stageText.duration
       });
     }
   }, {
@@ -98362,14 +98380,7 @@ function () {
       var _this2 = this;
 
       _gameSetup.eventEmitter.on(_events["default"].DISPLAY_THIS_CV, function () {
-        new _uiResume["default"]({
-          show: true,
-          features: _cvCollection.cvCollection.cvFeatures,
-          scores: _cvCollection.cvCollection.cvData,
-          candidateId: candidateClicked,
-          acceptedAverageScore: _this2.acceptedAverageScore,
-          candidatesAverageScore: _this2.candidatesAverageScore
-        });
+        _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
       this.stageResetHandler = function () {
@@ -98409,9 +98420,6 @@ function () {
           direction: 'forward'
         });
 
-        _this2.acceptedAverageScore = _dataModule.dataModule.getAverageScore({
-          peopleArray: _dataModule.dataModule.accepted
-        });
         hiredPerson.tween.on('end', function () {
           _this2.personContainer.removeChild(hiredPerson);
 
@@ -98482,10 +98490,6 @@ function () {
       this.uniqueCandidateIndex++;
 
       _dataModule.dataModule.recordLastIndex(this.uniqueCandidateIndex);
-
-      this.candidatesAverageScore = _dataModule.dataModule.getAverageScore({
-        peopleIndex: _dataModule.dataModule.lastIndex
-      });
     }
   }, {
     key: "populateCandidates",
@@ -98518,6 +98522,7 @@ function () {
       this.doors.forEach(function (door) {
         door.destroy();
       });
+      this.resumeUI.destroy();
       this.instructions.destroy();
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
@@ -98527,7 +98532,7 @@ function () {
       this._removeEventListeners();
 
       this.peopleTalkManager.destroy();
-      (0, _jquery["default"])('#js-task-timer').remove();
+      this.task.destroy();
     }
   }]);
 
@@ -98977,6 +98982,8 @@ var _person = _interopRequireDefault(require("./person"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
+var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -98993,7 +99000,8 @@ function () {
 
     this.container = new PIXI.Container();
     this.numOfPeople = Math.floor((0, _utils.uv2px)(0.85, 'w') / 70) * 2;
-    this.personCount = 0;
+    this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
+    this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.peopleLine = [];
     this.personXoffset = 70;
     this.peopleTalkManager = new _peopleTalkManager["default"]({
@@ -99027,15 +99035,24 @@ function () {
   }, {
     key: "_addNewPerson",
     value: function _addNewPerson() {
+      var currentX = this.mlLastIndex - this.mlStartIndex;
       var person = new _person["default"]({
         parent: this.container,
-        x: this.personCount * this.personXoffset,
-        personData: _cvCollection.cvCollection.cvData[this.personCount],
-        id: this.personCount
+        x: currentX * this.personXoffset,
+        personData: _cvCollection.cvCollection.cvData[this.mlLastIndex],
+        id: this.mlLastIndex
       });
       person.addToPixi();
       this.peopleLine.push(person);
-      this.personCount++;
+
+      _dataModule.dataModule.recordLastIndex(this.mlLastIndex++);
+    }
+  }, {
+    key: "recalculateCandidateAverage",
+    value: function recalculateCandidateAverage() {
+      return _dataModule.dataModule.getAverageScore({
+        indexRange: Array(this.mlStartIndex, this.mlLastIndex)
+      });
     }
   }, {
     key: "createTween",
@@ -99086,7 +99103,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/game/gameSetup.js":581,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/game/gameSetup.js":581,"../../../controllers/machine-learning/dataModule.js":585,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100052,6 +100069,7 @@ var _default = {
   HIDE_NEWS_FEED: 'hide-news-feed',
   INSTRUCTION_ACKED: 'instruction-acked',
   RETRY_INSTRUCTION_ACKED: 'retry-instruction-acked',
+  TRANSITION_INSTRUCTION_ACKED: 'transition-instruction-acked',
   MANUAL_STAGE_COMPLETE: 'manual-stage-complete',
   PLAY_DOOR_ANIMATION: 'play-door-animation',
   INSPECT_ALGORITHM: 'inspect-algorithm',
@@ -100323,6 +100341,8 @@ var _people = _interopRequireDefault(require("../../components/pixi/ml-stage/peo
 
 var _dataModule = require("../machine-learning/dataModule.js");
 
+var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -100367,7 +100387,6 @@ function () {
     this.people = new _people["default"]();
     this.datasetView = new _datasetView["default"]({});
     this.resumeUI = new _uiResume["default"]({
-      show: true,
       type: 'ml',
       features: _cvCollection.cvCollection.cvFeatures,
       scores: _cvCollection.cvCollection.cvData,
@@ -100379,6 +100398,11 @@ function () {
     this._setupTweens();
 
     this.startAnimation();
+    this.task = new _uiTask["default"]({
+      showTimer: false,
+      placeLeft: true,
+      hires: txt.mlLabStage.hiringGoal
+    });
     this.acceptedCount = 0;
     this.rejectedCount = 0;
   }
@@ -100564,7 +100588,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":585,"./gameSetup":581,"./gameSetup.js":581}],583:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":585,"./gameSetup":581,"./gameSetup.js":581}],583:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100750,7 +100774,7 @@ var _transitionOverlay = _interopRequireDefault(require("../../components/interf
 
 var _trainingOverlay = _interopRequireDefault(require("../../components/interface/training-stage/training-overlay/training-overlay"));
 
-var _dataModule = require("../machine-learning/dataModule.js");
+var _events = _interopRequireDefault(require("../constants/events"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100773,10 +100797,9 @@ var gameFSM = new machina.Fsm({
     uninitialized: {
       startGame: function startGame() {
         // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
+        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage');
+        // this.transition('mlLabStage');
       }
     },
 
@@ -100857,7 +100880,8 @@ var gameFSM = new machina.Fsm({
           content: txt.mediumOfficeStage.messageFromVc,
           responses: txt.mediumOfficeStage.responses,
           show: true,
-          overlay: true
+          overlay: true,
+          displayScore: true
         });
       },
       nextStage: 'largeOfficeStage',
@@ -100876,7 +100900,8 @@ var gameFSM = new machina.Fsm({
           content: txt.largeOfficeStage.messageFromVc,
           responses: txt.largeOfficeStage.responses,
           show: true,
-          overlay: true
+          overlay: true,
+          displayScore: true
         });
       },
       nextStage: 'mlTransitionStage',
@@ -100885,8 +100910,21 @@ var gameFSM = new machina.Fsm({
     mlTransitionStage: {
       _onEnter: function _onEnter() {
         if (office) office["delete"]();
-        transitionOverlay = new _transitionOverlay["default"]({
-          show: true
+        currentStage = 3;
+        new _uiTextbox["default"]({
+          stageNumber: currentStage,
+          content: txt.mlTransition.messageFromVc,
+          responses: txt.mlTransition.responses,
+          show: true,
+          overlay: true,
+          isTransition: true,
+          displayScore: true
+        });
+
+        _gameSetup.eventEmitter.on(_events["default"].TRANSITION_INSTRUCTION_ACKED, function () {
+          transitionOverlay = new _transitionOverlay["default"]({
+            show: true
+          });
         });
       },
       nextStage: 'mlTrainingStage',
@@ -100931,7 +100969,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../machine-learning/dataModule.js":585,"./gameSetup.js":581,"./mlLabNarrator":583,"machina":337}],585:[function(require,module,exports){
+},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":581,"./mlLabNarrator":583,"machina":337}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100982,34 +101020,66 @@ function () {
       this.lastIndex = personIndex;
     }
   }, {
+    key: "getLastIndex",
+    value: function getLastIndex() {
+      return this.lastIndex;
+    }
+  }, {
     key: "getAverageScore",
     value: function getAverageScore(options) {
+      var _this = this;
+
       //TODO optimize calculation so that any additional one CV can be calculated without having to recalc the whole batch
       var _index = 0;
       var averageScore = [0, 0, 0, 0];
-      var peopleArray = [];
+      var selectedIndexArray = []; //this is for an array of all selected indices
 
-      if (options.peopleArray && options.peopleArray.length > 0) {
-        peopleArray = options.peopleArray;
-      } else if (options.peopleIndex && options.peopleIndex > 0) {
-        for (var i = 0; i <= options.peopleIndex; i++) {
-          peopleArray.push(i);
-        }
-      }
+      if (options.selectedIndexArray && options.selectedIndexArray.length > 0) {
+        selectedIndexArray = options.selectedIndexArray;
+      } //this is for an array of start and end range index
+      else if (options.indexRange && options.indexRange.length == 2) {
+          for (var i = options.indexRange[0]; i <= options.indexRange[1]; i++) {
+            selectedIndexArray.push(i);
+          }
+        } else throw new Error('Incorrect index array passed to calculate average people scores');
 
-      for (_index in peopleArray) {
-        var qual = _cvCollection.cvCollection.cvData[_index].qualifications;
+      selectedIndexArray.forEach(function (personId) {
+        var qual = _cvCollection.cvCollection.cvData[personId].qualifications;
 
-        for (_index = 0; _index < this.skillFeatureSize; _index++) {
+        for (_index = 0; _index < _this.skillFeatureSize; _index++) {
           averageScore[_index] += qual[_index];
         }
-      }
+      });
 
       for (_index = 0; _index < this.skillFeatureSize; _index++) {
-        averageScore[_index] = (averageScore[_index] / peopleArray.length).toFixed(2);
+        averageScore[_index] = (averageScore[_index] / selectedIndexArray.length).toFixed(2);
       }
 
       return averageScore;
+    }
+  }, {
+    key: "_calculateScore",
+    value: function _calculateScore() {
+      var hiredAverage = this.getAverageScore({
+        selectedIndexArray: this.accepted
+      });
+      var candidateAverage = this.getAverageScore({
+        indexRange: [0, this.lastIndex]
+      });
+
+      var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
+        return "Your team has ".concat(maxDiff, "% better ").concat(maxDiffFeature, " than the rest.");
+      };
+
+      var diff = [];
+      hiredAverage.forEach(function (score, idx) {
+        diff.push(parseFloat(((score - candidateAverage[idx]) * 10).toFixed(1)));
+      });
+      var maxDiff = Math.max.apply(Math, diff);
+
+      var maxDiffFeature = _cvCollection.cvCollection.cvFeatures[diff.indexOf(Math.max.apply(Math, diff))].name;
+
+      return formatScoreText(maxDiff, maxDiffFeature);
     }
   }, {
     key: "train",
@@ -101085,7 +101155,7 @@ function () {
   }, {
     key: "_getRejectedPeople",
     value: function _getRejectedPeople() {
-      var _this = this;
+      var _this2 = this;
 
       var rejected = [];
 
@@ -101094,7 +101164,7 @@ function () {
       }
 
       rejected = rejected.filter(function (i) {
-        return _this.accepted.indexOf(i) < 0;
+        return _this2.accepted.indexOf(i) < 0;
       });
       return rejected;
     }
