@@ -97708,6 +97708,8 @@ var _office = require("../../pixi/manual-stage/office");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
+var _utils = require("../../../controllers/common/utils.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -97758,7 +97760,9 @@ function (_UIBase) {
   _createClass(_default, [{
     key: "_acceptClicked",
     value: function _acceptClicked(e) {
-      // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+      console.log('pixi container:');
+      console.log(_gameSetup.officeStageContainer.getChildByName('personContainer')); // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+
       gtag('event', 'accept', {
         'event_category': 'default',
         'event_label': 'accept/reject'
@@ -97840,8 +97844,13 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
+      var _officeStageContainer = _gameSetup.officeStageContainer.getChildByName('personContainer'),
+          personHeight = _officeStageContainer.height;
+
+      console.log(personHeight);
       this.$el.css({
-        'top': "".concat(_office.spotlight.y - 150, "px"),
+        'top': "".concat(_office.spotlight.y - personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
+        // get person height
         'left': "".concat(_office.spotlight.x + 10, "px")
       });
 
@@ -97890,7 +97899,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":581,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":581,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98249,6 +98258,7 @@ function () {
     this.takenDesks = 0;
     this.interiorContainer = new PIXI.Container();
     this.personContainer = new PIXI.Container();
+    this.personContainer.name = 'personContainer';
     var acceptedAverageScore;
     var candidatesAverageScore; // IMPORTANT: candidates ID refer to this array's index
 
@@ -99828,7 +99838,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.animateTo = animateTo;
-exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
+exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.isMobile = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
 
 var _mq = _interopRequireDefault(require("browsernizr/lib/mq"));
 
@@ -99846,6 +99856,12 @@ var screenSizeDetector = function screenSizeDetector() {
 };
 
 exports.screenSizeDetector = screenSizeDetector;
+
+var isMobile = function isMobile() {
+  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE);
+};
+
+exports.isMobile = isMobile;
 var spacingUtils = {
   getCenteredChildX: function getCenteredChildX(parentX, parentWidth, childWidth) {
     return parentX + (parentWidth - childWidth) / 2;
