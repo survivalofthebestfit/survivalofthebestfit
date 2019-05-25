@@ -96869,16 +96869,10 @@ function (_UIBase) {
 
             var _peopleLine$getChildA = peopleLine.getChildAt(0).getGlobalPosition(),
                 peopleLineX = _peopleLine$getChildA.x,
-                peopleLineY = _peopleLine$getChildA.y; // console.log(firstPerson.getGlobalPosition());
-
+                peopleLineY = _peopleLine$getChildA.y;
 
             var _officeStageContainer = _gameSetup.officeStageContainer.getChildByName(_pixiContainers.OFFICE_PEOPLE_CONTAINER).getChildAt(0),
                 peopleHeight = _officeStageContainer.height;
-
-            console.table({
-              peopleLineWidth: peopleLineWidth,
-              start: peopleLineWidth / 2
-            });
 
             _this2.$el.css({
               'bottom': 'unset',
