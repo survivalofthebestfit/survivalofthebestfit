@@ -95671,7 +95671,9 @@ function () {
     value: function createTooltip() {
       var maxIndex = this.stage === 'ml' ? (0, _utils.clamp)(this.peopleContainer.children.length, 0, 8) : this.peopleContainer.children.length;
       var childIndex = Math.floor(Math.random() * maxIndex);
-      var message = this.messages[Math.floor(Math.random() * this.messages.length)]; // console.log('show tooltip on child with index number: ', childIndex);
+      var message = this.messages[Math.floor(Math.random() * this.messages.length)]; // CHECK HERE
+
+      if (childIndex === candidateClicked) return; // console.log('show tooltip on child with index number: ', childIndex);
 
       this.personTooltip.showNewTooltip({
         parentContainer: this.peopleContainer,
@@ -98256,7 +98258,7 @@ exports.spotlight = spotlight;
 var candidatePoolSize = {
   smallOfficeStage: 7,
   mediumOfficeStage: 10,
-  largeOfficeStage: 15
+  largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
 };
 var officeCoordinates = {
   entryDoorX: 0.1,
@@ -98439,6 +98441,8 @@ function () {
       _gameSetup.eventEmitter.on(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
 
       this.acceptedHandler = function () {
+        console.log('record accepted!');
+
         _dataModule.dataModule.recordAccept(candidateInSpot);
 
         _this2.takenDesks += 1;
@@ -98467,13 +98471,18 @@ function () {
         });
 
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
-          _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
-            stageNumber: _this2.currentStage
+          console.log('stage complete!');
+          (0, _utils.waitForSeconds)(1).then(function () {
+            console.log('next stage!');
+
+            _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
+              stageNumber: _this2.currentStage
+            });
+
+            _this2.task.reset();
+
+            _stateManager.gameFSM.nextStage();
           });
-
-          _this2.task.reset();
-
-          _stateManager.gameFSM.nextStage();
         }
       };
 
@@ -98542,14 +98551,14 @@ function () {
       var maxOffset = (1 - 2 * peoplePaddingX) / (count - 1); // maximum offset between people
 
       var xClampedOffset = (0, _utils.clamp)(xOffset, Math.min((0, _utils.px2uv)(70, 'w'), maxOffset), maxOffset); // calculate xOffset
+      // console.table({
+      //     peopleCenterX: peopleCenterX,
+      //     startX: startX,
+      //     count: count,
+      //     maxOffset: maxOffset,
+      //     xClampedOffset: xClampedOffset,
+      // });
 
-      console.table({
-        peopleCenterX: peopleCenterX,
-        startX: startX,
-        count: count,
-        maxOffset: maxOffset,
-        xClampedOffset: xClampedOffset
-      });
       return {
         xClampedOffset: xClampedOffset,
         startX: startX
