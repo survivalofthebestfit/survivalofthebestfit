@@ -96842,6 +96842,7 @@ function (_UIBase) {
 
     _this.$textbox = _this.$el.find('.Instruction');
     _this.$textEl = _this.$el.find('.Instruction__content');
+    _this.state = null;
 
     _this._addEventListeners();
 
@@ -96859,6 +96860,7 @@ function (_UIBase) {
       var _this2 = this;
 
       var type = _ref.type;
+      this.state = type;
 
       switch (type) {
         case 'manual-click':
@@ -96910,13 +96912,28 @@ function (_UIBase) {
       }
     }
   }, {
+    key: "disableInstructions",
+    value: function disableInstructions() {
+      console.log('candidate returned!');
+
+      if (this.state && this.state === 'manual-eval-show') {
+        this.reveal({
+          type: 'manual-eval-hide'
+        });
+      }
+    }
+  }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
+
       _gameSetup.eventEmitter.on(_events["default"].UPDATE_INSTRUCTIONS, this.reveal.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
+      _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
+
       _gameSetup.eventEmitter.off(_events["default"].UPDATE_INSTRUCTIONS, this.show.bind(this));
     }
   }, {
@@ -98690,6 +98707,8 @@ function moveCandidate() {
   } // candidate in spotlight clicked
   else if (this.inSpotlight) {
       // move candidate back to line
+      _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+
       animateThisCandidate(this, this.originalX, this.originalY);
 
       _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
