@@ -98267,19 +98267,14 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var spotlight = {
-  x: (0, _utils.uv2px)(0.4, 'w'),
-  y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
-};
-exports.spotlight = spotlight;
 var candidatePoolSize = {
   smallOfficeStage: 7,
   mediumOfficeStage: 10,
   largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
 };
 var officeCoordinates = {
-  entryDoorX: 0.1,
-  exitDoorX: 0.6,
+  entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
+  exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
   personStartX: 0.2,
   peoplePaddingX: 0.1,
   personStartY: 0.87,
@@ -98287,6 +98282,11 @@ var officeCoordinates = {
   xOffset: 0.06 // should be dependent 
 
 };
+var spotlight = {
+  x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+  y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+};
+exports.spotlight = spotlight;
 
 var Office =
 /*#__PURE__*/
@@ -98562,19 +98562,14 @@ function () {
           exitDoorX = officeCoordinates.exitDoorX,
           xOffset = officeCoordinates.xOffset,
           peoplePaddingX = officeCoordinates.peoplePaddingX;
-      var peopleCenterX = Math.min(entryDoorX, exitDoorX) + Math.abs(entryDoorX - exitDoorX) / 2;
+
+      var peopleCenterX = _utils.spacingUtils.getRelativePoint(entryDoorX, exitDoorX, 1 / 2);
+
       var startX = Math.max(0.05, peopleCenterX - xOffset * (count - 1) / 2); // startX, starting from the center between two doors
 
       var maxOffset = (1 - 2 * peoplePaddingX) / (count - 1); // maximum offset between people
 
       var xClampedOffset = (0, _utils.clamp)(xOffset, Math.min((0, _utils.px2uv)(70, 'w'), maxOffset), maxOffset); // calculate xOffset
-      // console.table({
-      //     peopleCenterX: peopleCenterX,
-      //     startX: startX,
-      //     count: count,
-      //     maxOffset: maxOffset,
-      //     xClampedOffset: xClampedOffset,
-      // });
 
       return {
         xClampedOffset: xClampedOffset,
@@ -98593,8 +98588,7 @@ function () {
         console.log({
           personX: startX + xClampedOffset * orderInLine,
           personXAlt: officeCoordinates.personStartX + officeCoordinates.xOffset * orderInLine
-        }); // this.placeCandidate(officeCoordinates.personStartX + officeCoordinates.xOffset * orderInLine);
-
+        });
         this.placeCandidate(startX + xClampedOffset * orderInLine);
       }
     }
@@ -99943,6 +99937,11 @@ var isMobile = function isMobile() {
 
 exports.isMobile = isMobile;
 var spacingUtils = {
+  getRelativePoint: function getRelativePoint(val1, val2, ratio) {
+    var min = Math.min(val1, val2);
+    var max = Math.max(val1, val2);
+    return min + (max - min) * ratio;
+  },
   getCenteredChildX: function getCenteredChildX(parentX, parentWidth, childWidth) {
     return parentX + (parentWidth - childWidth) / 2;
   },
@@ -100038,8 +100037,8 @@ var clamp = function clamp(val, minVal, maxVal) {
 exports.clamp = clamp;
 
 var getDateString = function getDateString() {
-  var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+  var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
   var d = new Date();
   var hourString = "".concat(d.getHours() > 0 ? d.getHours() : "0".concat(d.getHours()), ":").concat(d.getMinutes() > 0 ? d.getMinutes() : "0".concat(d.getMinutes()));
   return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[d.getMonth()], " ").concat(d.getDate(), " ").concat(d.getFullYear());
