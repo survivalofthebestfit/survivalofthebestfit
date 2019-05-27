@@ -98530,6 +98530,8 @@ function () {
 
       _gameSetup.eventEmitter.on(_events["default"].REJECTED, this.rejectedHandler);
 
+      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.repositionCandidates);
+
       _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, function () {
         (0, _person.animateThisCandidate)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
         _this2.allPeople[candidateInSpot].inSpotlight = false;
@@ -98556,6 +98558,28 @@ function () {
       _dataModule.dataModule.recordLastIndex(this.uniqueCandidateIndex);
     }
   }, {
+    key: "populateCandidates",
+    value: function populateCandidates(startIndex, count) {
+      var _this$centerPeopleLin = this.centerPeopleLine(count),
+          xClampedOffset = _this$centerPeopleLin.xClampedOffset,
+          startX = _this$centerPeopleLin.startX;
+
+      for (var i = startIndex; i < startIndex + count; i++) {
+        var orderInLine = i - startIndex;
+        this.placeCandidate(startX + xClampedOffset * orderInLine);
+      }
+    }
+  }, {
+    key: "repositionCandidates",
+    value: function repositionCandidates() {// const {xClampedOffset, startX} = this.centerPeopleLine(count);
+      // for (let i = startIndex; i < startIndex + count; i++) {
+      //     const orderInLine = i - startIndex;
+      //     const x = startX + xClampedOffset * orderInLine;
+      //     const y = officeCoordinates.personStartY;
+      //     this.repositionPerson(x, y);
+      // }
+    }
+  }, {
     key: "centerPeopleLine",
     value: function centerPeopleLine(count) {
       var entryDoorX = officeCoordinates.entryDoorX,
@@ -98575,22 +98599,6 @@ function () {
         xClampedOffset: xClampedOffset,
         startX: startX
       };
-    }
-  }, {
-    key: "populateCandidates",
-    value: function populateCandidates(startIndex, count) {
-      var _this$centerPeopleLin = this.centerPeopleLine(count),
-          xClampedOffset = _this$centerPeopleLin.xClampedOffset,
-          startX = _this$centerPeopleLin.startX;
-
-      for (var i = startIndex; i < startIndex + count; i++) {
-        var orderInLine = i - startIndex;
-        console.log({
-          personX: startX + xClampedOffset * orderInLine,
-          personXAlt: officeCoordinates.personStartX + officeCoordinates.xOffset * orderInLine
-        });
-        this.placeCandidate(startX + xClampedOffset * orderInLine);
-      }
     }
   }, {
     key: "_removeEventListeners",
@@ -98642,6 +98650,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createPerson = createPerson;
 exports.animateThisCandidate = animateThisCandidate;
+exports.repositionPerson = repositionPerson;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
@@ -98745,6 +98754,13 @@ function createPerson(x, y, id, texture) {
   person.tween = PIXI.tweenManager.createTween(person);
   person.on('mouseover', onPersonHover).on('pointerdown', moveCandidate);
   return person;
+}
+
+function repositionPerson(x, y) {
+  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.uvX = x;
+  person.x = (0, _utils.uv2px)(x, 'w');
+  person.y = (0, _utils.uv2px)(y, 'h');
 }
 
 },{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"./office":560}],562:[function(require,module,exports){
