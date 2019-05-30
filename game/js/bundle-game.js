@@ -101068,7 +101068,7 @@ function () {
       });
 
       var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
-        return "Your team has ".concat(maxDiff, "% better ").concat(maxDiffFeature, " than the rest.");
+        return "You hired people with ".concat(maxDiff, "% more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
       };
 
       var diff = [];
