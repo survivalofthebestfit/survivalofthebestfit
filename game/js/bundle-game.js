@@ -95611,6 +95611,8 @@ var _utils = require("../../../../controllers/common/utils");
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
+var _pixiContainers = require("../../../../controllers/constants/pixi-containers.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -95628,7 +95630,7 @@ function () {
 
     _classCallCheck(this, _default);
 
-    this.peopleContainer = parent;
+    this.parentContainer = parent;
     this.stage = stage;
     this.elapsedTime = 0;
     this.nextTimeUpdate = 3000;
@@ -95669,17 +95671,33 @@ function () {
   }, {
     key: "createTooltip",
     value: function createTooltip() {
-      var maxIndex = this.stage === 'ml' ? (0, _utils.clamp)(this.peopleContainer.children.length, 0, 8) : this.peopleContainer.children.length;
+      var peopleContainer = this.parentContainer.getChildByName(this.getContainerByStage(this.stage));
+      if (!peopleContainer) return;
+      var maxIndex = this.stage === 'ml' ? (0, _utils.clamp)(peopleContainer.children.length, 0, 8) : peopleContainer.children.length;
       var childIndex = Math.floor(Math.random() * maxIndex);
       var message = this.messages[Math.floor(Math.random() * this.messages.length)]; // CHECK HERE
 
-      if (childIndex === candidateClicked) return; // console.log('show tooltip on child with index number: ', childIndex);
-
+      if (childIndex === candidateClicked) return;
       this.personTooltip.showNewTooltip({
-        parentContainer: this.peopleContainer,
+        parentContainer: peopleContainer,
         index: childIndex,
         message: message
       });
+    }
+  }, {
+    key: "getContainerByStage",
+    value: function getContainerByStage(stage) {
+      switch (stage) {
+        case 'ml':
+          return _pixiContainers.ML_PEOPLE_CONTAINER;
+
+        case 'manual':
+          return _pixiContainers.OFFICE_PEOPLE_CONTAINER;
+
+        default:
+          console.warn("invalid stage parameter, cannot find people container for speech bubble tooltips");
+          return undefined;
+      }
     }
   }, {
     key: "_addEventListeners",
@@ -95706,7 +95724,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":579,"../../../../controllers/game/gameSetup.js":582,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98326,7 +98344,7 @@ function () {
     };
     this.instructions = new _uiInstruction["default"]();
     this.peopleTalkManager = new _peopleTalkManager["default"]({
-      parent: this.personContainer,
+      parent: _gameSetup.officeStageContainer,
       stage: 'manual'
     });
     this.resumeUI = new _uiResume["default"]({
@@ -98465,8 +98483,7 @@ function () {
       _gameSetup.eventEmitter.on(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
 
       this.acceptedHandler = function () {
-        console.log('record accepted!');
-
+        // console.log('record accepted!');
         _dataModule.dataModule.recordAccept(candidateInSpot);
 
         _this2.takenDesks += 1;
@@ -98495,10 +98512,9 @@ function () {
         });
 
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
-          console.log('stage complete!');
+          // console.log('stage complete!');
           (0, _utils.waitForSeconds)(1).then(function () {
-            console.log('next stage!');
-
+            // console.log('next stage!');
             _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
               stageNumber: _this2.currentStage
             });
@@ -99136,6 +99152,8 @@ var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/peop
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
+var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -99151,13 +99169,14 @@ function () {
     _classCallCheck(this, _default);
 
     this.container = new PIXI.Container();
+    this.container.name = _pixiContainers.ML_PEOPLE_CONTAINER;
     this.numOfPeople = Math.floor((0, _utils.uv2px)(0.85, 'w') / 70) * 2;
     this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.peopleLine = [];
     this.personXoffset = 70;
     this.peopleTalkManager = new _peopleTalkManager["default"]({
-      parent: this.container,
+      parent: _gameSetup.mlLabStageContainer,
       stage: 'ml'
     });
 
@@ -99255,7 +99274,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100314,7 +100333,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  OFFICE_PEOPLE_CONTAINER: 'office-people-container'
+  OFFICE_PEOPLE_CONTAINER: 'office-people-container',
+  ML_PEOPLE_CONTAINER: 'ml-people-container'
 };
 exports["default"] = _default;
 
