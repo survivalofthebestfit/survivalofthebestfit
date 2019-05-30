@@ -97977,13 +97977,14 @@ function () {
     var type = _ref.type,
         floor = _ref.floor,
         floorParent = _ref.floorParent,
-        xAnchor = _ref.xAnchor;
+        xAnchorUV = _ref.xAnchorUV;
 
     _classCallCheck(this, _default);
 
     this.doorType = type;
     this.floorParent = floorParent;
-    this.xAnchor = xAnchor;
+    this.xAnchorUV = xAnchorUV;
+    this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     this.yAnchorUV = floor === 'first_floor' ? _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y : _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
     this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
@@ -98041,6 +98042,7 @@ function () {
     value: function _recomputeParams() {
       this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
+      this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
   }, {
     key: "_resizeHandler",
@@ -98282,10 +98284,15 @@ var officeCoordinates = {
   xOffset: 0.06 // should be dependent 
 
 };
-var spotlight = {
-  x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
-  y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
-};
+
+function computeSpotlight() {
+  return {
+    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+    y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+  };
+}
+
+var spotlight = computeSpotlight();
 exports.spotlight = spotlight;
 
 var Office =
@@ -98331,12 +98338,12 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchor: (0, _utils.uv2px)(officeCoordinates.entryDoorX, 'w')
+      xAnchorUV: officeCoordinates.entryDoorX
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchor: (0, _utils.uv2px)(officeCoordinates.exitDoorX, 'w')
+      xAnchorUV: officeCoordinates.exitDoorX
     })];
     this.listenerSetup();
   }
@@ -98530,7 +98537,7 @@ function () {
 
       _gameSetup.eventEmitter.on(_events["default"].REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.repositionCandidates);
+      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.resizeHandler.bind(this));
 
       _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, function () {
         (0, _person.animateThisCandidate)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
@@ -98570,14 +98577,34 @@ function () {
       }
     }
   }, {
-    key: "repositionCandidates",
-    value: function repositionCandidates() {// const {xClampedOffset, startX} = this.centerPeopleLine(count);
-      // for (let i = startIndex; i < startIndex + count; i++) {
-      //     const orderInLine = i - startIndex;
-      //     const x = startX + xClampedOffset * orderInLine;
-      //     const y = officeCoordinates.personStartY;
-      //     this.repositionPerson(x, y);
-      // }
+    key: "resizeHandler",
+    value: function resizeHandler() {
+      // change spotlight position
+      var _computeSpotlight = computeSpotlight(),
+          spotNewX = _computeSpotlight.x,
+          spotNewY = _computeSpotlight.y;
+
+      spotlight.x = spotNewX;
+      spotlight.y = spotNewY; // reposition candidates
+
+      var candidates = this.getCandidatePoolSize(this.currentStage);
+
+      var _this$centerPeopleLin2 = this.centerPeopleLine(candidates),
+          xClampedOffset = _this$centerPeopleLin2.xClampedOffset,
+          startX = _this$centerPeopleLin2.startX;
+
+      for (var i = 0; i < candidates; i++) {
+        var x = startX + xClampedOffset * i;
+        var y = officeCoordinates.personStartY;
+        var person = this.personContainer.getChildAt(i);
+        if (person) (0, _person.repositionPerson)(person, x, y);
+      }
+    }
+  }, {
+    key: "getCandidatePoolSize",
+    value: function getCandidatePoolSize(currentStage) {
+      var stages = ['smallOfficeStage', 'mediumOfficeStage', 'largeOfficeStage'];
+      return candidatePoolSize[stages[currentStage]];
     }
   }, {
     key: "centerPeopleLine",
@@ -98756,11 +98783,25 @@ function createPerson(x, y, id, texture) {
   return person;
 }
 
-function repositionPerson(x, y) {
+function repositionPerson(person, x, y) {
   person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h');
+  person.originalX = person.x;
+  person.originalY = person.y;
+
+  if (person.id === candidateInSpot) {
+    _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+
+    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+      spotlightOccupied: true,
+      spotlightFill: false
+    });
+
+    person.inSpotlight = false;
+    candidateInSpot = null;
+  }
 }
 
 },{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"./office":560}],562:[function(require,module,exports){
@@ -100505,7 +100546,7 @@ function () {
       type: 'doorAccepted',
       floor: 'ground_floor',
       floorParent: this.groundFloor,
-      xAnchor: (0, _utils.uv2px)(0.08, 'w')
+      xAnchorUV: 0.08
     }).addToPixi();
     this.machine = new _machine["default"]();
     this.dataServers = [new _dataServer["default"]({
