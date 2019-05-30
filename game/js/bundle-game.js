@@ -99898,7 +99898,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var SPRITES = {};
 exports.SPRITES = SPRITES;
 var loader = PIXI.loaders.shared;
-loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/way-out-door.json').add('doorRejected', 'assets/img/door-rejected.png');
+loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json');
 
 function loadAssets() {
   return _loadAssets.apply(this, arguments);
