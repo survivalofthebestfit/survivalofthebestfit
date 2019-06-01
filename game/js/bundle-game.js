@@ -97597,7 +97597,7 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
@@ -97671,7 +97671,7 @@ function (_UIBase) {
 
       this._responseContent.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this2.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_constants.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
       });
     }
@@ -97685,25 +97685,18 @@ function (_UIBase) {
       this.$textEl.html(options.content);
       options.responses.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this3.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_constants.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
       });
     }
   }, {
     key: "_buttonIsClicked",
     value: function _buttonIsClicked(e) {
-      //TODO how to handle start button clicked vs share
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
 
-      if (!this.isAtSecondStage) {
-        _gameSetup.eventEmitter.emit('first-start-button-clicked', {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
-        this.isAtSecondStage = true; //this.hide();
-      } else {
-        _gameSetup.eventEmitter.emit('second-start-button-clicked', {});
-
-        this.destroy();
-      }
+      this.destroy();
     }
   }, {
     key: "_addEventListeners",
@@ -97713,18 +97706,17 @@ function (_UIBase) {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      // event listeners need to be removed explicitly because they are managed globally Jquery
       this.$buttons.off();
     }
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE).removeClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE); // TODO you might need a delayed call for this
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -97733,7 +97725,8 @@ function (_UIBase) {
 
       _get(_getPrototypeOf(_default.prototype), "dispose", this).call(this);
 
-      this.hide(); // this.$el.destroy();
+      this.hide();
+      this.$el.remove();
     }
   }]);
 
@@ -97742,7 +97735,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
+},{"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100285,7 +100278,8 @@ var _default = {
   CHANGE_SPOTLIGHT_STATUS: 'change-spotlight-status',
   MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
   UPDATE_INSTRUCTIONS: 'update-instructions',
-  EXIT_TRANSITION_STAGE: 'exit-transition-stage'
+  EXIT_TRANSITION_STAGE: 'exit-transition-stage',
+  TITLE_STAGE_COMPLETED: 'title-stage-completed'
 };
 exports["default"] = _default;
 
@@ -101132,31 +101126,8 @@ var gameFSM = new machina.Fsm({
           show: true
         });
 
-        _gameSetup.eventEmitter.on('first-start-button-clicked', function () {
+        _gameSetup.eventEmitter.on(_events["default"].TITLE_STAGE_COMPLETED, function () {
           _this.handle('nextStage');
-        });
-      },
-      nextStage: 'tutorialStage',
-      _onExit: function _onExit() {}
-    },
-
-    /* ///////////////////
-    // Tutorial stage
-    */
-    // /////////////////
-    tutorialStage: {
-      _onEnter: function _onEnter() {
-        var _this2 = this;
-
-        titlePageUI.updateContent({
-          headerText: txt.tutorialStage.header,
-          content: txt.tutorialStage.instruction,
-          responses: txt.tutorialStage.responses,
-          show: true
-        });
-
-        _gameSetup.eventEmitter.on('second-start-button-clicked', function () {
-          _this2.handle('nextStage');
         });
       },
       nextStage: 'smallOfficeStage',
