@@ -23,6 +23,18 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700" rel="stylesheet"> 
   <link href="https://fonts.googleapis.com/css?family=Heebo:400,700&display=swap" rel="stylesheet">
   <link href="css/styles-website.min.css" rel="stylesheet">
+
+    <script> 
+
+    $(function () {
+  $(document).scroll(function () {
+    var $nav = $(".navbar-model");
+    $nav.toggleClass('scrolled', $(this).scrollTop() > $nav.height());
+  });
+});
+
+</script>
+
 </head>
 
 <body id="page-top">
@@ -45,7 +57,7 @@
           </li>
 
              <li class="nav-item">
-            <a class="nav-link js-scroll-trigger" href="/resources">Resources</a>
+            <a class="nav-link js-scroll-trigger" href="./resources">Resources</a>
           </li>
 
           <li class="nav-item">
