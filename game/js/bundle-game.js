@@ -98863,13 +98863,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98885,7 +98879,7 @@ function () {
   function _default() {
     _classCallCheck(this, _default);
 
-    _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     this.beltContainer = new PIXI.Container();
 
@@ -98917,16 +98911,16 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].BELT[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.BELT[(0, _utils.screenSizeDetector)()];
       this.numOfPieces = Math.floor((0, _utils.uv2px)(1, 'w') / (_textures.beltTexture.width * this.scale)) + 1; // position belt on the first floor
 
-      this.beltContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
+      this.beltContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
     } // it is dangerous to not remove the event listener when destroying sprites
 
   }, {
     key: "destroy",
     value: function destroy() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this.draw.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this.draw.bind(this));
 
       for (var i = this.beltContainer.children.length - 1; i >= 0; i--) {
         if (this.beltContainer.children[i].type && this.beltContainer.children[i].type === 'belt') {
@@ -98942,7 +98936,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],563:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98958,9 +98952,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98980,7 +98972,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.sprite = type === 'rejected' ? _textures.SPRITES.dataServerRejected : _textures.SPRITES.dataServerAccepted;
-    this.dataServerScale = _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+    this.dataServerScale = _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
     this.directionVector = type === 'rejected' ? -1 : 1;
     this.machine = machine;
     this.$counterTemplate = (0, _jquery["default"])(document).find('#js-server-counter-template');
@@ -98999,7 +98991,7 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.sprite.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
+      this.sprite.scale.set(_constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()]);
       this.machineDim = this.machine.getMachineDimensions();
       this.centerX = _utils.spacingUtils.getCenteredChildX(this.machineDim.x, this.machineDim.width, this.sprite.width);
       this.sprite.x = this.centerX + this.directionVector * 1.6 * this.sprite.width;
@@ -99019,7 +99011,7 @@ function () {
   }, {
     key: "createCounterElement",
     value: function createCounterElement() {
-      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_classes["default"].IS_INACTIVE).text(this.counter).appendTo('body');
+      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_constants.CLASSES.IS_INACTIVE).text(this.counter).appendTo('body');
     }
   }, {
     key: "updateServerCounter",
@@ -99054,7 +99046,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup.js":584,"jquery":335}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"jquery":335}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99068,15 +99060,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99106,13 +99090,13 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.scale = _pixiScales["default"].MACHINE[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.MACHINE[(0, _utils.screenSizeDetector)()];
       this.machine.scale.set(this.scale);
       this.machine.x = _utils.spacingUtils.screenCenterX(this.machine.width) - (0, _utils.uv2px)(0.175, 'h');
 
-      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
 
-      this.machine.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
+      this.machine.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
       this.inspectButton.scale.set(this.scale);
       this.inspectButton.x = _utils.spacingUtils.getCenteredChildX(this.machine.x, this.machine.width, this.inspectButton.width);
       this.inspectButton.y = _utils.spacingUtils.getCenteredChildY(this.machine.y, this.machine.height, this.inspectButton.height); // this.machine.tint = 0xe8ffff;
@@ -99134,7 +99118,7 @@ function () {
   }, {
     key: "_inspectButtonClickHandler",
     value: function _inspectButtonClickHandler() {
-      _gameSetup2.eventEmitter.emit(_events["default"].DATASET_VIEW_INSPECT, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.DATASET_VIEW_INSPECT, {});
     } // util function to pass machine dimensions to data server/scan ray
 
   }, {
@@ -99155,7 +99139,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99169,15 +99153,13 @@ var _cvCollection = require("../../../assets/text/cvCollection.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _constants = require("../../../controllers/constants");
 
 var _person = _interopRequireDefault(require("./person"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
-
-var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99194,7 +99176,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.container = new PIXI.Container();
-    this.container.name = _pixiContainers.ML_PEOPLE_CONTAINER;
+    this.container.name = _constants.ML_PEOPLE_CONTAINER;
     this.numOfPeople = Math.floor((0, _utils.uv2px)(0.85, 'w') / 70) * 2;
     this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
@@ -99207,7 +99189,7 @@ function () {
 
     this._createPeople();
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     _gameSetup.mlLabStageContainer.addChild(this.container);
 
@@ -99299,7 +99281,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99457,9 +99439,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99522,14 +99502,14 @@ function () {
     value: function _recomputeParams() {
       var positionOfRay = 0.5;
       var repetition = 1 / positionOfRay;
-      this.scale = _pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()];
       this.resumeWidth = _textures.cvTexture.width * this.scale;
       var halfOfBeltWidth = (0, _utils.uv2px)(positionOfRay, 'w');
       var halfOfNumOfResumes = Math.floor(halfOfBeltWidth / (repetition * this.resumeWidth));
       this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes - 1);
       this.numOfResumes = halfOfNumOfResumes * repetition;
       this.resumeContainer.x = -1 * this.resumeWidth / repetition;
-      this.resumeContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
+      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
     }
   }, {
     key: "destroy",
@@ -99547,7 +99527,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99561,9 +99541,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99588,7 +99566,7 @@ function () {
     key: "draw",
     value: function draw() {
       this.resume = new PIXI.Sprite(_textures.cvTexture);
-      this.resume.scale.set(_pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()]);
+      this.resume.scale.set(_constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()]);
       this.resume.x = this.xAnchor;
       this.resume.type = 'resume-on-belt';
       this.parent.addChild(this.resume);
@@ -99605,7 +99583,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-scales.js":582,"pixi.js":481}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"pixi.js":481}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99693,17 +99671,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99754,7 +99722,7 @@ function () {
       });
 
       this.rowsLitUp++;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         // console.log(`rows lit up: ${this.rowsLitUp} / total rows: ${this.rows}`);
         if (_this.rowsLitUp < _this.rows) {
           console.log('light up another row!');
@@ -99777,7 +99745,7 @@ function () {
       });
 
       this.rowsLitUp--;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         if (_this2.rowsLitUp >= 0) {
           console.log('light down another row!');
 
@@ -99894,13 +99862,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "destroy",
@@ -99914,7 +99882,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-colors.js":580,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],571:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100333,22 +100301,10 @@ Object.defineProperty(exports, "BREAKPOINTS", {
     return _breakpoints["default"];
   }
 });
-Object.defineProperty(exports, "SCALES", {
+Object.defineProperty(exports, "CLASSES", {
   enumerable: true,
   get: function get() {
-    return _pixiScales["default"];
-  }
-});
-Object.defineProperty(exports, "ANIM", {
-  enumerable: true,
-  get: function get() {
-    return _pixiAnimations["default"];
-  }
-});
-Object.defineProperty(exports, "ANCHORS", {
-  enumerable: true,
-  get: function get() {
-    return _pixiAnchors["default"];
+    return _classes["default"];
   }
 });
 Object.defineProperty(exports, "EVENTS", {
@@ -100357,10 +100313,16 @@ Object.defineProperty(exports, "EVENTS", {
     return _events["default"];
   }
 });
-Object.defineProperty(exports, "CLASSES", {
+Object.defineProperty(exports, "ANCHORS", {
   enumerable: true,
   get: function get() {
-    return _classes["default"];
+    return _pixiAnchors["default"];
+  }
+});
+Object.defineProperty(exports, "ANIM", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnimations["default"];
   }
 });
 Object.defineProperty(exports, "COLORS", {
@@ -100369,24 +100331,52 @@ Object.defineProperty(exports, "COLORS", {
     return _pixiColors["default"];
   }
 });
+Object.defineProperty(exports, "CONTAINERS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiContainers["default"];
+  }
+});
+Object.defineProperty(exports, "SCALES", {
+  enumerable: true,
+  get: function get() {
+    return _pixiScales["default"];
+  }
+});
+Object.defineProperty(exports, "DEBUG_MODE", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.DEBUG_MODE;
+  }
+});
+Object.defineProperty(exports, "SILENT", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.SILENT;
+  }
+});
 
 var _breakpoints = _interopRequireDefault(require("./breakpoints.js"));
 
-var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
-
-var _pixiAnimations = _interopRequireDefault(require("./pixi-animations.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("./pixi-anchors.js"));
+var _classes = _interopRequireDefault(require("./classes.js"));
 
 var _events = _interopRequireDefault(require("./events.js"));
 
-var _classes = _interopRequireDefault(require("./classes.js"));
+var _pixiAnchors = _interopRequireDefault(require("./pixi-anchors.js"));
+
+var _pixiAnimations = _interopRequireDefault(require("./pixi-animations.js"));
 
 var _pixiColors = _interopRequireDefault(require("./pixi-colors.js"));
 
+var _pixiContainers = _interopRequireDefault(require("./pixi-containers.js"));
+
+var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
+
+var _mlConstants = require("./mlConstants.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./breakpoints.js":573,"./classes.js":574,"./events.js":575,"./pixi-anchors.js":578,"./pixi-animations.js":579,"./pixi-colors.js":580,"./pixi-scales.js":582}],577:[function(require,module,exports){
+},{"./breakpoints.js":573,"./classes.js":574,"./events.js":575,"./mlConstants.js":577,"./pixi-anchors.js":578,"./pixi-animations.js":579,"./pixi-colors.js":580,"./pixi-containers.js":581,"./pixi-scales.js":582}],577:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101121,10 +101111,9 @@ var gameFSM = new machina.Fsm({
     uninitialized: {
       startGame: function startGame() {
         // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
+        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage');
+        // this.transition('mlLabStage');
       }
     },
 
