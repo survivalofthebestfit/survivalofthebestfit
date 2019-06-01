@@ -95180,7 +95180,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":538,"../person-card/person-card":544,"gsap/TweenMax":331,"jquery":335}],540:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":538,"../person-card/person-card":544,"gsap/TweenMax":331,"jquery":335}],540:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95256,7 +95256,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"gsap/TweenMax":331,"jquery":335}],541:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"gsap/TweenMax":331,"jquery":335}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95411,7 +95411,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup":582,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"jquery":335}],542:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup":584,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"jquery":335}],542:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95595,7 +95595,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],543:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],543:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95724,7 +95724,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":579,"../../../../controllers/game/gameSetup.js":582,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":581,"../../../../controllers/game/gameSetup.js":584,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96089,7 +96089,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../ui-base/ui-base":551,"jquery":335}],547:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],547:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96296,7 +96296,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],548:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],548:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96437,7 +96437,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"component-loader-js":14}],549:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"component-loader-js":14}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96739,7 +96739,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],551:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96999,7 +96999,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],553:[function(require,module,exports){
+},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],553:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97409,7 +97409,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],555:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97587,7 +97587,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97742,7 +97742,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":582,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97958,7 +97958,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97970,17 +97970,11 @@ var _gameSetup = require("../../../controllers/game/gameSetup");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98003,9 +97997,9 @@ function () {
     this.floorParent = floorParent;
     this.xAnchorUV = xAnchorUV;
     this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
-    this.yAnchorUV = floor === 'first_floor' ? _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y : _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y;
+    this.yAnchorUV = floor === 'first_floor' ? _constants.ANCHORS.FLOORS.FIRST_FLOOR.y : _constants.ANCHORS.FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
-    this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+    this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
     this.animSpeed = 0.35;
     this.sprite = null;
   }
@@ -98015,6 +98009,7 @@ function () {
     value: function addToPixi() {
       var parentContainer = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _gameSetup.mlLabStageContainer;
       this.sprite = _textures.SPRITES[this.doorType];
+      console.log(this.sprite);
       this.sprite.name = this.doorType;
       this.sprite.loop = false;
 
@@ -98058,7 +98053,7 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
       this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
@@ -98072,16 +98067,16 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.on(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.off(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "destroy",
@@ -98101,7 +98096,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582}],559:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584}],559:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98113,17 +98108,9 @@ var PIXI = _interopRequireWildcard(require("pixi.js"));
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98141,11 +98128,11 @@ function () {
 
     _classCallCheck(this, _default);
 
-    this.heightMain = _pixiScales["default"].FLOOR[(0, _utils.screenSizeDetector)()];
-    this.heightShadow = _pixiScales["default"].FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
+    this.heightMain = _constants.SCALES.FLOOR[(0, _utils.screenSizeDetector)()];
+    this.heightShadow = _constants.SCALES.FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
     // this.heightShadow = clamp(this.heightMain/5, 20, 30);
 
-    this.yAnchorUV = type === 'ground_floor' ? _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y : _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y;
+    this.yAnchorUV = type === 'ground_floor' ? _constants.ANCHORS.FLOORS.GROUND_FLOOR.y : _constants.ANCHORS.FLOORS.FIRST_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
     this.surface = null;
     this.side = null;
@@ -98170,12 +98157,12 @@ function () {
     value: function _initParams() {
       // main floor
       this.surface = new PIXI.Graphics();
-      this.surface.beginFill(_pixiColors["default"].ROSE_MAIN);
+      this.surface.beginFill(_constants.COLORS.ROSE_MAIN);
       this.surface.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightMain);
       this.surface.endFill(); // dark pink shadow
 
       this.side = new PIXI.Graphics();
-      this.side.beginFill(_pixiColors["default"].ROSE_SHADOW);
+      this.side.beginFill(_constants.COLORS.ROSE_SHADOW);
       this.side.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightShadow);
       this.side.endFill();
     }
@@ -98207,13 +98194,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "getHeight",
@@ -98227,7 +98214,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":578,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],560:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],560:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98240,8 +98227,6 @@ var PIXI = _interopRequireWildcard(require("pixi.js"));
 var _jquery = _interopRequireDefault(require("jquery"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-var _textures = require("../../../controllers/common/textures.js");
 
 var _stateManager = require("../../../controllers/game/stateManager.js");
 
@@ -98263,11 +98248,7 @@ var _yesNo = _interopRequireDefault(require("../../interface/yes-no/yes-no"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
@@ -98280,6 +98261,14 @@ var _pixiContainers = require("../../../controllers/constants/pixi-containers.js
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98306,7 +98295,7 @@ var officeCoordinates = {
 function computeSpotlight() {
   return {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
-    y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
 }
 
@@ -98444,24 +98433,20 @@ function () {
         hires: this.stageText.hiringGoal,
         duration: this.stageText.duration
       });
-    }
-  }, {
-    key: "moveTweenHorizontally",
-    value: function moveTweenHorizontally(tween, newX) {
-      tween.stop().clear();
-      tween.to({
-        x: newX
-      });
-      tween.easing = PIXI.tween.Easing.inOutSine();
-      tween.time = 1200;
-      tween.start();
-    }
+    } // moveTweenHorizontally(tween, newX) {
+    //     tween.stop().clear();
+    //     tween.to({x: newX});
+    //     tween.easing = PIXI.tween.Easing.inOutSine();
+    //     tween.time = 1200;
+    //     tween.start();
+    // }
+
   }, {
     key: "listenerSetup",
     value: function listenerSetup() {
       var _this2 = this;
 
-      _gameSetup.eventEmitter.on(_events["default"].DISPLAY_THIS_CV, function () {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.DISPLAY_THIS_CV, function () {
         _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
@@ -98480,7 +98465,7 @@ function () {
         }
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
       this.acceptedHandler = function () {
         // console.log('record accepted!');
@@ -98495,8 +98480,7 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        _this2.moveTweenHorizontally(hiredPerson.tween, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
-
+        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[0].playAnimation({
@@ -98515,7 +98499,7 @@ function () {
           // console.log('stage complete!');
           (0, _utils.waitForSeconds)(1).then(function () {
             // console.log('next stage!');
-            _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
+            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
               stageNumber: _this2.currentStage
             });
 
@@ -98532,8 +98516,8 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        _this2.moveTweenHorizontally(rejectedPerson.tween, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
-
+        rejectedPerson.scale.x *= -1;
+        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[1].playAnimation({
@@ -98549,22 +98533,22 @@ function () {
         });
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, function () {
-        (0, _person.animateThisCandidate)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
+        (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
         _this2.allPeople[candidateInSpot].inSpotlight = false;
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].RETRY_INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
     }
@@ -98572,8 +98556,7 @@ function () {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
       var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
-      var texture = color === 'yellow' ? _textures.yellowPersonTexture : _textures.bluePersonTexture;
-      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, texture);
+      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
       this.uniqueCandidateIndex++;
@@ -98646,28 +98629,24 @@ function () {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETURN_CANDIDATE, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].DISPLAY_THIS_CV, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.DISPLAY_THIS_CV, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].RETRY_INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.INSTRUCTION_ACKED, function () {});
     }
   }, {
     key: "delete",
     value: function _delete() {
-      this.doors.forEach(function (door) {
-        door.destroy();
-      });
-      this.resumeUI.destroy();
-      this.instructions.destroy();
+      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task].concat(_toConsumableArray(this.doors));
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
 
@@ -98675,8 +98654,11 @@ function () {
 
       this._removeEventListeners();
 
-      this.peopleTalkManager.destroy();
-      this.task.destroy();
+      componentsToDestroy.filter(function (component) {
+        return component;
+      }).map(function (component) {
+        return component.destroy();
+      });
     }
   }]);
 
@@ -98685,14 +98667,15 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"../../../controllers/game/stateManager.js":585,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../../controllers/game/stateManager.js":587,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.createPerson = createPerson;
-exports.animateThisCandidate = animateThisCandidate;
+exports.moveToFromSpotlight = moveToFromSpotlight;
+exports.moveToDoor = moveToDoor;
 exports.repositionPerson = repositionPerson;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
@@ -98701,11 +98684,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _office = require("./office");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 var showedInstructions = false;
 
@@ -98713,7 +98692,8 @@ function onPersonHover(event) {// PLACEHOLDER FUNCTION FOR HOVER EVENT
   // eventEmitter.emit(EVENTS.PERSON_HOVERED, {});
 }
 
-function animateThisCandidate(person, newX, newY) {
+function moveToFromSpotlight(person, newX, newY) {
+  playSpriteAnimation.call(person, _constants.ANIM.DANGLE);
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
@@ -98722,11 +98702,52 @@ function animateThisCandidate(person, newX, newY) {
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
   person.tween.start();
+  person.tween.on('end', function () {
+    stopSpriteAnimation.call(person);
+  });
+}
+
+function moveToDoor(person, newX) {
+  playSpriteAnimation.call(person, _constants.ANIM.WALK_NEUTRAL);
+  person.tween.stop().clear();
+  person.tween.to({
+    x: newX
+  });
+  person.tween.easing = PIXI.tween.Easing.inOutSine();
+  person.tween.time = 1200;
+  person.tween.start();
+  person.tween.on('end', function () {
+    stopSpriteAnimation.call(person);
+  });
+}
+
+function playSpriteAnimation(anim) {
+  var personSprite = this;
+  if (personSprite.animationState !== anim) updateAnimationState.call(personSprite, anim);
+  personSprite.play();
+}
+
+function updateAnimationState() {
+  var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _constants.ANIM.IDLE;
+  var personSprite = this;
+  var newAnim = (0, _utils.getAnimationByName)({
+    color: personSprite.color,
+    animName: anim
+  });
+  personSprite.stop();
+  personSprite.textures = newAnim;
+  personSprite.animationState = anim;
+}
+
+function stopSpriteAnimation() {
+  var personSprite = this;
+  updateAnimationState.call(personSprite);
+  personSprite.gotoAndStop(0);
 }
 
 function moveCandidate() {
   if (!showedInstructions) {
-    _gameSetup.eventEmitter.emit(_events["default"].UPDATE_INSTRUCTIONS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.UPDATE_INSTRUCTIONS, {
       type: 'manual-eval-show'
     });
 
@@ -98736,14 +98757,14 @@ function moveCandidate() {
 
   candidateClicked = this.id;
 
-  _gameSetup.eventEmitter.emit(_events["default"].DISPLAY_THIS_CV, {}); // empty spotlight
+  _gameSetup.eventEmitter.emit(_constants.EVENTS.DISPLAY_THIS_CV, {}); // empty spotlight
 
 
   if (!this.inSpotlight && candidateInSpot == null) {
     // move candidate to spotlight
-    animateThisCandidate(this, _office.spotlight.x, _office.spotlight.y);
+    moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: false,
       spotlightFill: true
     });
@@ -98753,11 +98774,11 @@ function moveCandidate() {
   } // candidate in spotlight clicked
   else if (this.inSpotlight) {
       // move candidate back to line
-      _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-      animateThisCandidate(this, this.originalX, this.originalY);
+      moveToFromSpotlight(this, this.originalX, this.originalY);
 
-      _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
         spotlightOccupied: true,
         spotlightFill: false
       });
@@ -98766,11 +98787,11 @@ function moveCandidate() {
       candidateInSpot = null;
     } // candidate in line clicked and spotlight is filled
     else if (!this.inSpotlight && candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-        animateThisCandidate(this, _office.spotlight.x, _office.spotlight.y);
+        moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-        _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
           spotlightOccupied: true,
           spotlightFill: true
         });
@@ -98780,13 +98801,14 @@ function moveCandidate() {
       }
 }
 
-function createPerson(x, y, id, texture) {
-  var person = new PIXI.Sprite(texture);
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+function createPerson(x, y, id, color) {
+  var person = (0, _utils.createPersonSprite)(color);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.interactive = true;
   person.buttonMode = true;
   person.inSpotlight = false;
   person.id = id;
+  person.color = color;
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h');
@@ -98795,12 +98817,15 @@ function createPerson(x, y, id, texture) {
   person.type = 'person';
   person.anchor.set(0.5);
   person.tween = PIXI.tweenManager.createTween(person);
+  person.loop = true;
+  person.animationSpeed = 0.6;
+  person.animationState = _constants.ANIM.IDLE;
   person.on('mouseover', onPersonHover).on('pointerdown', moveCandidate);
   return person;
 }
 
 function repositionPerson(person, x, y) {
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h');
@@ -98808,9 +98833,9 @@ function repositionPerson(person, x, y) {
   person.originalY = person.y;
 
   if (person.id === candidateInSpot) {
-    _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: true,
       spotlightFill: false
     });
@@ -98820,7 +98845,7 @@ function repositionPerson(person, x, y) {
   }
 }
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"./office":560}],562:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"./office":560}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98838,13 +98863,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98860,7 +98879,7 @@ function () {
   function _default() {
     _classCallCheck(this, _default);
 
-    _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     this.beltContainer = new PIXI.Container();
 
@@ -98892,16 +98911,16 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].BELT[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.BELT[(0, _utils.screenSizeDetector)()];
       this.numOfPieces = Math.floor((0, _utils.uv2px)(1, 'w') / (_textures.beltTexture.width * this.scale)) + 1; // position belt on the first floor
 
-      this.beltContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
+      this.beltContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
     } // it is dangerous to not remove the event listener when destroying sprites
 
   }, {
     key: "destroy",
     value: function destroy() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this.draw.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this.draw.bind(this));
 
       for (var i = this.beltContainer.children.length - 1; i >= 0; i--) {
         if (this.beltContainer.children[i].type && this.beltContainer.children[i].type === 'belt') {
@@ -98917,7 +98936,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],563:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98933,9 +98952,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98955,7 +98972,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.sprite = type === 'rejected' ? _textures.SPRITES.dataServerRejected : _textures.SPRITES.dataServerAccepted;
-    this.dataServerScale = _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+    this.dataServerScale = _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
     this.directionVector = type === 'rejected' ? -1 : 1;
     this.machine = machine;
     this.$counterTemplate = (0, _jquery["default"])(document).find('#js-server-counter-template');
@@ -98974,7 +98991,7 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.sprite.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
+      this.sprite.scale.set(_constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()]);
       this.machineDim = this.machine.getMachineDimensions();
       this.centerX = _utils.spacingUtils.getCenteredChildX(this.machineDim.x, this.machineDim.width, this.sprite.width);
       this.sprite.x = this.centerX + this.directionVector * 1.6 * this.sprite.width;
@@ -98994,7 +99011,7 @@ function () {
   }, {
     key: "createCounterElement",
     value: function createCounterElement() {
-      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_classes["default"].IS_INACTIVE).text(this.counter).appendTo('body');
+      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_constants.CLASSES.IS_INACTIVE).text(this.counter).appendTo('body');
     }
   }, {
     key: "updateServerCounter",
@@ -99029,7 +99046,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"jquery":335}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"jquery":335}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99043,15 +99060,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99081,13 +99090,13 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.scale = _pixiScales["default"].MACHINE[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.MACHINE[(0, _utils.screenSizeDetector)()];
       this.machine.scale.set(this.scale);
       this.machine.x = _utils.spacingUtils.screenCenterX(this.machine.width) - (0, _utils.uv2px)(0.175, 'h');
 
-      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
 
-      this.machine.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
+      this.machine.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
       this.inspectButton.scale.set(this.scale);
       this.inspectButton.x = _utils.spacingUtils.getCenteredChildX(this.machine.x, this.machine.width, this.inspectButton.width);
       this.inspectButton.y = _utils.spacingUtils.getCenteredChildY(this.machine.y, this.machine.height, this.inspectButton.height); // this.machine.tint = 0xe8ffff;
@@ -99109,7 +99118,7 @@ function () {
   }, {
     key: "_inspectButtonClickHandler",
     value: function _inspectButtonClickHandler() {
-      _gameSetup2.eventEmitter.emit(_events["default"].DATASET_VIEW_INSPECT, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.DATASET_VIEW_INSPECT, {});
     } // util function to pass machine dimensions to data server/scan ray
 
   }, {
@@ -99130,7 +99139,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99144,15 +99153,13 @@ var _cvCollection = require("../../../assets/text/cvCollection.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _constants = require("../../../controllers/constants");
 
 var _person = _interopRequireDefault(require("./person"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
-
-var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99169,7 +99176,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.container = new PIXI.Container();
-    this.container.name = _pixiContainers.ML_PEOPLE_CONTAINER;
+    this.container.name = _constants.ML_PEOPLE_CONTAINER;
     this.numOfPeople = Math.floor((0, _utils.uv2px)(0.85, 'w') / 70) * 2;
     this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
@@ -99182,7 +99189,7 @@ function () {
 
     this._createPeople();
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     _gameSetup.mlLabStageContainer.addChild(this.container);
 
@@ -99274,7 +99281,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99284,17 +99291,9 @@ exports["default"] = void 0;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _textures = require("../../../controllers/common/textures.js");
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _index = require("../../../controllers/constants/index.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99314,19 +99313,21 @@ function () {
     _classCallCheck(this, _default);
 
     this.personData = personData;
-    this.person = this.personData.color === 'yellow' ? new PIXI.Sprite(_textures.yellowPersonTexture) : new PIXI.Sprite(_textures.bluePersonTexture);
+    this.person = (0, _utils.createPersonSprite)(this.personData.color);
     this.x = x;
     this.parentContainer = parent;
     this.id = id;
     this.personData.id = this.id;
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_index.EVENTS.RESIZE, this._draw.bind(this));
   }
 
   _createClass(_default, [{
     key: "addToPixi",
     value: function addToPixi() {
       this.person.id = this.id;
+      this.person.animationState = _index.ANIM.IDLE;
+      this.person.animationSpeed = 0.6;
       this.person.anchor.set(0.5);
       this.parentContainer.addChild(this.person);
 
@@ -99335,7 +99336,7 @@ function () {
   }, {
     key: "_draw",
     value: function _draw() {
-      this.person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+      this.person.scale.set(_index.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
       this.person.x = this.x;
       this.person.y = -this.person.height / 2;
     }
@@ -99343,6 +99344,24 @@ function () {
     key: "getData",
     value: function getData() {
       return this.personData;
+    }
+  }, {
+    key: "playSpriteAnimation",
+    value: function playSpriteAnimation(anim) {
+      if (this.person.animationState !== anim) this.updateAnimationState(anim);
+      this.person.play();
+    }
+  }, {
+    key: "updateAnimationState",
+    value: function updateAnimationState() {
+      var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _index.ANIM.IDLE;
+      var newAnim = (0, _utils.getAnimationByName)({
+        color: this.personData.color,
+        animName: anim
+      });
+      this.person.stop();
+      this.person.textures = newAnim;
+      this.person.animationState = anim;
     }
   }, {
     key: "removeFromLine",
@@ -99374,7 +99393,7 @@ function () {
         destination = -10;
         tween.to({
           x: destination,
-          y: (0, _utils2.uv2px)(1.1, 'h')
+          y: (0, _utils.uv2px)(1.1, 'h')
         });
       }
 
@@ -99384,13 +99403,14 @@ function () {
       tween.time = duration;
       tween.on('end', this.removeFromScreen.bind(this));
       tween.start();
+      this.playSpriteAnimation(_index.ANIM.WALK_NEUTRAL);
     }
   }, {
     key: "removeFromScreen",
     value: function removeFromScreen() {
       _gameSetup.mlLabStageContainer.removeChild(this.person);
 
-      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_events["default"].PLAY_DOOR_ANIMATION, {
+      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_index.EVENTS.PLAY_DOOR_ANIMATION, {
         direction: 'reverse'
       });
     }
@@ -99401,7 +99421,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582}],567:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/index.js":576,"../../../controllers/game/gameSetup.js":584}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99419,9 +99439,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99484,14 +99502,14 @@ function () {
     value: function _recomputeParams() {
       var positionOfRay = 0.5;
       var repetition = 1 / positionOfRay;
-      this.scale = _pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()];
       this.resumeWidth = _textures.cvTexture.width * this.scale;
       var halfOfBeltWidth = (0, _utils.uv2px)(positionOfRay, 'w');
       var halfOfNumOfResumes = Math.floor(halfOfBeltWidth / (repetition * this.resumeWidth));
       this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes - 1);
       this.numOfResumes = halfOfNumOfResumes * repetition;
       this.resumeContainer.x = -1 * this.resumeWidth / repetition;
-      this.resumeContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
+      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
     }
   }, {
     key: "destroy",
@@ -99509,7 +99527,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99523,9 +99541,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99550,7 +99566,7 @@ function () {
     key: "draw",
     value: function draw() {
       this.resume = new PIXI.Sprite(_textures.cvTexture);
-      this.resume.scale.set(_pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()]);
+      this.resume.scale.set(_constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()]);
       this.resume.x = this.xAnchor;
       this.resume.type = 'resume-on-belt';
       this.parent.addChild(this.resume);
@@ -99567,7 +99583,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-scales.js":580,"pixi.js":481}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"pixi.js":481}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99641,7 +99657,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/game/gameSetup.js":582}],570:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/game/gameSetup.js":584}],570:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99655,17 +99671,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99716,7 +99722,7 @@ function () {
       });
 
       this.rowsLitUp++;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         // console.log(`rows lit up: ${this.rowsLitUp} / total rows: ${this.rows}`);
         if (_this.rowsLitUp < _this.rows) {
           console.log('light up another row!');
@@ -99739,7 +99745,7 @@ function () {
       });
 
       this.rowsLitUp--;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         if (_this2.rowsLitUp >= 0) {
           console.log('light down another row!');
 
@@ -99856,13 +99862,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "destroy",
@@ -99876,14 +99882,14 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":578,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],571:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.loadAssets = loadAssets;
-exports.beltTexture = exports.xIcon = exports.floorPlanTwo = exports.floorPlanOne = exports.incubator = exports.deskTexture = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.personTexture = exports.doorTexture = exports.cvTexture = void 0;
+exports.beltTexture = exports.xIcon = exports.incubator = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.cvTexture = void 0;
 
 var _pixiScales = _interopRequireDefault(require("../constants/pixi-scales.js"));
 
@@ -99898,7 +99904,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var SPRITES = {};
 exports.SPRITES = SPRITES;
 var loader = PIXI.loaders.shared;
-loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json');
+loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json').add('bluePerson', 'assets/spritesheets/characters/blue/blue.json').add('yellowPerson', 'assets/spritesheets/characters/yellow/yellow.json');
 
 function loadAssets() {
   return _loadAssets.apply(this, arguments);
@@ -99923,7 +99929,8 @@ function _loadAssets() {
                 SPRITES.inspectButton = new PIXI.Sprite(resources.inspectButton.texture);
                 SPRITES.rayAnim = new PIXI.extras.AnimatedSprite(resources.rayAnim.spritesheet.animations['ray']);
                 SPRITES.dataServerAccepted = new PIXI.extras.AnimatedSprite(resources.dataServerAccepted.spritesheet.animations['data-server-accepted']);
-                SPRITES.dataServerRejected = new PIXI.extras.AnimatedSprite(resources.dataServerRejected.spritesheet.animations['data-server-rejected']);
+                SPRITES.dataServerRejected = new PIXI.extras.AnimatedSprite(resources.dataServerRejected.spritesheet.animations['data-server-rejected']); // TODO: move data server scales to the data server component
+
                 SPRITES.dataServerAccepted.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
                 SPRITES.dataServerRejected.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
                 resolve();
@@ -99940,59 +99947,37 @@ function _loadAssets() {
   return _loadAssets.apply(this, arguments);
 }
 
-; // loader.load((loader, resources) => {
-//     console.log('textures are loaded!');
-//     SPRITES.machine = new PIXI.Sprite(resources.machine.texture);
-// });
-// module to load textures
+; // module to load textures
 
-var personTexture = PIXI.Texture.fromImage('assets/img/character.png');
-exports.personTexture = personTexture;
-personTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var yellowPersonTexture = PIXI.Texture.fromImage('assets/img/person_yellow.png');
 exports.yellowPersonTexture = yellowPersonTexture;
 yellowPersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var bluePersonTexture = PIXI.Texture.fromImage('assets/img/person_blue.png');
 exports.bluePersonTexture = bluePersonTexture;
 bluePersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-var deskTexture = PIXI.Texture.fromImage('assets/img/desk.png');
-exports.deskTexture = deskTexture;
-deskTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var incubator = PIXI.Texture.fromImage('assets/img/incubator-winners.jpeg');
 exports.incubator = incubator;
-var floorPlanOne = PIXI.Texture.fromImage('assets/img/3D-floorplan-small.jpg');
-exports.floorPlanOne = floorPlanOne;
-floorPlanOne.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-var floorPlanTwo = PIXI.Texture.fromImage('assets/img/3D-floorplan-large.jpg');
-exports.floorPlanTwo = floorPlanTwo;
-floorPlanTwo.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var xIcon = PIXI.Texture.fromImage('assets/img/x-icon.png');
 exports.xIcon = xIcon;
-floorPlanTwo.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var beltTexture = PIXI.Texture.fromImage('assets/img/conveyor_belt.png');
 exports.beltTexture = beltTexture;
-beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; // const machineTexture = PIXI.Texture.fromImage('assets/img/machine.png');
-// machineTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
-var doorTexture = PIXI.Texture.fromImage('assets/img/door.png');
-exports.doorTexture = doorTexture;
-doorTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
 exports.cvTexture = cvTexture;
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-},{"../constants/pixi-scales.js":580,"./utils.js":572}],572:[function(require,module,exports){
+},{"../constants/pixi-scales.js":582,"./utils.js":572}],572:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.animateTo = animateTo;
-exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.isMobile = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
+exports.getAnimationByName = exports.createPersonSprite = exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.isMobile = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
 
 var _mq = _interopRequireDefault(require("browsernizr/lib/mq"));
 
-var _breakpoints = _interopRequireDefault(require("../constants/breakpoints.js"));
+var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
@@ -100002,13 +99987,13 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 var screenSizeDetector = function screenSizeDetector() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
 };
 
 exports.screenSizeDetector = screenSizeDetector;
 
 var isMobile = function isMobile() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE);
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE);
 };
 
 exports.isMobile = isMobile;
@@ -100191,7 +100176,36 @@ var setCanvasBackground = function setCanvasBackground(_ref2) {
 
 exports.setCanvasBackground = setCanvasBackground;
 
-},{"../constants/breakpoints.js":573,"../game/gameSetup.js":582,"browsernizr/lib/mq":10}],573:[function(require,module,exports){
+var createPersonSprite = function createPersonSprite(color) {
+  var person = getPersonByColor(color);
+  return new PIXI.extras.AnimatedSprite(PIXI.loader.resources[person].spritesheet.animations['idle']);
+};
+
+exports.createPersonSprite = createPersonSprite;
+
+var getAnimationByName = function getAnimationByName(_ref3) {
+  var color = _ref3.color,
+      animName = _ref3.animName;
+  var person = getPersonByColor(color);
+  return PIXI.loader.resources[person].spritesheet.animations[animName];
+};
+
+exports.getAnimationByName = getAnimationByName;
+
+var getPersonByColor = function getPersonByColor(color) {
+  switch (color) {
+    case 'yellow':
+      return 'yellowPerson';
+
+    case 'blue':
+      return 'bluePerson';
+
+    default:
+      throw new Error("Invalid spritesheet requested, color '".concat(color, "' is invalid"));
+  }
+};
+
+},{"../constants/index.js":576,"../game/gameSetup.js":584,"browsernizr/lib/mq":10}],573:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100281,13 +100295,100 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+Object.defineProperty(exports, "BREAKPOINTS", {
+  enumerable: true,
+  get: function get() {
+    return _breakpoints["default"];
+  }
+});
+Object.defineProperty(exports, "CLASSES", {
+  enumerable: true,
+  get: function get() {
+    return _classes["default"];
+  }
+});
+Object.defineProperty(exports, "EVENTS", {
+  enumerable: true,
+  get: function get() {
+    return _events["default"];
+  }
+});
+Object.defineProperty(exports, "ANCHORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnchors["default"];
+  }
+});
+Object.defineProperty(exports, "ANIM", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnimations["default"];
+  }
+});
+Object.defineProperty(exports, "COLORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiColors["default"];
+  }
+});
+Object.defineProperty(exports, "CONTAINERS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiContainers["default"];
+  }
+});
+Object.defineProperty(exports, "SCALES", {
+  enumerable: true,
+  get: function get() {
+    return _pixiScales["default"];
+  }
+});
+Object.defineProperty(exports, "DEBUG_MODE", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.DEBUG_MODE;
+  }
+});
+Object.defineProperty(exports, "SILENT", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.SILENT;
+  }
+});
+
+var _breakpoints = _interopRequireDefault(require("./breakpoints.js"));
+
+var _classes = _interopRequireDefault(require("./classes.js"));
+
+var _events = _interopRequireDefault(require("./events.js"));
+
+var _pixiAnchors = _interopRequireDefault(require("./pixi-anchors.js"));
+
+var _pixiAnimations = _interopRequireDefault(require("./pixi-animations.js"));
+
+var _pixiColors = _interopRequireDefault(require("./pixi-colors.js"));
+
+var _pixiContainers = _interopRequireDefault(require("./pixi-containers.js"));
+
+var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
+
+var _mlConstants = require("./mlConstants.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+},{"./breakpoints.js":573,"./classes.js":574,"./events.js":575,"./mlConstants.js":577,"./pixi-anchors.js":578,"./pixi-animations.js":579,"./pixi-colors.js":580,"./pixi-containers.js":581,"./pixi-scales.js":582}],577:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.DEBUG_MODE = exports.SILENT = void 0;
 var DEBUG_MODE = 1;
 exports.DEBUG_MODE = DEBUG_MODE;
 var SILENT = true;
 exports.SILENT = SILENT;
 
-},{}],577:[function(require,module,exports){
+},{}],578:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100312,7 +100413,23 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],578:[function(require,module,exports){
+},{}],579:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+var _default = {
+  BLUE_PERSON: 'blue-person',
+  YELLOW_PERSON: 'yellow-person',
+  DANGLE: 'dangle/dangle',
+  WALK_NEUTRAL: 'walk-neutral/walk-neutral',
+  IDLE: 'idle'
+};
+exports["default"] = _default;
+
+},{}],580:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100325,7 +100442,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],579:[function(require,module,exports){
+},{}],581:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100338,7 +100455,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],580:[function(require,module,exports){
+},{}],582:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100377,13 +100494,13 @@ var _default = {
     desktop: 0.5
   },
   PEOPLE: {
-    mobile: 0.15,
-    desktop: 0.2
+    mobile: 0.2,
+    desktop: 0.28
   }
 };
 exports["default"] = _default;
 
-},{}],581:[function(require,module,exports){
+},{}],583:[function(require,module,exports){
 "use strict";
 
 require("@babel/polyfill");
@@ -100419,7 +100536,7 @@ document.getElementById('gameCanvas').appendChild(_gameSetup.pixiApp.view);
   (0, _gameSetup.startTweenManager)();
 });
 
-},{"../../components/interface/footer/footer":537,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":571,"./gameSetup.js":582,"./stateManager.js":585,"@babel/polyfill":1,"component-loader-js":14}],582:[function(require,module,exports){
+},{"../../components/interface/footer/footer":537,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":571,"./gameSetup.js":584,"./stateManager.js":587,"@babel/polyfill":1,"component-loader-js":14}],584:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100498,7 +100615,7 @@ function resize() {
   eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
 }
 
-},{"../constants/events":575,"debounce":319,"pixi-tween":365,"pixi.js":481}],583:[function(require,module,exports){
+},{"../constants/events":575,"debounce":319,"pixi-tween":365,"pixi.js":481}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100785,7 +100902,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":586,"./gameSetup":582,"./gameSetup.js":582}],584:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":588,"./gameSetup":584,"./gameSetup.js":584}],586:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100945,7 +101062,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":582,"./mlLabAnimator.js":583}],585:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":584,"./mlLabAnimator.js":585}],587:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101144,7 +101261,7 @@ var gameFSM = new machina.Fsm({
         if (revenue) {
           revenue.show();
         } else {
-          office["delete"]();
+          if (office) office["delete"]();
           new _perfMetrics["default"]().show();
         }
 
@@ -101166,7 +101283,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":582,"./mlLabNarrator":584,"machina":337}],586:[function(require,module,exports){
+},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":584,"./mlLabNarrator":586,"machina":337}],588:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101382,7 +101499,7 @@ function () {
 var dataModule = new DataModule();
 exports.dataModule = dataModule;
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting":587,"./modelTraining.js":588}],587:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":577,"./modelTesting":589,"./modelTraining.js":590}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101543,7 +101660,7 @@ var round = function round(num) {
   return Math.round(num * 100) / 100;
 };
 
-},{"../../assets/text/badCvTestData.json":532,"../../assets/text/cvCollection.js":533,"../../assets/text/equalCvTestData.json":535,"../../assets/text/goodCvTestData.json":536,"../constants/mlConstants.js":576,"./modelTraining.js":588}],588:[function(require,module,exports){
+},{"../../assets/text/badCvTestData.json":532,"../../assets/text/cvCollection.js":533,"../../assets/text/equalCvTestData.json":535,"../../assets/text/goodCvTestData.json":536,"../constants/mlConstants.js":577,"./modelTraining.js":590}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101770,6 +101887,6 @@ var _shuffle = function _shuffle(b) {
   return a;
 };
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting.js":587,"ml-cart":343}]},{},[581])
+},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":577,"./modelTesting.js":589,"ml-cart":343}]},{},[583])
 
 //# sourceMappingURL=bundle-game.js.map
