@@ -98242,8 +98242,6 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _textures = require("../../../controllers/common/textures.js");
-
 var _stateManager = require("../../../controllers/game/stateManager.js");
 
 var _person = require("./person.js");
@@ -98281,6 +98279,14 @@ var _pixiContainers = require("../../../controllers/constants/pixi-containers.js
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98567,8 +98573,7 @@ function () {
   }, {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
-      var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color; // const texture = (color === 'yellow') ? yellowPersonTexture : bluePersonTexture;
-
+      var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
       var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
@@ -98659,11 +98664,7 @@ function () {
   }, {
     key: "delete",
     value: function _delete() {
-      this.doors.forEach(function (door) {
-        door.destroy();
-      });
-      this.resumeUI.destroy();
-      this.instructions.destroy();
+      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task].concat(_toConsumableArray(this.doors));
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
 
@@ -98671,8 +98672,11 @@ function () {
 
       this._removeEventListeners();
 
-      this.peopleTalkManager.destroy();
-      this.task.destroy();
+      componentsToDestroy.filter(function (component) {
+        return component;
+      }).map(function (component) {
+        return component.destroy();
+      });
     }
   }]);
 
@@ -98681,7 +98685,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"../../../controllers/game/stateManager.js":586,"../../../controllers/machine-learning/dataModule.js":587,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"../../../controllers/game/stateManager.js":586,"../../../controllers/machine-learning/dataModule.js":587,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99930,7 +99934,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.loadAssets = loadAssets;
-exports.beltTexture = exports.xIcon = exports.incubator = exports.deskTexture = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.personTexture = exports.cvTexture = void 0;
+exports.beltTexture = exports.xIcon = exports.incubator = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.cvTexture = void 0;
 
 var _pixiScales = _interopRequireDefault(require("../constants/pixi-scales.js"));
 
@@ -99990,23 +99994,16 @@ function _loadAssets() {
 
 ; // module to load textures
 
-var personTexture = PIXI.Texture.fromImage('assets/img/character.png');
-exports.personTexture = personTexture;
-personTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var yellowPersonTexture = PIXI.Texture.fromImage('assets/img/person_yellow.png');
 exports.yellowPersonTexture = yellowPersonTexture;
 yellowPersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var bluePersonTexture = PIXI.Texture.fromImage('assets/img/person_blue.png');
 exports.bluePersonTexture = bluePersonTexture;
 bluePersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-var deskTexture = PIXI.Texture.fromImage('assets/img/desk.png');
-exports.deskTexture = deskTexture;
-deskTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var incubator = PIXI.Texture.fromImage('assets/img/incubator-winners.jpeg');
 exports.incubator = incubator;
 var xIcon = PIXI.Texture.fromImage('assets/img/x-icon.png');
 exports.xIcon = xIcon;
-floorPlanTwo.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var beltTexture = PIXI.Texture.fromImage('assets/img/conveyor_belt.png');
 exports.beltTexture = beltTexture;
 beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
@@ -100455,7 +100452,7 @@ var _default = {
     desktop: 0.5
   },
   PEOPLE: {
-    mobile: 0.2,
+    mobile: 0.16,
     desktop: 0.28
   }
 };
@@ -101223,7 +101220,7 @@ var gameFSM = new machina.Fsm({
         if (revenue) {
           revenue.show();
         } else {
-          office["delete"]();
+          if (office) office["delete"]();
           new _perfMetrics["default"]().show();
         }
 
