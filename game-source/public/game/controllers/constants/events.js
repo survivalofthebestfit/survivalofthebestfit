@@ -25,4 +25,5 @@ export default {
     MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
     UPDATE_INSTRUCTIONS: 'update-instructions',
     EXIT_TRANSITION_STAGE: 'exit-transition-stage',
+    TITLE_STAGE_COMPLETED: 'title-stage-completed',
 };

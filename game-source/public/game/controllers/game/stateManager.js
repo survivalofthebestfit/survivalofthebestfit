@@ -45,31 +45,7 @@ const gameFSM = new machina.Fsm({
                     show: true,
                 });
 
-                eventEmitter.on('first-start-button-clicked', () => {
-                    this.handle('nextStage');
-                });
-            },
-
-            nextStage: 'tutorialStage',
-
-            _onExit: function() {
-
-            },
-        },
-
-        /* ///////////////////
-        // Tutorial stage
-        */// /////////////////
-        tutorialStage: {
-            _onEnter: function() {
-                titlePageUI.updateContent({
-                    headerText: txt.tutorialStage.header,
-                    content: txt.tutorialStage.instruction,
-                    responses: txt.tutorialStage.responses,
-                    show: true,
-                });
-
-                eventEmitter.on('second-start-button-clicked', () => {
+                eventEmitter.on(EVENTS.TITLE_STAGE_COMPLETED, () => {
                     this.handle('nextStage');
                 });
             },
