@@ -95180,7 +95180,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":583,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":538,"../person-card/person-card":544,"gsap/TweenMax":331,"jquery":335}],540:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":538,"../person-card/person-card":544,"gsap/TweenMax":331,"jquery":335}],540:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95256,7 +95256,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":583,"gsap/TweenMax":331,"jquery":335}],541:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"gsap/TweenMax":331,"jquery":335}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95411,7 +95411,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup":583,"../../../../controllers/game/gameSetup.js":583,"../../ui-base/ui-base":551,"jquery":335}],542:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup":584,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"jquery":335}],542:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95595,7 +95595,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":583,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],543:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],543:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95724,7 +95724,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":580,"../../../../controllers/game/gameSetup.js":583,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":581,"../../../../controllers/game/gameSetup.js":584,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96089,7 +96089,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":583,"../ui-base/ui-base":551,"jquery":335}],547:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],547:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96296,7 +96296,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/game/gameSetup.js":583,"../../../../controllers/game/stateManager.js":586,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],548:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],548:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96437,7 +96437,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":583,"../../../../controllers/game/stateManager.js":586,"component-loader-js":14}],549:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"component-loader-js":14}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96739,7 +96739,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":583,"../../../../controllers/game/stateManager.js":586,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],551:[function(require,module,exports){
+},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":584,"../../../../controllers/game/stateManager.js":587,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96999,7 +96999,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/game/gameSetup.js":583,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],553:[function(require,module,exports){
+},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],553:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97409,7 +97409,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":583,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],555:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97587,7 +97587,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":583,"../../../controllers/machine-learning/dataModule.js":587,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97742,7 +97742,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":583,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
+},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":584,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97958,7 +97958,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/game/gameSetup.js":583,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97970,17 +97970,11 @@ var _gameSetup = require("../../../controllers/game/gameSetup");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98003,9 +97997,9 @@ function () {
     this.floorParent = floorParent;
     this.xAnchorUV = xAnchorUV;
     this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
-    this.yAnchorUV = floor === 'first_floor' ? _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y : _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y;
+    this.yAnchorUV = floor === 'first_floor' ? _constants.ANCHORS.FLOORS.FIRST_FLOOR.y : _constants.ANCHORS.FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
-    this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+    this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
     this.animSpeed = 0.35;
     this.sprite = null;
   }
@@ -98059,7 +98053,7 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
       this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
@@ -98073,16 +98067,16 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.on(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.off(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "destroy",
@@ -98102,7 +98096,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup":583,"../../../controllers/game/gameSetup.js":583}],559:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584}],559:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98114,17 +98108,9 @@ var PIXI = _interopRequireWildcard(require("pixi.js"));
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98142,11 +98128,11 @@ function () {
 
     _classCallCheck(this, _default);
 
-    this.heightMain = _pixiScales["default"].FLOOR[(0, _utils.screenSizeDetector)()];
-    this.heightShadow = _pixiScales["default"].FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
+    this.heightMain = _constants.SCALES.FLOOR[(0, _utils.screenSizeDetector)()];
+    this.heightShadow = _constants.SCALES.FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
     // this.heightShadow = clamp(this.heightMain/5, 20, 30);
 
-    this.yAnchorUV = type === 'ground_floor' ? _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y : _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y;
+    this.yAnchorUV = type === 'ground_floor' ? _constants.ANCHORS.FLOORS.GROUND_FLOOR.y : _constants.ANCHORS.FLOORS.FIRST_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
     this.surface = null;
     this.side = null;
@@ -98171,12 +98157,12 @@ function () {
     value: function _initParams() {
       // main floor
       this.surface = new PIXI.Graphics();
-      this.surface.beginFill(_pixiColors["default"].ROSE_MAIN);
+      this.surface.beginFill(_constants.COLORS.ROSE_MAIN);
       this.surface.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightMain);
       this.surface.endFill(); // dark pink shadow
 
       this.side = new PIXI.Graphics();
-      this.side.beginFill(_pixiColors["default"].ROSE_SHADOW);
+      this.side.beginFill(_constants.COLORS.ROSE_SHADOW);
       this.side.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightShadow);
       this.side.endFill();
     }
@@ -98208,13 +98194,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "getHeight",
@@ -98228,7 +98214,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":579,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"pixi.js":481}],560:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],560:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98262,11 +98248,7 @@ var _yesNo = _interopRequireDefault(require("../../interface/yes-no/yes-no"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
@@ -98313,7 +98295,7 @@ var officeCoordinates = {
 function computeSpotlight() {
   return {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
-    y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
 }
 
@@ -98464,7 +98446,7 @@ function () {
     value: function listenerSetup() {
       var _this2 = this;
 
-      _gameSetup.eventEmitter.on(_events["default"].DISPLAY_THIS_CV, function () {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.DISPLAY_THIS_CV, function () {
         _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
@@ -98483,7 +98465,7 @@ function () {
         }
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
       this.acceptedHandler = function () {
         // console.log('record accepted!');
@@ -98517,7 +98499,7 @@ function () {
           // console.log('stage complete!');
           (0, _utils.waitForSeconds)(1).then(function () {
             // console.log('next stage!');
-            _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
+            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
               stageNumber: _this2.currentStage
             });
 
@@ -98551,22 +98533,22 @@ function () {
         });
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, function () {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
         (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
         _this2.allPeople[candidateInSpot].inSpotlight = false;
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].RETRY_INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
     }
@@ -98647,19 +98629,19 @@ function () {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETURN_CANDIDATE, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].DISPLAY_THIS_CV, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.DISPLAY_THIS_CV, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].RETRY_INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.INSTRUCTION_ACKED, function () {});
     }
   }, {
     key: "delete",
@@ -98685,7 +98667,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"../../../controllers/game/stateManager.js":586,"../../../controllers/machine-learning/dataModule.js":587,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../../controllers/game/stateManager.js":587,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98702,15 +98684,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _office = require("./office");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiAnimations = _interopRequireDefault(require("../../../controllers/constants/pixi-animations"));
-
-var _textures = require("../../../controllers/common/textures.js");
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 var showedInstructions = false;
 
@@ -98719,7 +98693,7 @@ function onPersonHover(event) {// PLACEHOLDER FUNCTION FOR HOVER EVENT
 }
 
 function moveToFromSpotlight(person, newX, newY) {
-  playSpriteAnimation.call(person, _pixiAnimations["default"].DANGLE);
+  playSpriteAnimation.call(person, _constants.ANIM.DANGLE);
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
@@ -98734,7 +98708,7 @@ function moveToFromSpotlight(person, newX, newY) {
 }
 
 function moveToDoor(person, newX) {
-  playSpriteAnimation.call(person, _pixiAnimations["default"].WALK_NEUTRAL);
+  playSpriteAnimation.call(person, _constants.ANIM.WALK_NEUTRAL);
   person.tween.stop().clear();
   person.tween.to({
     x: newX
@@ -98754,7 +98728,7 @@ function playSpriteAnimation(anim) {
 }
 
 function updateAnimationState() {
-  var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _pixiAnimations["default"].IDLE;
+  var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _constants.ANIM.IDLE;
   var personSprite = this;
   var newAnim = (0, _utils.getAnimationByName)({
     color: personSprite.color,
@@ -98773,7 +98747,7 @@ function stopSpriteAnimation() {
 
 function moveCandidate() {
   if (!showedInstructions) {
-    _gameSetup.eventEmitter.emit(_events["default"].UPDATE_INSTRUCTIONS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.UPDATE_INSTRUCTIONS, {
       type: 'manual-eval-show'
     });
 
@@ -98783,14 +98757,14 @@ function moveCandidate() {
 
   candidateClicked = this.id;
 
-  _gameSetup.eventEmitter.emit(_events["default"].DISPLAY_THIS_CV, {}); // empty spotlight
+  _gameSetup.eventEmitter.emit(_constants.EVENTS.DISPLAY_THIS_CV, {}); // empty spotlight
 
 
   if (!this.inSpotlight && candidateInSpot == null) {
     // move candidate to spotlight
     moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: false,
       spotlightFill: true
     });
@@ -98800,11 +98774,11 @@ function moveCandidate() {
   } // candidate in spotlight clicked
   else if (this.inSpotlight) {
       // move candidate back to line
-      _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
       moveToFromSpotlight(this, this.originalX, this.originalY);
 
-      _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
         spotlightOccupied: true,
         spotlightFill: false
       });
@@ -98813,11 +98787,11 @@ function moveCandidate() {
       candidateInSpot = null;
     } // candidate in line clicked and spotlight is filled
     else if (!this.inSpotlight && candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
         moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-        _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
           spotlightOccupied: true,
           spotlightFill: true
         });
@@ -98829,7 +98803,7 @@ function moveCandidate() {
 
 function createPerson(x, y, id, color) {
   var person = (0, _utils.createPersonSprite)(color);
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.interactive = true;
   person.buttonMode = true;
   person.inSpotlight = false;
@@ -98845,13 +98819,13 @@ function createPerson(x, y, id, color) {
   person.tween = PIXI.tweenManager.createTween(person);
   person.loop = true;
   person.animationSpeed = 0.6;
-  person.animationState = _pixiAnimations["default"].IDLE;
+  person.animationState = _constants.ANIM.IDLE;
   person.on('mouseover', onPersonHover).on('pointerdown', moveCandidate);
   return person;
 }
 
 function repositionPerson(person, x, y) {
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h');
@@ -98859,9 +98833,9 @@ function repositionPerson(person, x, y) {
   person.originalY = person.y;
 
   if (person.id === candidateInSpot) {
-    _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: true,
       spotlightFill: false
     });
@@ -98871,7 +98845,7 @@ function repositionPerson(person, x, y) {
   }
 }
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-animations":578,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"./office":560}],562:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants":576,"../../../controllers/game/gameSetup.js":584,"./office":560}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98968,7 +98942,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup":583,"../../../controllers/game/gameSetup.js":583,"pixi.js":481}],563:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99080,7 +99054,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"jquery":335}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup.js":584,"jquery":335}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99181,7 +99155,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup":583,"../../../controllers/game/gameSetup.js":583}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"../../../controllers/game/gameSetup.js":584}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99325,7 +99299,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":580,"../../../controllers/game/gameSetup.js":583,"../../../controllers/machine-learning/dataModule.js":587,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":581,"../../../controllers/game/gameSetup.js":584,"../../../controllers/machine-learning/dataModule.js":588,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99335,17 +99309,9 @@ exports["default"] = void 0;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _textures = require("../../../controllers/common/textures.js");
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _index = require("../../../controllers/constants/index.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99365,19 +99331,21 @@ function () {
     _classCallCheck(this, _default);
 
     this.personData = personData;
-    this.person = this.personData.color === 'yellow' ? new PIXI.Sprite(_textures.yellowPersonTexture) : new PIXI.Sprite(_textures.bluePersonTexture);
+    this.person = (0, _utils.createPersonSprite)(this.personData.color);
     this.x = x;
     this.parentContainer = parent;
     this.id = id;
     this.personData.id = this.id;
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_index.EVENTS.RESIZE, this._draw.bind(this));
   }
 
   _createClass(_default, [{
     key: "addToPixi",
     value: function addToPixi() {
       this.person.id = this.id;
+      this.person.animationState = _index.ANIM.IDLE;
+      this.person.animationSpeed = 0.6;
       this.person.anchor.set(0.5);
       this.parentContainer.addChild(this.person);
 
@@ -99386,7 +99354,7 @@ function () {
   }, {
     key: "_draw",
     value: function _draw() {
-      this.person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+      this.person.scale.set(_index.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
       this.person.x = this.x;
       this.person.y = -this.person.height / 2;
     }
@@ -99394,6 +99362,24 @@ function () {
     key: "getData",
     value: function getData() {
       return this.personData;
+    }
+  }, {
+    key: "playSpriteAnimation",
+    value: function playSpriteAnimation(anim) {
+      if (this.person.animationState !== anim) this.updateAnimationState(anim);
+      this.person.play();
+    }
+  }, {
+    key: "updateAnimationState",
+    value: function updateAnimationState() {
+      var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _index.ANIM.IDLE;
+      var newAnim = (0, _utils.getAnimationByName)({
+        color: this.personData.color,
+        animName: anim
+      });
+      this.person.stop();
+      this.person.textures = newAnim;
+      this.person.animationState = anim;
     }
   }, {
     key: "removeFromLine",
@@ -99425,7 +99411,7 @@ function () {
         destination = -10;
         tween.to({
           x: destination,
-          y: (0, _utils2.uv2px)(1.1, 'h')
+          y: (0, _utils.uv2px)(1.1, 'h')
         });
       }
 
@@ -99435,13 +99421,14 @@ function () {
       tween.time = duration;
       tween.on('end', this.removeFromScreen.bind(this));
       tween.start();
+      this.playSpriteAnimation(_index.ANIM.WALK_NEUTRAL);
     }
   }, {
     key: "removeFromScreen",
     value: function removeFromScreen() {
       _gameSetup.mlLabStageContainer.removeChild(this.person);
 
-      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_events["default"].PLAY_DOOR_ANIMATION, {
+      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_index.EVENTS.PLAY_DOOR_ANIMATION, {
         direction: 'reverse'
       });
     }
@@ -99452,7 +99439,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583}],567:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/index.js":576,"../../../controllers/game/gameSetup.js":584}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99560,7 +99547,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup":583,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup":584,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99618,7 +99605,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-scales.js":581,"pixi.js":481}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-scales.js":582,"pixi.js":481}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99692,7 +99679,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/game/gameSetup.js":583}],570:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/game/gameSetup.js":584}],570:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99927,7 +99914,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":579,"../../../controllers/constants/pixi-scales.js":581,"../../../controllers/game/gameSetup.js":583,"pixi.js":481}],571:[function(require,module,exports){
+},{"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":578,"../../../controllers/constants/pixi-colors.js":580,"../../../controllers/constants/pixi-scales.js":582,"../../../controllers/game/gameSetup.js":584,"pixi.js":481}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100011,7 +99998,7 @@ var cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
 exports.cvTexture = cvTexture;
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-},{"../constants/pixi-scales.js":581,"./utils.js":572}],572:[function(require,module,exports){
+},{"../constants/pixi-scales.js":582,"./utils.js":572}],572:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100022,7 +100009,7 @@ exports.getAnimationByName = exports.createPersonSprite = exports.setCanvasBackg
 
 var _mq = _interopRequireDefault(require("browsernizr/lib/mq"));
 
-var _breakpoints = _interopRequireDefault(require("../constants/breakpoints.js"));
+var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
@@ -100032,13 +100019,13 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 var screenSizeDetector = function screenSizeDetector() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
 };
 
 exports.screenSizeDetector = screenSizeDetector;
 
 var isMobile = function isMobile() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE);
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE);
 };
 
 exports.isMobile = isMobile;
@@ -100250,7 +100237,7 @@ var getPersonByColor = function getPersonByColor(color) {
   }
 };
 
-},{"../constants/breakpoints.js":573,"../game/gameSetup.js":583,"browsernizr/lib/mq":10}],573:[function(require,module,exports){
+},{"../constants/index.js":576,"../game/gameSetup.js":584,"browsernizr/lib/mq":10}],573:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100340,13 +100327,78 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+Object.defineProperty(exports, "BREAKPOINTS", {
+  enumerable: true,
+  get: function get() {
+    return _breakpoints["default"];
+  }
+});
+Object.defineProperty(exports, "SCALES", {
+  enumerable: true,
+  get: function get() {
+    return _pixiScales["default"];
+  }
+});
+Object.defineProperty(exports, "ANIM", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnimations["default"];
+  }
+});
+Object.defineProperty(exports, "ANCHORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnchors["default"];
+  }
+});
+Object.defineProperty(exports, "EVENTS", {
+  enumerable: true,
+  get: function get() {
+    return _events["default"];
+  }
+});
+Object.defineProperty(exports, "CLASSES", {
+  enumerable: true,
+  get: function get() {
+    return _classes["default"];
+  }
+});
+Object.defineProperty(exports, "COLORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiColors["default"];
+  }
+});
+
+var _breakpoints = _interopRequireDefault(require("./breakpoints.js"));
+
+var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
+
+var _pixiAnimations = _interopRequireDefault(require("./pixi-animations.js"));
+
+var _pixiAnchors = _interopRequireDefault(require("./pixi-anchors.js"));
+
+var _events = _interopRequireDefault(require("./events.js"));
+
+var _classes = _interopRequireDefault(require("./classes.js"));
+
+var _pixiColors = _interopRequireDefault(require("./pixi-colors.js"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+},{"./breakpoints.js":573,"./classes.js":574,"./events.js":575,"./pixi-anchors.js":578,"./pixi-animations.js":579,"./pixi-colors.js":580,"./pixi-scales.js":582}],577:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 exports.DEBUG_MODE = exports.SILENT = void 0;
 var DEBUG_MODE = 1;
 exports.DEBUG_MODE = DEBUG_MODE;
 var SILENT = true;
 exports.SILENT = SILENT;
 
-},{}],577:[function(require,module,exports){
+},{}],578:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100371,7 +100423,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],578:[function(require,module,exports){
+},{}],579:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100387,7 +100439,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],579:[function(require,module,exports){
+},{}],580:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100400,7 +100452,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],580:[function(require,module,exports){
+},{}],581:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100413,7 +100465,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],581:[function(require,module,exports){
+},{}],582:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100452,13 +100504,13 @@ var _default = {
     desktop: 0.5
   },
   PEOPLE: {
-    mobile: 0.16,
+    mobile: 0.2,
     desktop: 0.28
   }
 };
 exports["default"] = _default;
 
-},{}],582:[function(require,module,exports){
+},{}],583:[function(require,module,exports){
 "use strict";
 
 require("@babel/polyfill");
@@ -100494,7 +100546,7 @@ document.getElementById('gameCanvas').appendChild(_gameSetup.pixiApp.view);
   (0, _gameSetup.startTweenManager)();
 });
 
-},{"../../components/interface/footer/footer":537,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":571,"./gameSetup.js":583,"./stateManager.js":586,"@babel/polyfill":1,"component-loader-js":14}],583:[function(require,module,exports){
+},{"../../components/interface/footer/footer":537,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":571,"./gameSetup.js":584,"./stateManager.js":587,"@babel/polyfill":1,"component-loader-js":14}],584:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100573,7 +100625,7 @@ function resize() {
   eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
 }
 
-},{"../constants/events":575,"debounce":319,"pixi-tween":365,"pixi.js":481}],584:[function(require,module,exports){
+},{"../constants/events":575,"debounce":319,"pixi-tween":365,"pixi.js":481}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100860,7 +100912,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":587,"./gameSetup":583,"./gameSetup.js":583}],585:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":588,"./gameSetup":584,"./gameSetup.js":584}],586:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101020,7 +101072,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":583,"./mlLabAnimator.js":584}],586:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":584,"./mlLabAnimator.js":585}],587:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101242,7 +101294,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":583,"./mlLabNarrator":585,"machina":337}],587:[function(require,module,exports){
+},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":584,"./mlLabNarrator":586,"machina":337}],588:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101458,7 +101510,7 @@ function () {
 var dataModule = new DataModule();
 exports.dataModule = dataModule;
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting":588,"./modelTraining.js":589}],588:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":577,"./modelTesting":589,"./modelTraining.js":590}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101619,7 +101671,7 @@ var round = function round(num) {
   return Math.round(num * 100) / 100;
 };
 
-},{"../../assets/text/badCvTestData.json":532,"../../assets/text/cvCollection.js":533,"../../assets/text/equalCvTestData.json":535,"../../assets/text/goodCvTestData.json":536,"../constants/mlConstants.js":576,"./modelTraining.js":589}],589:[function(require,module,exports){
+},{"../../assets/text/badCvTestData.json":532,"../../assets/text/cvCollection.js":533,"../../assets/text/equalCvTestData.json":535,"../../assets/text/goodCvTestData.json":536,"../constants/mlConstants.js":577,"./modelTraining.js":590}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101846,6 +101898,6 @@ var _shuffle = function _shuffle(b) {
   return a;
 };
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting.js":588,"ml-cart":343}]},{},[582])
+},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":577,"./modelTesting.js":589,"ml-cart":343}]},{},[583])
 
 //# sourceMappingURL=bundle-game.js.map
