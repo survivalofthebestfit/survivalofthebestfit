@@ -48,18 +48,19 @@
     display: inline-block;
     color: color(txt-dark-grey);
   }
-  
+
   &__content, &__response {
     font-size: font(email-body);
-    margin-bottom: padding(sm);
   }
 
   &__content {
-    color: black;  
+    color: black;
+    margin-bottom: margin(sm);  
   }
 
   &__response {
     color: color(txt-dark-grey);
+    margin-bottom: margin(xs);
   }
   
   &__buttons {
