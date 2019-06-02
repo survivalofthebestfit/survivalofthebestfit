@@ -28,7 +28,7 @@ export default class extends UIBase {
             'event_label': 'accept/reject',
         });
         if (!this.hasBeenClicked) {
-            eventEmitter.emit(EVENTS.UPDATE_INSTRUCTIONS, {type: 'manual-eval-hide'});
+            eventEmitter.emit(EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
             this.hasBeenClicked = true;
         };
         this.$yesButton.addClass(CLASSES.ACCEPTED);
@@ -90,6 +90,9 @@ export default class extends UIBase {
         TweenLite.set(this.$id, {y: 5, xPercent: -50, opacity: 0});
         this.$el.removeClass(CLASSES.IS_INACTIVE);
         TweenLite.to(this.$id, 0.2, {y: 0, opacity: 1, ease: Power1.easeInOut});
+        TweenLite.delayedCall(0.4, () => {
+            this.$el.removeClass(CLASSES.IS_INACTIVE);
+        });
     }
 
     hide() {

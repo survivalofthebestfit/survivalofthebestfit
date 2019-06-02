@@ -100035,6 +100035,7 @@ function (_UIBase) {
     _this.$textbox = _this.$el.find('.Instruction');
     _this.$textEl = _this.$el.find('.Instruction__content');
     _this.state = null;
+    _this.enabled = true;
 
     _this._addEventListeners();
 
@@ -100083,6 +100084,8 @@ function (_UIBase) {
         case 'manual-eval-show':
           this.hide();
           (0, _utils.waitForSeconds)(1).then(function () {
+            if (!_this2.enabled) return;
+
             _this2.setContent(txt.instructions.manual.eval);
 
             _this2.$el.css({
@@ -100106,12 +100109,9 @@ function (_UIBase) {
   }, {
     key: "disableInstructions",
     value: function disableInstructions() {
-      console.log('candidate returned!');
-
       if (this.state && this.state === 'manual-eval-show') {
-        this.reveal({
-          type: 'manual-eval-hide'
-        });
+        this.hide();
+        this.enabled = false;
       }
     }
   }, {
@@ -100120,6 +100120,8 @@ function (_UIBase) {
       _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
 
       _gameSetup.eventEmitter.on(_events["default"].UPDATE_INSTRUCTIONS, this.reveal.bind(this));
+
+      _gameSetup.eventEmitter.on(_events["default"].HIDE_MANUAL_INSTRUCTIONS, this.disableInstructions.bind(this));
     }
   }, {
     key: "_removeEventListeners",
@@ -100127,6 +100129,8 @@ function (_UIBase) {
       _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
 
       _gameSetup.eventEmitter.off(_events["default"].UPDATE_INSTRUCTIONS, this.show.bind(this));
+
+      _gameSetup.eventEmitter.off(_events["default"].HIDE_MANUAL_INSTRUCTIONS, this.disableInstructions.bind(this));
     }
   }, {
     key: "show",
@@ -101015,9 +101019,7 @@ function (_UIBase) {
       });
 
       if (!this.hasBeenClicked) {
-        _gameSetup.eventEmitter.emit(_events["default"].UPDATE_INSTRUCTIONS, {
-          type: 'manual-eval-hide'
-        });
+        _gameSetup.eventEmitter.emit(_events["default"].HIDE_MANUAL_INSTRUCTIONS, {});
 
         this.hasBeenClicked = true;
       }
@@ -101095,6 +101097,8 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
+      var _this3 = this;
+
       this.$el.css({
         'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
         // get person height
@@ -101114,11 +101118,15 @@ function (_UIBase) {
         opacity: 1,
         ease: Power1.easeInOut
       });
+
+      _TweenMax.TweenLite.delayedCall(0.4, function () {
+        _this3.$el.removeClass(_classes["default"].IS_INACTIVE);
+      });
     }
   }, {
     key: "hide",
     value: function hide() {
-      var _this3 = this;
+      var _this4 = this;
 
       _TweenMax.TweenLite.to(this.$id, 0.3, {
         y: 5,
@@ -101127,7 +101135,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this3.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
       });
     }
   }, {
@@ -103485,6 +103493,7 @@ var _default = {
   CHANGE_SPOTLIGHT_STATUS: 'change-spotlight-status',
   MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
   UPDATE_INSTRUCTIONS: 'update-instructions',
+  HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
   EXIT_TRANSITION_STAGE: 'exit-transition-stage',
   TITLE_STAGE_COMPLETED: 'title-stage-completed'
 };
@@ -104315,7 +104324,7 @@ var soundsList = [{
 }];
 
 var init = function init() {
-  return window.addEventListener('click', resumeAudioContext);
+  window.addEventListener('click', resumeAudioContext);
 };
 
 exports.init = init;
@@ -104339,6 +104348,12 @@ exports.toggleVolume = toggleVolume;
 var resumeAudioContext = function resumeAudioContext() {
   if (_howler.Howler.ctx !== null) {
     _howler.Howler.ctx.resume();
+
+    if (_constants.DEBUG_MODE) {
+      console.log('mute sound so you do not go crazy');
+
+      _howler.Howler.mute(true);
+    }
   } else {
     throw new Error('we did not find an audio context on Howler');
   }

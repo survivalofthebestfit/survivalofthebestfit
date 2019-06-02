@@ -1,5 +1,5 @@
 import {Howl, Howler} from 'howler';
-import {SOUNDS} from '../constants';
+import {SOUNDS, DEBUG_MODE} from '../constants';
 
 const SOUNDS_DIR = './assets/sound';
 let soundMuted = false;
@@ -19,7 +19,9 @@ const soundsList = [
     },
 ];
 
-export const init = () => window.addEventListener('click', resumeAudioContext);
+export const init = () => {
+    window.addEventListener('click', resumeAudioContext);
+};
 export const load = () => Promise.all(soundsList.map((sound) => loadSound(sound.name)));
 
 export const toggleVolume = () => {
@@ -31,6 +33,10 @@ export const toggleVolume = () => {
 const resumeAudioContext = () => {
     if (Howler.ctx !== null) {
         Howler.ctx.resume();
+        if (DEBUG_MODE) {
+            console.log('mute sound so you do not go crazy');
+            Howler.mute(true);
+        }
     } else {
         throw new Error('we did not find an audio context on Howler');
     }
