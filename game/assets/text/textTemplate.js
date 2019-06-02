@@ -42,13 +42,13 @@ const english = {
     },
 
     smallOfficeStage: {
-        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute. Hiring good talent is a war these days...keep us updated.',
+        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute and hire good talent!',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
 
     mediumOfficeStage: {
-        messageFromVc: 'Good progress, but you aren\'t growing quickly enough. Hire more aggressively to meet the new goal if you want more funding.',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire more - and faster!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
@@ -60,10 +60,10 @@ const english = {
     },
 
     largeOfficeStage: {
-        messageFromVc: 'Good job but you need to expand the team faster to meet your targets! Can you pull this off?',
+        messageFromVc: 'Good effort, but you need to expand the team even faster to meet your targets! Can you pull this off?',
         responses: [
-            'Of course I can.',
-            'I am a little overwhelmed.',
+            'Of course!',
+            'I\'m a bit overwhelmed.',
         ],
         hiringGoal: 10,
         retryMessage: 'You ran out of time. The progress is not good enough. Try again.',

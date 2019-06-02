@@ -100246,6 +100246,8 @@ function (_UIBase) {
       _this.$el.addClass(_classes["default"].ML_RESUME);
 
       _this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
+    } else {
+      _this.$el.addClass(_classes["default"].ANIMATE_RESUME_ATTRIBUTES);
     }
 
     if (_this._resumes === undefined || _this._resumeFeatures === undefined) {
@@ -100436,6 +100438,7 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-task-timer');
     _this.$hireGoalEl = _this.$el.find('.js-hiring-goal');
     _this.$timer = _this.$el.find('.js-timer');
+    _this.$feedbackEl = _this.$el.find('.js-feedback');
     _this._duration = options.duration || undefined;
     _this._elapsedTime = 0;
     _this._runningMS = 0;
@@ -100477,6 +100480,7 @@ function (_UIBase) {
   _createClass(_default, [{
     key: "setContent",
     value: function setContent() {
+      this.resetStyles();
       this.updateCounter();
       this.writeTime();
     }
@@ -100497,6 +100501,9 @@ function (_UIBase) {
       var peopleToHire = this.hiresQuota - this.hiresNum;
       var hireText = peopleToHire === 1 ? "".concat(peopleToHire, " person") : "".concat(peopleToHire, " people");
       this.$hireGoalEl.find('.TaskTimer-value').text(hireText);
+      if (peopleToHire === 0) this.showTaskFeedback({
+        stageCompleted: true
+      });
     }
   }, {
     key: "writeTime",
@@ -100520,10 +100527,32 @@ function (_UIBase) {
         this._elapsedTime = this._duration;
         this.writeTime();
         this.timer.stop();
-        console.log("am i called why?");
 
         _gameSetup.eventEmitter.emit(_events["default"].STAGE_INCOMPLETE, {});
+
+        this.showTaskFeedback({
+          stageCompleted: false
+        });
       }
+    }
+  }, {
+    key: "showTaskFeedback",
+    value: function showTaskFeedback(_ref) {
+      var stageCompleted = _ref.stageCompleted;
+      var feedbackText = stageCompleted ? 'Task completed' : 'Task failed';
+      [this.$timer, this.$hireGoalEl].map(function (el) {
+        return el.addClass(_classes["default"].IS_INACTIVE);
+      });
+      this.$feedbackEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.find('.TaskTimer-value').text(feedbackText);
+      this.$el.addClass(_classes["default"].HIRING_TASK_DONE);
+    }
+  }, {
+    key: "resetStyles",
+    value: function resetStyles() {
+      this.$feedbackEl.addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_classes["default"].HIRING_TASK_DONE);
+      this.$hireGoalEl.removeClass(_classes["default"].IS_INACTIVE);
     }
   }, {
     key: "startTimer",
@@ -100672,18 +100701,10 @@ function (_UIBase) {
       var _this2 = this;
 
       if (!this.overlay) this.$el.addClass(_classes["default"].IS_TRANSPARENT);
-      this.$textEl.html(this._mainContent);
+      var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
-      if (this.displayScore) {
-        this.$el.find('.Score').removeClass(_classes["default"].IS_INACTIVE);
-        ;
-        this.$el.find('.Score_content').html(_dataModule.dataModule._calculateScore());
-        this.$el.find('.Score_content').css('padding-bottom', '1em');
-      } else {
-        this.$el.find('.Score').addClass(_classes["default"].IS_INACTIVE);
-        ;
-      }
-
+      var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
+      this.$textEl.html(emailText);
       this.$buttons.addClass(_classes["default"].IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
@@ -101455,10 +101476,9 @@ var officeCoordinates = {
   exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
   personStartX: 0.2,
   peoplePaddingX: 0.1,
-  personStartY: 0.87,
-  // should be dependent on the floot size
-  xOffset: 0.06 // should be dependent 
-
+  // personStartY: 0.87, // should be dependent on the floot size
+  personStartY: computePersonY(),
+  xOffset: 0.06
 };
 
 function computeSpotlight() {
@@ -101466,6 +101486,10 @@ function computeSpotlight() {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
     y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
+}
+
+function computePersonY() {
+  return 1 - (0, _utils.px2uv)((0, _utils.isMobile)() ? 15 : 25, 'h');
 }
 
 var spotlight = computeSpotlight();
@@ -101766,10 +101790,13 @@ function () {
 
       for (var i = 0; i < candidates; i++) {
         var x = startX + xClampedOffset * i;
-        var y = officeCoordinates.personStartY;
+        var y = computePersonY();
         var person = this.personContainer.getChildAt(i);
         if (person) (0, _person.repositionPerson)(person, x, y);
-      }
+      } // reposition html elements
+
+
+      var h = document.body.clientHeight;
     }
   }, {
     key: "getCandidatePoolSize",
@@ -101983,7 +102010,7 @@ function createPerson(x, y, id, color) {
   person.color = color;
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
-  person.y = (0, _utils.uv2px)(y, 'h');
+  person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
   person.originalX = person.x;
   person.originalY = person.y;
   person.type = 'person';
@@ -102000,7 +102027,7 @@ function repositionPerson(person, x, y) {
   person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
-  person.y = (0, _utils.uv2px)(y, 'h');
+  person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
   person.originalX = person.x;
   person.originalY = person.y;
 
@@ -103420,6 +103447,8 @@ var _default = {
   DATASET_GRID_ITEM: 'DatasetGrid-item',
   FULLSCREEN_ICON_EXPANDED: 'FullscreenIcon--expanded',
   VOLUME_ICON_OFF: 'VolumeIcon--off',
+  ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
+  HIRING_TASK_DONE: 'hiring-task-done',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -104685,14 +104714,14 @@ function () {
       });
 
       var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
-        return "You hired people with ".concat(maxDiff, "% more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
+        return "You hired people with ".concat(maxDiff > 10 ? "<u>".concat(maxDiff, "%</u>") : '', " more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
       };
 
       var diff = [];
       hiredAverage.forEach(function (score, idx) {
         diff.push(parseFloat(((score - candidateAverage[idx]) * 10).toFixed(1)));
       });
-      var maxDiff = Math.max.apply(Math, diff);
+      var maxDiff = Math.round(Math.max.apply(Math, diff));
 
       var maxDiffFeature = _cvCollection.cvCollection.cvFeatures[diff.indexOf(Math.max.apply(Math, diff))].name;
 
