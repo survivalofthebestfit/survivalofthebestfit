@@ -15,6 +15,7 @@ const soundsList = [
         player: null, 
         loop: true,
         playerID: null,
+        volume: 0.3,
     },
 ];
 
@@ -45,10 +46,9 @@ export const stop = (name) => {
 };
 
 export const fadeOut = (name) => {
-    console.log(`fade out sound ${name}`);
-    const {player, playerID} = findSoundByName(name);
+    const {player, volume = 1.0, playerID} = findSoundByName(name);
     if (player && player.playing(playerID)) {
-        player.fade(1.0, 0.0, 1000, playerID);
+        player.fade(volume, 0.0, 1000, playerID);
         setTimeout(() => player.stop(playerID), 1000);
     }
 };
@@ -68,6 +68,7 @@ export const loadSound = (name) => new Promise((resolve, reject) => {
         const player = new Howl({
             src: [sound.path],
             loop: sound.loop,
+            volume: sound.volume || 1.0,
         });
         player.once('load', function() {
             sound.player = player;

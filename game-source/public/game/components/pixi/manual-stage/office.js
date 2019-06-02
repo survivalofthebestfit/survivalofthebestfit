@@ -166,32 +166,27 @@ class Office {
         });
     }
 
-    // moveTweenHorizontally(tween, newX) {
-    //     tween.stop().clear();
-    //     tween.to({x: newX});
-    //     tween.easing = PIXI.tween.Easing.inOutSine();
-    //     tween.time = 1200;
-    //     tween.start();
-    // }
-
     listenerSetup() {
         eventEmitter.on(EVENTS.DISPLAY_THIS_CV, () => {
             this.resumeUI.showCV(cvCollection.cvData[candidateClicked]);
         });
 
         this.stageResetHandler = () => {
-            new TextBoxUI({
-                isRetry: true,
-                stageNumber: this.currentStage,
-                content: this.stageText.retryMessage,
-                responses: this.stageText.retryResponses,
-                show: true,
-                overlay: true,
+            waitForSeconds(0.5).then(() => {
+                sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
+                new TextBoxUI({
+                    isRetry: true,
+                    stageNumber: this.currentStage,
+                    content: this.stageText.retryMessage,
+                    responses: this.stageText.retryResponses,
+                    show: true,
+                    overlay: true,
+                });
+    
+                if (this.task) {
+                    this.task.reset();
+                }
             });
-
-            if (this.task) {
-                this.task.reset();
-            }
         };
 
         eventEmitter.on(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);

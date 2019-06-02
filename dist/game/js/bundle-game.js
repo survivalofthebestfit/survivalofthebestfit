@@ -101627,14 +101627,7 @@ function () {
         hires: this.stageText.hiringGoal,
         duration: this.stageText.duration
       });
-    } // moveTweenHorizontally(tween, newX) {
-    //     tween.stop().clear();
-    //     tween.to({x: newX});
-    //     tween.easing = PIXI.tween.Easing.inOutSine();
-    //     tween.time = 1200;
-    //     tween.start();
-    // }
-
+    }
   }, {
     key: "listenerSetup",
     value: function listenerSetup() {
@@ -101645,18 +101638,21 @@ function () {
       });
 
       this.stageResetHandler = function () {
-        new _uiTextbox["default"]({
-          isRetry: true,
-          stageNumber: _this2.currentStage,
-          content: _this2.stageText.retryMessage,
-          responses: _this2.stageText.retryResponses,
-          show: true,
-          overlay: true
-        });
+        (0, _utils.waitForSeconds)(0.5).then(function () {
+          sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
+          new _uiTextbox["default"]({
+            isRetry: true,
+            stageNumber: _this2.currentStage,
+            content: _this2.stageText.retryMessage,
+            responses: _this2.stageText.retryResponses,
+            show: true,
+            overlay: true
+          });
 
-        if (_this2.task) {
-          _this2.task.reset();
-        }
+          if (_this2.task) {
+            _this2.task.reset();
+          }
+        });
       };
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
@@ -104314,7 +104310,8 @@ var soundsList = [{
   path: "".concat(SOUNDS_DIR, "/").concat(MANUAL_AMBIENT, ".mp3"),
   player: null,
   loop: true,
-  playerID: null
+  playerID: null,
+  volume: 0.3
 }];
 
 var init = function init() {
@@ -104362,14 +104359,14 @@ var stop = function stop(name) {
 exports.stop = stop;
 
 var fadeOut = function fadeOut(name) {
-  console.log("fade out sound ".concat(name));
-
   var _findSoundByName2 = findSoundByName(name),
       player = _findSoundByName2.player,
+      _findSoundByName2$vol = _findSoundByName2.volume,
+      volume = _findSoundByName2$vol === void 0 ? 1.0 : _findSoundByName2$vol,
       playerID = _findSoundByName2.playerID;
 
   if (player && player.playing(playerID)) {
-    player.fade(1.0, 0.0, 1000, playerID);
+    player.fade(volume, 0.0, 1000, playerID);
     setTimeout(function () {
       return player.stop(playerID);
     }, 1000);
@@ -104396,7 +104393,8 @@ var loadSound = function loadSound(name) {
     if (sound) {
       var player = new _howler.Howl({
         src: [sound.path],
-        loop: sound.loop
+        loop: sound.loop,
+        volume: sound.volume || 1.0
       });
       player.once('load', function () {
         sound.player = player;
