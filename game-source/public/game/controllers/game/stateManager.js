@@ -65,6 +65,7 @@ const gameFSM = new machina.Fsm({
                 currentStage = 0;
 
                 new TextBoxUI({
+                    subject: txt.smallOfficeStage.subject,
                     content: txt.smallOfficeStage.messageFromVc,
                     responses: txt.smallOfficeStage.responses,
                     show: true,
@@ -88,6 +89,7 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.mediumOfficeStage.subject,
                     content: txt.mediumOfficeStage.messageFromVc,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
@@ -111,6 +113,7 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.largeOfficeStage.subject,
                     content: txt.largeOfficeStage.messageFromVc,
                     responses: txt.largeOfficeStage.responses,
                     show: true,
@@ -134,6 +137,7 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.mlTransition.subject,
                     content: txt.mlTransition.messageFromVc,
                     responses: txt.mlTransition.responses,
                     show: true,

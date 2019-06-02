@@ -10,9 +10,11 @@ export default class extends UIBase {
         super();
         this.$el = $('#js-textbox-overlay'); // This should be a single element
         this.$textEl = this.$el.find('.Textbox__content');
+        this.$subjectEl = this.$el.find('.Textbox__subject');
         this.$buttons = this.$el.find('.TextboxButton');
         this.setContent = this.setContent.bind(this);
 
+        this.subject = options.subject ? `RE: ${options.subject}` : 'RE: Bestfit investment';
         this._mainContent = options.content || 'dummy text'; // TODO: change this to null
         this._responseContent = options.responses || ['Okay'];
 
@@ -38,6 +40,7 @@ export default class extends UIBase {
         // only show score feedback after completing stage one
         const emailText = (this.stageNumber === 1 && !this.isRetry) ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
         this.$textEl.html(emailText);
+        this.$subjectEl.html(this.subject);
 
         this.$buttons.addClass(CLASSES.IS_INACTIVE);
         this._responseContent.forEach((response, index) => {

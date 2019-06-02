@@ -177,6 +177,7 @@ class Office {
                 new TextBoxUI({
                     isRetry: true,
                     stageNumber: this.currentStage,
+                    subject: this.stageText.subject,
                     content: this.stageText.retryMessage,
                     responses: this.stageText.retryResponses,
                     show: true,

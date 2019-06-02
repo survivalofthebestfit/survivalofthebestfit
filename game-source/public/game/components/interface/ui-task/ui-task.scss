@@ -20,7 +20,7 @@
   @include mq($from: mobile-landscape) {
     top: 4%;
     min-width: 200px;
-    padding: padding(xs);
+    padding: padding(xxs) padding(xs) padding(xs) padding(xs);
   }
   
 
