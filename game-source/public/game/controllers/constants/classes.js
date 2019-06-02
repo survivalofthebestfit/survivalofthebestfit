@@ -18,6 +18,7 @@ export default {
     PERSON_CARD: 'PersonCard',
     DATASET_GRID_ITEM: 'DatasetGrid-item',
     FULLSCREEN_ICON_EXPANDED: 'FullscreenIcon--expanded',
+    VOLUME_ICON_OFF: 'VolumeIcon--off',
     ML: 'ml',
     OSCILLATE: 'u-oscillate',
     PULSATE: 'u-pulsate',

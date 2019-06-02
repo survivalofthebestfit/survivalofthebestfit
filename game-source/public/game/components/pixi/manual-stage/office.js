@@ -11,11 +11,12 @@ import ResumeUI from '~/public/game/components/interface/ui-resume/ui-resume';
 import InstructionUI from '~/public/game/components/interface/ui-instruction/ui-instruction';
 import YesNo from '~/public/game/components/interface/yes-no/yes-no';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
-import {ANCHORS, EVENTS} from '~/public/game/controllers/constants';
+import {ANCHORS, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
 import TaskUI from '../../interface/ui-task/ui-task';
 import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 const candidatePoolSize = {
     smallOfficeStage: 7,
@@ -110,6 +111,7 @@ class Office {
         }
 
         this.draw(stageNum);
+        sound.play(SOUNDS.MANUAL_AMBIENT);
     }
 
     draw() {
@@ -210,8 +212,10 @@ class Office {
 
             if (this.takenDesks == this.stageText.hiringGoal) {
                 // console.log('stage complete!');
+                
                 waitForSeconds(1).then(() => {
                     // console.log('next stage!');
+                    sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
                     eventEmitter.emit(EVENTS.MANUAL_STAGE_COMPLETE, {
                         stageNumber: this.currentStage,
                     });

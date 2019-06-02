@@ -19,6 +19,7 @@ loader
 
 
 async function loadAssets() {
+    console.log('load assets!');
     await new Promise((resolve, reject) => {
         loader.load((loader, resources) => {
             SPRITES.doorAccepted = new PIXI.extras.AnimatedSprite(resources.officeDoor.spritesheet.animations['door']);
@@ -33,6 +34,7 @@ async function loadAssets() {
             // TODO: move data server scales to the data server component
             SPRITES.dataServerAccepted.scale.set(SCALES.DATA_SERVER[screenSizeDetector()]);
             SPRITES.dataServerRejected.scale.set(SCALES.DATA_SERVER[screenSizeDetector()]);
+            console.log('all textures have loaded!');
             resolve();
         });
     });
