@@ -42,13 +42,15 @@ const english = {
     },
 
     smallOfficeStage: {
+        subject: 'CONGRATULATIONS!',
         messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute and hire good talent!',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
 
     mediumOfficeStage: {
-        messageFromVc: 'However, if you want more funding you\’ll need to hire more - and faster!',
+        subject: 'Good start',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire more and faster, so pay attention to the clock!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
@@ -60,6 +62,7 @@ const english = {
     },
 
     largeOfficeStage: {
+        subject: 'We have to hire faster!',
         messageFromVc: 'Good effort, but you need to expand the team even faster to meet your targets! Can you pull this off?',
         responses: [
             'Of course!',
@@ -73,6 +76,7 @@ const english = {
     },
 
     mlTransition: {
+        subject: 'Switching to a hiring algorithm',
         messageFromVc: 'Talk to your engineers. Maybe they have a smart way to hire faster.',
         responses: [
             'Oh yeah, they are smart.',

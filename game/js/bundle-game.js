@@ -100674,8 +100674,10 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-textbox-overlay'); // This should be a single element
 
     _this.$textEl = _this.$el.find('.Textbox__content');
+    _this.$subjectEl = _this.$el.find('.Textbox__subject');
     _this.$buttons = _this.$el.find('.TextboxButton');
     _this.setContent = _this.setContent.bind(_assertThisInitialized(_this));
+    _this.subject = options.subject ? "RE: ".concat(options.subject) : 'RE: Bestfit investment';
     _this._mainContent = options.content || 'dummy text'; // TODO: change this to null
 
     _this._responseContent = options.responses || ['Okay'];
@@ -100709,6 +100711,7 @@ function (_UIBase) {
 
       var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
       this.$textEl.html(emailText);
+      this.$subjectEl.html(this.subject);
       this.$buttons.addClass(_classes["default"].IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
@@ -101651,6 +101654,7 @@ function () {
           new _uiTextbox["default"]({
             isRetry: true,
             stageNumber: _this2.currentStage,
+            subject: _this2.stageText.subject,
             content: _this2.stageText.retryMessage,
             responses: _this2.stageText.retryResponses,
             show: true,
@@ -104516,6 +104520,7 @@ var gameFSM = new machina.Fsm({
       _onEnter: function _onEnter() {
         currentStage = 0;
         new _uiTextbox["default"]({
+          subject: txt.smallOfficeStage.subject,
           content: txt.smallOfficeStage.messageFromVc,
           responses: txt.smallOfficeStage.responses,
           show: true,
@@ -104536,6 +104541,7 @@ var gameFSM = new machina.Fsm({
         currentStage = 1;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.mediumOfficeStage.subject,
           content: txt.mediumOfficeStage.messageFromVc,
           responses: txt.mediumOfficeStage.responses,
           show: true,
@@ -104556,6 +104562,7 @@ var gameFSM = new machina.Fsm({
         currentStage = 2;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.largeOfficeStage.subject,
           content: txt.largeOfficeStage.messageFromVc,
           responses: txt.largeOfficeStage.responses,
           show: true,
@@ -104572,6 +104579,7 @@ var gameFSM = new machina.Fsm({
         currentStage = 3;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.mlTransition.subject,
           content: txt.mlTransition.messageFromVc,
           responses: txt.mlTransition.responses,
           show: true,
