@@ -259,6 +259,26 @@ const english = {
             },
         ],
     },
+    selfPromoMessages: [
+        'Hire me!',
+        'I\'m the best',
+        'Help me support my family!',
+        'I\'m an expert!',
+        'Help me pay off debts!',
+        'I desperately need a job!',
+        'Choose me!',
+        'I\'m a nice person!',
+        'I am ambitious',
+        'Your startup has potential',
+        'You seem like a great CEO',
+        'I want to work for you',
+        'I am great with people',
+        'I can do better than these people',
+        'I am a fast learner',
+        'Why wouldn\'t you hire me?',
+        'I have two kids',
+        'I was the smartest in my class'
+    ]
 };
 
 const language = 'hungarian';

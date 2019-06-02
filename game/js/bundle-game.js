@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.9' };
+var core = module.exports = { version: '2.6.6' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
+var USE_NATIVE = typeof $Symbol == 'function';
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -95636,7 +95636,8 @@ function () {
     this.nextTimeUpdate = 3000;
     this.personTooltip = new _personTooltip["default"](); // TODO change this to a more robust setup
 
-    this.messages = ['Hire me!', 'I\'m the best', 'Help me support my family!', 'I\'m an expert!', 'Help me pay off debts!', 'I need this!', 'Choose me!', 'I\'m a nice person!'];
+    this.messages = txt.selfPromoMessages;
+    console.log("HELLO " + this.messages);
     if (this.stage === 'ml') this._addEventListeners();
   } // launch timeline: once it starts it runs on its own
 
@@ -97089,8 +97090,7 @@ function (_UIBase) {
       var _this2 = this;
 
       this.setColor(cv.color);
-      this.$nameEl.html(cv.name);
-      this.$taglineEl.html('personal tagline comes here');
+      this.$nameEl.html(cv.name); // this.$taglineEl.html('personal tagline comes here');
 
       this._resumeFeatures.forEach(function (feature, index) {
         var skillScore = cv.qualifications[index] * 10;
@@ -100598,7 +100598,8 @@ function () {
     this.task = new _uiTask["default"]({
       showTimer: false,
       placeLeft: true,
-      hires: txt.mlLabStage.hiringGoal
+      //hiring goal = number of people hired that would trigger the last investor email
+      hires: txt.mlLabStage.narration[txt.mlLabStage.narration.length - 1].delay
     });
     this.acceptedCount = 0;
     this.rejectedCount = 0;
@@ -100977,7 +100978,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
-var office = new _office.Office();
+var office;
 var currentStage;
 var revenue;
 var transitionOverlay;
@@ -100993,8 +100994,8 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
+        // this.transition('titleStage');
+        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
       }
@@ -101060,6 +101061,7 @@ var gameFSM = new machina.Fsm({
           stageNumber: currentStage,
           overlay: true
         });
+        office = new _office.Office();
       },
       nextStage: 'mediumOfficeStage',
       _onExit: function _onExit() {}
@@ -101144,7 +101146,7 @@ var gameFSM = new machina.Fsm({
         if (revenue) {
           revenue.show();
         } else {
-          office["delete"]();
+          if (office) office["delete"]();
           new _perfMetrics["default"]().show();
         }
 
