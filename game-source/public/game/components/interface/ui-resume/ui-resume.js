@@ -26,6 +26,8 @@ export default class extends UIBase {
         if (this.type === 'ml') {
             this.$el.addClass(CLASSES.ML_RESUME);
             this.$scanline.removeClass(CLASSES.IS_INACTIVE);
+        } else {
+            this.$el.addClass(CLASSES.ANIMATE_RESUME_ATTRIBUTES);
         }
 
         if (this._resumes === undefined || this._resumeFeatures === undefined) {

@@ -3,6 +3,10 @@
   pointer-events: none;
   @include buttonBox();
   @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'rose');
+  &.hiring-task-done {
+    @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
+    box-shadow: none;
+  }
   box-shadow: inset 0 0 0 2px color(shadow-rose-light);
     
   // padding: 2px padding(sm) padding(sm) padding(sm);
@@ -37,9 +41,16 @@
   &-title {
     color: color(txt-light-grey);
   }
+
+  &-feedback {
+    text-transform: uppercase;
+  }
   
   &-value {
     color: black;
+    .hiring-task-done & {
+      color: white;
+    }
     font-size: 1.2rem;
     @include mq($from: mobile-landscape) {
       line-height: 1rem;

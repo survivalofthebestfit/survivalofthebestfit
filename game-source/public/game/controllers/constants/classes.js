@@ -19,6 +19,8 @@ export default {
     DATASET_GRID_ITEM: 'DatasetGrid-item',
     FULLSCREEN_ICON_EXPANDED: 'FullscreenIcon--expanded',
     VOLUME_ICON_OFF: 'VolumeIcon--off',
+    ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
+    HIRING_TASK_DONE: 'hiring-task-done',
     ML: 'ml',
     OSCILLATE: 'u-oscillate',
     PULSATE: 'u-pulsate',

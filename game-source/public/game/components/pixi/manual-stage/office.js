@@ -11,7 +11,7 @@ import ResumeUI from '~/public/game/components/interface/ui-resume/ui-resume';
 import InstructionUI from '~/public/game/components/interface/ui-instruction/ui-instruction';
 import YesNo from '~/public/game/components/interface/yes-no/yes-no';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
-import {ANCHORS, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
+import {ANCHORS, EVENTS, SOUNDS, SCALES} from '~/public/game/controllers/constants';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
 import TaskUI from '../../interface/ui-task/ui-task';
 import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
@@ -29,8 +29,9 @@ const officeCoordinates = {
     exitDoorX: isMobile() ? 0.55 : 0.6,
     personStartX: 0.2,
     peoplePaddingX: 0.1,
-    personStartY: 0.87, // should be dependent on the floot size
-    xOffset: 0.06, // should be dependent 
+    // personStartY: 0.87, // should be dependent on the floot size
+    personStartY: computePersonY(),
+    xOffset: 0.06,
 };
 
 function computeSpotlight() {
@@ -38,6 +39,10 @@ function computeSpotlight() {
         x: uv2px(space.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
         y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h'),
     };
+}
+
+function computePersonY() {
+    return 1 - px2uv(isMobile() ? 15 : 25, 'h');
 }
 
 const spotlight = computeSpotlight();
@@ -289,10 +294,12 @@ class Office {
         const {xClampedOffset, startX} = this.centerPeopleLine(candidates);
         for (let i = 0; i < candidates; i++) {
             const x = startX + xClampedOffset * i;
-            const y = officeCoordinates.personStartY;
+            const y = computePersonY();
             const person = this.personContainer.getChildAt(i);
             if (person) repositionPerson(person, x, y);
         }
+        // reposition html elements
+        const h = document.body.clientHeight;
     }
 
     getCandidatePoolSize(currentStage) {

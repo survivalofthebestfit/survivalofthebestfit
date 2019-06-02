@@ -2,10 +2,11 @@
   position: absolute;
   display: flex;
   align-items: center;
-  bottom: 30px;
+  bottom: margin(sm);
   right: margin(sm);
+  height: 40px;
   @include mq($until: mobile-landscape) {
-    bottom: 15px;
+    bottom: margin(xs);
     right: margin(xs);
   }
   z-index: 5;

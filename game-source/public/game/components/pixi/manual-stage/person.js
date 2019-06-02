@@ -106,7 +106,7 @@ function createPerson(x, y, id, color) {
     person.color = color;
     person.uvX = x;
     person.x = uv2px(x, 'w');
-    person.y = uv2px(y, 'h');
+    person.y = uv2px(y, 'h') - person.height/2;
     person.originalX = person.x;
     person.originalY = person.y;
     person.type = 'person';
@@ -126,7 +126,7 @@ function repositionPerson(person, x, y) {
     person.scale.set(SCALES.PEOPLE[screenSizeDetector()]);
     person.uvX = x;
     person.x = uv2px(x, 'w');
-    person.y = uv2px(y, 'h');
+    person.y = uv2px(y, 'h') - person.height/2;
     person.originalX = person.x;
     person.originalY = person.y;
     if (person.id === candidateInSpot) {
