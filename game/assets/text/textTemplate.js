@@ -175,7 +175,7 @@ const english = {
 
         narration: [
             {
-                delay: 1,
+                delay: 2,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
@@ -183,7 +183,7 @@ const english = {
                 ],
             },
             {
-                delay: 3,
+                delay: 4,
                 messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working!',
                 responses: [
                     'Great to hear!',
@@ -206,7 +206,7 @@ const english = {
                 },
             },
             {
-                delay: 12,
+                delay: 8,
                 messageFromVc: 'Hello, just checking in on the progress so far. How are the hiring decisions looking?',
                 responses: [
                     'Let me take a look',
@@ -214,7 +214,7 @@ const english = {
                 ],
             },
             {
-                delay: 16,
+                delay: 10,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -230,7 +230,7 @@ const english = {
                 ],
             },
             {
-                delay: 20,
+                delay: 12,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
@@ -246,10 +246,10 @@ const english = {
                 ],
             },
             {
-                delay: 24,
-                messageFromVc: 'Hey, you are all over the news for biased hiring. All the investors are pulling out! You have to turn this story around, so I\'m sending you to AI debiasing camp in Blueville. Think of it as a paid vacation.',
+                delay: 14,
+                messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
-                    'Start learning about bias',
+                    'Start learning about AI and bias',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
@@ -264,17 +264,17 @@ const english = {
         'I\'m the best',
         'Help me support my family!',
         'I\'m an expert!',
-        'Help me pay off debts!',
+        'Help me pay off my student loan!',
         'I desperately need a job!',
         'Choose me!',
         'I\'m a nice person!',
         'I am ambitious',
-        'Your startup has potential',
+        'This is the startup with potential',
         'You seem like a great CEO',
         'I want to work for you',
         'I am great with people',
         'I can do better than these people',
-        'I am a fast learner',
+        'I am a fast learner!',
         'Why wouldn\'t you hire me?',
         'I have two kids',
         'I was the smartest in my class'
