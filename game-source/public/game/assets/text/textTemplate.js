@@ -68,19 +68,19 @@ const english = {
             'Of course!',
             'I\'m a bit overwhelmed.',
         ],
-        hiringGoal: 10,
+        hiringGoal: 8,
         retryMessage: 'You ran out of time. The progress is not good enough. Try again.',
         retryResponses: ['I will grow aggressively this time.'],
-        duration: 60
+        duration: 45
 
     },
 
     mlTransition: {
         subject: 'Switching to a hiring algorithm',
-        messageFromVc: 'Talk to your engineers. Maybe they have a smart way to hire faster.',
+        messageFromVc: 'Solid work, but we keep getting flooded with new applications and I don\'t think we can keep up anymore. Talk to your engineers, maybe they can help us hire faster.',
         responses: [
-            'Oh yeah, they are smart.',
-            'Hmm. Would they?',
+            'Sure, perhaps we can automate things',
+            'Hmm. How could they help?',
         ],
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
@@ -132,7 +132,7 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far, along with the outcome? It should be on your desktop as (‘cv_all.zip’)',
+            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far, along with the outcome? It should be on your desktop as (<u>cv_all.zip</u>)',
             file_drag: true,
             answer_choice: [],
         },

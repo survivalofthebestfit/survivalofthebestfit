@@ -1,41 +1,24 @@
 import {Howl, Howler} from 'howler';
-import {SOUNDS, DEBUG_MODE} from '../constants';
+import {SOUND_MANIFEST, DEBUG_MODE} from '../constants';
 
-const SOUNDS_DIR = './assets/sound';
 let soundMuted = false;
-
-const {
-    MANUAL_AMBIENT,
-} = SOUNDS;
-
-const soundsList = [
-    {
-        name: MANUAL_AMBIENT,
-        path: `${SOUNDS_DIR}/${MANUAL_AMBIENT}.mp3`,
-        player: null, 
-        loop: true,
-        playerID: null,
-        volume: 0.3,
-    },
-];
 
 export const init = () => {
     window.addEventListener('click', resumeAudioContext);
 };
-export const load = () => Promise.all(soundsList.map((sound) => loadSound(sound.name)));
+export const load = () => Promise.all(SOUND_MANIFEST.map((sound) => loadSound(sound.name)));
 
 export const toggleVolume = () => {
     soundMuted = !soundMuted;
     Howler.mute(soundMuted);
 };
 
-
 const resumeAudioContext = () => {
     if (Howler.ctx !== null) {
         Howler.ctx.resume();
         if (DEBUG_MODE) {
             console.log('mute sound so you do not go crazy');
-            Howler.mute(true);
+            // Howler.mute(true);
         }
     } else {
         throw new Error('we did not find an audio context on Howler');
@@ -87,4 +70,4 @@ export const loadSound = (name) => new Promise((resolve, reject) => {
 });
 
 
-const findSoundByName = (name) => soundsList.find((sound) => sound.name === name);
+const findSoundByName = (name) => SOUND_MANIFEST.find((sound) => sound.name === name);

@@ -116,7 +116,7 @@ class Office {
         }
 
         this.draw(stageNum);
-        sound.play(SOUNDS.MANUAL_AMBIENT);
+        // sound.play(SOUNDS.MANUAL_AMBIENT);
     }
 
     draw() {
@@ -194,6 +194,7 @@ class Office {
 
         this.acceptedHandler = () => {
             // console.log('record accepted!');
+            sound.play(SOUNDS.PERSON_ACCEPTED);
             dataModule.recordAccept(candidateInSpot);
             this.takenDesks += 1;
             const hiredPerson = this.allPeople[candidateInSpot];

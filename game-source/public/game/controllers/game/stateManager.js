@@ -143,7 +143,7 @@ const gameFSM = new machina.Fsm({
                     show: true,
                     overlay: true,
                     isTransition: true,
-                    displayScore: true,
+                    displayScore: false,
                 });
 
                 eventEmitter.on(EVENTS.TRANSITION_INSTRUCTION_ACKED, () => {
