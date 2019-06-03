@@ -1,9 +1,6 @@
 import * as PIXI from 'pixi.js';
 import {uv2px, clamp, screenSizeDetector} from '~/public/game/controllers/common/utils.js';
-import COLORS from '~/public/game/controllers/constants/pixi-colors.js';
-import ANCHORS from '~/public/game/controllers/constants/pixi-anchors';
-import EVENTS from '~/public/game/controllers/constants/events.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
+import {COLORS, ANCHORS, EVENTS, SCALES} from '~/public/game/controllers/constants';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class {

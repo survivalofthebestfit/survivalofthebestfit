@@ -1,12 +1,10 @@
-import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
+import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
 import {uv2px} from '~/public/game/controllers/common/utils.js';
-import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import EVENTS from '~/public/game/controllers/constants/events.js';
+import {EVENTS, ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants';
 import MLPerson from '~/public/game/components/pixi/ml-stage/person';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
-import {ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 
 export default class {
     constructor() {

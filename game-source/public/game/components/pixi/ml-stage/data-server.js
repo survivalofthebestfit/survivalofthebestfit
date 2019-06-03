@@ -2,8 +2,7 @@ import $ from 'jquery';
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
 import {screenSizeDetector, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {SCALES, CLASSES} from '~/public/game/controllers/constants';
 
 export default class {
     constructor({machine, type}) {

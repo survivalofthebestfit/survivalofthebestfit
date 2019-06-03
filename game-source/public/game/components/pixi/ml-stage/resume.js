@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
-import {cvTexture} from '../../../controllers/common/textures.js';
+import {cvTexture} from '~/public/game/controllers/common/textures.js';
 import {screenSizeDetector} from '~/public/game/controllers/common/utils.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
+import {SCALES} from '~/public/game/controllers/constants';
 
 export default class {
     constructor(options) {

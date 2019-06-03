@@ -108,6 +108,10 @@
   &__progress {
     height: inherit;
 
+    .animate-attributes & {
+      transition: width 0.5s ease-in-out;
+    }
+
     .Resume--yellow & {
       background-color: color(skill-val-yellow);
     }

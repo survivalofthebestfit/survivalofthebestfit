@@ -1,17 +1,11 @@
-import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
-import {bluePersonTexture} from '~/public/game/controllers/common/textures.js';
-import {yellowPersonTexture} from '~/public/game/controllers/common/textures.js';
-import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
-import EVENTS from '~/public/game/controllers/constants/events.js';
-import {screenSizeDetector} from '~/public/game/controllers/common/utils.js';
-import {uv2px} from '~/public/game/controllers/common/utils';
-
+import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
+import {SCALES, EVENTS, ANIM} from '~/public/game/controllers/constants/index.js';
+import {screenSizeDetector, createPersonSprite, uv2px, getAnimationByName} from '~/public/game/controllers/common/utils.js';
 
 export default class {
     constructor({x, parent, personData, id}) {
         this.personData = personData;
-        this.person = this.personData.color === 'yellow' ? new PIXI.Sprite(yellowPersonTexture) : new PIXI.Sprite(bluePersonTexture);
+        this.person = createPersonSprite(this.personData.color);
         this.x = x;
         this.parentContainer = parent;
         this.id = id;
@@ -21,6 +15,8 @@ export default class {
 
     addToPixi() {
         this.person.id = this.id;
+        this.person.animationState = ANIM.IDLE;
+        this.person.animationSpeed = 0.6;
         this.person.anchor.set(0.5);
         this.parentContainer.addChild(this.person);
         this._draw();
@@ -34,6 +30,18 @@ export default class {
 
     getData() {
         return this.personData;
+    }
+
+    playSpriteAnimation(anim) {
+        if (this.person.animationState !== anim) this.updateAnimationState(anim);
+        this.person.play();
+    }
+    
+    updateAnimationState(anim = ANIM.IDLE) {
+        const newAnim = getAnimationByName({color: this.personData.color, animName: anim});
+        this.person.stop();
+        this.person.textures = newAnim;
+        this.person.animationState = anim;
     }
 
     removeFromLine({decision}) {
@@ -60,6 +68,7 @@ export default class {
         tween.time = duration;
         tween.on('end', this.removeFromScreen.bind(this));
         tween.start();
+        this.playSpriteAnimation(ANIM.WALK_NEUTRAL);
     }
 
     removeFromScreen() {

@@ -24,5 +24,7 @@ export default {
     CHANGE_SPOTLIGHT_STATUS: 'change-spotlight-status',
     MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
     UPDATE_INSTRUCTIONS: 'update-instructions',
+    HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
     EXIT_TRANSITION_STAGE: 'exit-transition-stage',
+    TITLE_STAGE_COMPLETED: 'title-stage-completed',
 };

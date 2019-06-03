@@ -1,10 +1,9 @@
 import * as PIXI from 'pixi.js';
 import Resume from './resume';
-import {mlLabStageContainer} from '../../../controllers/game/gameSetup';
-import {beltTexture, cvTexture} from '../../../controllers/common/textures.js';
+import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
+import {beltTexture, cvTexture} from '~/public/game/controllers/common/textures.js';
 import {screenSizeDetector, uv2px} from '~/public/game/controllers/common/utils.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
-import ANCHORS from '~/public/game/controllers/constants/pixi-anchors';
+import {SCALES, ANCHORS} from '~/public/game/controllers/constants';
 
 export default class {
     constructor() {
