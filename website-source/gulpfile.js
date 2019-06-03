@@ -34,12 +34,12 @@ function pugCompile() {
         .pipe(gulp.dest('../dist/resources/')); 
 };
 
-function pugComp() {
-    return gulp.src('conclusion/*') 
-        .pipe(pug())
-        // .pipe(rename('game.html'))
-        .pipe(gulp.dest('../dist/conclusion')); 
-};
+// function pugComp() {
+//     return gulp.src('conclusion/*') 
+//         .pipe(pug())
+//         // .pipe(rename('game.html'))
+//         .pipe(gulp.dest('../dist/conclusion')); 
+// };
 
 // Copy image files
 function copyImg() {

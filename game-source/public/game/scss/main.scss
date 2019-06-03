@@ -41,3 +41,40 @@
 @import '../components/interface/training-stage/training-overlay/training-overlay';
 // components -- mobile // warning
 @import '../components/interface/ui-mobile-notification/ui-mobile-notification';
+
+#conclusion {
+	display: none;
+	width: 100%;
+	height: 100%;
+	margin-bottom: 50%;
+
+	h3 {
+		font-size: 1.4rem;
+	}
+
+
+	.button {
+		width: 5rem; 
+		height: 1rem; 
+		float: left;
+		margin-bottom: 5%;
+
+		p {
+		font-size: 1.0rem;
+		}
+	}
+
+	p {
+		letter-spacing: 0;
+		font-size: 1.2rem;
+	}
+}
+
+#part3 {
+	display: none;
+}
+#part2 {
+	//display: none;
+	clear: left;
+
+}

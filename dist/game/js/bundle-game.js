@@ -100993,10 +100993,12 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        //this.transition('titleStage');
+        // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
+        this.transition('explainerStage');
       }
     },
 
@@ -101151,7 +101153,16 @@ var gameFSM = new machina.Fsm({
         new _mlLabNarrator["default"]();
       },
       // TODO destroy the lab!
-      nextStage: 'Oh gosh we haven\'t even started it hahah'
+      nextStage: 'explainerStage'
+    },
+    explainerStage: {
+      _onEnter: function _onEnter() {
+        console.log("entered stage");
+        var doc = document.getElementById("conclusion");
+        doc.style.display = "block"; //console.log("entered stage");
+        //training2 = new TrainingStageOverlay();
+      } //nextStage: 'mlLabStage',
+
     }
   },
   startGame: function startGame() {

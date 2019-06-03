@@ -25,11 +25,12 @@ const gameFSM = new machina.Fsm({
     states: {
         uninitialized: {
             startGame: function() {
-                this.transition('titleStage');
+                //this.transition('titleStage');
                 // this.transition('smallOfficeStage');
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 // this.transition('mlLabStage');
+                this.transition('explainerStage');
             },
         },
 
@@ -203,8 +204,27 @@ const gameFSM = new machina.Fsm({
                 new MlLabNarrator();
             },
             // TODO destroy the lab!
-            nextStage: 'Oh gosh we haven\'t even started it hahah',
+            nextStage: 'explainerStage',
 
+        },
+
+
+        explainerStage: {
+            _onEnter: function() {
+                console.log("entered stage");
+                var doc = document.getElementById("conclusion");
+                doc.style.display = "block";   
+
+                     
+                
+                //console.log("entered stage");
+                //training2 = new TrainingStageOverlay();
+            },
+
+
+            //nextStage: 'mlLabStage',
+
+            
         },
 
     },
