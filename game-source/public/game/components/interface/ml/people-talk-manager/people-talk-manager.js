@@ -15,16 +15,7 @@ export default class {
         this.nextTimeUpdate = 3000;
         this.personTooltip = new PersonTooltip();
         // TODO change this to a more robust setup
-        this.messages = [
-            'Hire me!',
-            'I\'m the best',
-            'Help me support my family!',
-            'I\'m an expert!',
-            'Help me pay off debts!',
-            'I need this!',
-            'Choose me!',
-            'I\'m a nice person!',
-        ];
+        this.messages = txt.selfPromoMessages;
         if (this.stage === 'ml') this._addEventListeners();
     }
 

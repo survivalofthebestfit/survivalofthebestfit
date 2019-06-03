@@ -15,6 +15,7 @@ class DataModule {
         this.colorArr = [];
         this.averageScore = [0, 0, 0, 0];
         this.skillFeatureSize = cvCollection.cvFeatures.length;
+        this.toInspectIndex;
     }
 
     recordAccept(personIndex) {
@@ -30,7 +31,6 @@ class DataModule {
     }
 
     getAverageScore(options) {
-        //TODO optimize calculation so that any additional one CV can be calculated without having to recalc the whole batch
         let _index = 0;
         let averageScore = [0,0,0,0]
         let selectedIndexArray = [];
@@ -68,6 +68,7 @@ class DataModule {
         let hiredAverage = this.getAverageScore({selectedIndexArray: this.accepted});
         let candidateAverage = this.getAverageScore({indexRange: [0, this.lastIndex]});
 
+        //currently displaying only the skill with max difference from the average i.e. most prioritized feature
         const formatScoreText = (maxDiff, maxDiffFeature) => `You hired people with ${maxDiff}% more ${maxDiffFeature.toLowerCase()} than the average applicant.`;
 
         let diff = [];
@@ -158,6 +159,25 @@ class DataModule {
         // BE CAREFUL! IF DATASET IS REGENERATED ON THE PYTHON SIDE, THE INDICES STILL REFER TO THE OLD DB
         // function best called in the beginning of training
         return;
+    }
+
+    chooseCandidateToInspect() {
+
+        let buffer = 5;
+        let counter = this.lastIndex + buffer;
+        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
+
+        //we choose the first blue candidate with average score beyond threshold
+        while(counter < cvCollection.cvData.length) {
+            if (cvCollection.cvData[counter].color == "blue") {
+                let scoreArray = this.getAverageScore({selectedIndexArray: [counter]});
+                if (getAverage(scoreArray) > 6) {
+                    return counter;
+                }
+            }
+            counter++;
+        }
+        return this.lastIndex;
     }
 }
 

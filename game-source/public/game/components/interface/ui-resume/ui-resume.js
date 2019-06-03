@@ -39,7 +39,7 @@ export default class extends UIBase {
     showCV(cv) {
         this.setColor(cv.color);
         this.$nameEl.html(cv.name);
-        this.$taglineEl.html('personal tagline comes here');
+        // this.$taglineEl.html('personal tagline comes here');
         this._resumeFeatures.forEach((feature, index) => {
             const skillScore = cv.qualifications[index]*10;
             const skillClass = `.${CLASSES.CV_CATEGORY}--${feature.class}`;

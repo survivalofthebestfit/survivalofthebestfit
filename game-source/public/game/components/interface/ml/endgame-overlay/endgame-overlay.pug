@@ -1,4 +1,9 @@
 include ../../ui-overlay/ui-overlay.pug
 +overlay()(id="js-endgame-overlay" class="EndgameOverlay")
-  h1 This is the end
-  p (For now)
+  .EndgameOverlay__text
+    h1 So, what went wrong?
+    br
+    p Get a breakdown of the game
+    br
+    include ../../../universal/button/button
+    +button('Understand').EndgameOverlay__button

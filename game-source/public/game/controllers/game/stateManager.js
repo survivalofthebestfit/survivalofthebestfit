@@ -8,13 +8,15 @@ import PerfMetrics from '~/public/game/components/interface/perf-metrics/perf-me
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
 import EVENTS from '~/public/game/controllers/constants/events';
+import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
 
-let office = new Office();
+let office;
 let currentStage;
 let revenue;
 let transitionOverlay;
 let trainingStageOverlay;
 let titlePageUI;
+let mlLab;
 
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -25,12 +27,12 @@ const gameFSM = new machina.Fsm({
     states: {
         uninitialized: {
             startGame: function() {
-                //this.transition('titleStage');
+                this.transition('titleStage');
                 // this.transition('smallOfficeStage');
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 // this.transition('mlLabStage');
-                this.transition('explainerStage');
+                // this.transition('gameBreakdown');
             },
         },
 
@@ -88,7 +90,6 @@ const gameFSM = new machina.Fsm({
         smallOfficeStage: {
             _onEnter: function() {
                 currentStage = 0;
-
                 new TextBoxUI({
                     content: txt.smallOfficeStage.messageFromVc,
                     responses: txt.smallOfficeStage.responses,
@@ -96,6 +97,7 @@ const gameFSM = new machina.Fsm({
                     stageNumber: currentStage,
                     overlay: true,
                 });
+                office = new Office();
             },
 
             nextStage: 'mediumOfficeStage',
@@ -197,34 +199,24 @@ const gameFSM = new machina.Fsm({
                 if (revenue) {
                     revenue.show();
                 } else {
-                    office.delete();
+                    if (office) office.delete();
                     new PerfMetrics().show();
                 }
 
-                new MlLabNarrator();
+                mlLab = new MlLabNarrator();
             },
-            // TODO destroy the lab!
-            nextStage: 'explainerStage',
 
+            nextStage: 'gameBreakdown',
+
+            _onExit: function() {
+            },
         },
 
-
-        explainerStage: {
+        gameBreakdown: {
             _onEnter: function() {
-                console.log("entered stage");
-                var doc = document.getElementById("conclusion");
-                doc.style.display = "block";   
-
-                     
-                
-                //console.log("entered stage");
-                //training2 = new TrainingStageOverlay();
+                new EndGameOverlay();
+                if (mlLab) mlLab.destroy();
             },
-
-
-            //nextStage: 'mlLabStage',
-
-            
         },
 
     },
