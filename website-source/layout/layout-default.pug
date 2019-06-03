@@ -8,20 +8,38 @@ html
     meta(name='csrf-token', content=_csrf)
     title #{title} Survival of the Best Fit
     link(rel='shortcut icon', href='favicon.png')
-    link(rel='stylesheet', href="../vendor/bootstrap/css/bootstrap.min.css")
-    link(rel='stylesheet', href="../vendor/fontawesome-free/css/all.min.css")
-    link(rel='stylesheet', href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,700")
-    link(rel='stylesheet', href="../css/styles-website.min.css")
+    link(rel='stylesheet', href='../vendor/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet', href='../vendor/fontawesome-free/css/all.min.css')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Roboto+Mono:400,700')
+    link(rel='stylesheet', href='../css/styles-website.min.css')
     
 
   body
+    nav(class='navbar navbar-expand-lg navbar-light fixed-top' id='mainNav')
+        .container
+            a(class='navbar-brand js-scroll-trigger text-dark-pink' href='../') 
+                h1 SOTBF
+            button(class='navbar-toggler navbar-toggler-right' type='button' data-toggle='collapse' data-target='#navbarResponsive' aria-controls='navbarResponsive' aria-expanded='false' aria-label='Toggle navigation') Menu
+                i(class='fas fa-bars')            
+            div(id='navbarResponive' class='collapse navbar-collapse')
+                ul(class='navbar-nav ml-auto')
+                    li(class='nav-item')
+                        a(class='nav-link js-scroll-trigger' href='../#about') About
+                    li(class='nav-item')
+                        a(class='nav-link js-scroll-trigger' href='../#contact') Contact
+                    li(class='nav-item')
+                        a(class='nav-link js-scroll-trigger' href='../resources') Resources
+                    li(class='nav-item')
+                        a(class='nav-link js-scroll-trigger' href='../game') Game
+ 
+  
 
     block content
 
-    script(src='../../game/assets/text/textTemplate.js')
+    
 
     //- Global site tag (gtag.js) - Google Analytics 
-    //script(async src="https://www.googletagmanager.com/gtag/js?id=UA-138331065-1")
+    //script(async src='https://www.googletagmanager.com/gtag/js?id=UA-138331065-1')
     //script.
     //  window.dataLayer = window.dataLayer || []
     //  function gtag(){dataLayer.push(arguments)}

@@ -101,9 +101,9 @@ function compileJs(done, watchFlag) {
         bundler.on('update', function() {
             console.log('-> bundling...');
             rebundle();
-            browserSyncReload(() => {
-                console.log('Refreshed js')
-            });
+            // browserSyncReload(() => {
+            //     console.log('Refreshed js')
+            // });
         });
         rebundle();
     } else {

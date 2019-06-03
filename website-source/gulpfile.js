@@ -24,14 +24,32 @@ const banner = ['/*!\n',
 ].join('');
 
 
+
+
 // Pug
 function pugCompile() {
     return gulp.src('resources/index.pug') 
         .pipe(pug())
         // .pipe(rename('game.html'))
-        .pipe(gulp.dest('../dist/resources')); 
+        .pipe(gulp.dest('../dist/resources/')); 
 };
 
+function pugComp() {
+    return gulp.src('conclusion/*') 
+        .pipe(pug())
+        // .pipe(rename('game.html'))
+        .pipe(gulp.dest('../dist/conclusion')); 
+};
+
+// Copy image files
+function copyImg() {
+  return gulp
+    .src([
+      './img-website/**/*',
+    ])
+    .pipe(imagemin())
+    .pipe(gulp.dest('../dist/img-website/'));
+}
 
 
 // BrowserSync
@@ -149,9 +167,15 @@ function watchFiles() {
   gulp.watch("./js/**/*", js).on('add', function(path, stats) {
     console.log(`File ${path} was added`);
   });
-  gulp.watch('./resources/*', gulp.series(pugCompile, browserSyncReload)).on('add', function(path, stats) {
+  gulp.watch('./resources/*', gulp.series(pugCompile,browserSyncReload)).on('add', function(path, stats) {
         console.log(`File ${path} was added`);
     });
+
+  gulp.watch('./conclusion/*', gulp.series(pugComp, browserSyncReload)).on('add', function(path, stats) {
+        console.log(`File ${path} was added`);
+    });
+
+
   gulp.watch(["!./node_modules", "./**/*.html"], browserSyncReload).on('add', function(path, stats) {
     console.log(`File ${path} was added`);
   });
@@ -160,7 +184,7 @@ function watchFiles() {
 
 // Define complex tasks
 const vendor = gulp.series(clean, modules);
-const build = gulp.series(vendor, gulp.parallel(css, js, copyHtml, copyImg, pugCompile));
+const build = gulp.series(vendor, gulp.parallel(css, js, copyHtml, copyImg, pugCompile, pugComp));
 const watch = gulp.series(build, gulp.parallel(watchFiles, browserSync));
 
 // Export tasks

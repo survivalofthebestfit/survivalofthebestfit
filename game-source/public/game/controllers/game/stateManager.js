@@ -8,13 +8,15 @@ import PerfMetrics from '~/public/game/components/interface/perf-metrics/perf-me
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
 import EVENTS from '~/public/game/controllers/constants/events';
+import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
 
-const office = new Office();
+let office;
 let currentStage;
 let revenue;
 let transitionOverlay;
 let trainingStageOverlay;
 let titlePageUI;
+let mlLab;
 
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -30,6 +32,7 @@ const gameFSM = new machina.Fsm({
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 // this.transition('mlLabStage');
+                // this.transition('gameBreakdown');
             },
         },
 
@@ -63,7 +66,6 @@ const gameFSM = new machina.Fsm({
         smallOfficeStage: {
             _onEnter: function() {
                 currentStage = 0;
-
                 new TextBoxUI({
                     subject: txt.smallOfficeStage.subject,
                     content: txt.smallOfficeStage.messageFromVc,
@@ -72,6 +74,7 @@ const gameFSM = new machina.Fsm({
                     stageNumber: currentStage,
                     overlay: true,
                 });
+                office = new Office();
             },
 
             nextStage: 'mediumOfficeStage',
@@ -180,11 +183,20 @@ const gameFSM = new machina.Fsm({
                     new PerfMetrics().show();
                 }
 
-                new MlLabNarrator();
+                mlLab = new MlLabNarrator();
             },
-            // TODO destroy the lab!
-            nextStage: 'Oh gosh we haven\'t even started it hahah',
 
+            nextStage: 'gameBreakdown',
+
+            _onExit: function() {
+            },
+        },
+
+        gameBreakdown: {
+            _onEnter: function() {
+                new EndGameOverlay();
+                if (mlLab) mlLab.destroy();
+            },
         },
 
     },

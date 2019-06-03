@@ -57,7 +57,8 @@ export default class MlLabAnimator {
         this.task = new TaskUI({
             showTimer: false, 
             placeLeft: true,
-            hires: txt.mlLabStage.hiringGoal
+            //hiring goal = number of people hired that would trigger the last investor email
+            hires: txt.mlLabStage.narration[txt.mlLabStage.narration.length-1].delay
         });
 
         this.acceptedCount = 0;
@@ -181,7 +182,6 @@ export default class MlLabAnimator {
         this.resumeLineTween.remove();
         this.machineRayTween.destroy(); // PIXI spritesheet - destroy
         this.resumeScanTween.kill(); // GSAP tween - kill
-        this.serverDummyAnim.destroy();
     };
 
     destroy() {
