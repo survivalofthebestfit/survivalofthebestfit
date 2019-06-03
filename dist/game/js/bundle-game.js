@@ -95347,6 +95347,7 @@ function (_UIBase) {
       });
       if (!this.$icon.hasClass(_classes["default"].PULSATE)) this.$icon.addClass(_classes["default"].PULSATE);
       this.$text.html(this.content);
+      this.$icon.removeClass(_classes["default"].IS_INACTIVE);
       this.$tooltip.addClass(_classes["default"].IS_INACTIVE);
     }
   }, {
@@ -95637,7 +95638,6 @@ function () {
     this.personTooltip = new _personTooltip["default"](); // TODO change this to a more robust setup
 
     this.messages = txt.selfPromoMessages;
-    console.log("HELLO " + this.messages);
     if (this.stage === 'ml') this._addEventListeners();
   } // launch timeline: once it starts it runs on its own
 
@@ -100752,8 +100752,6 @@ function () {
       this.machineRayTween.destroy(); // PIXI spritesheet - destroy
 
       this.resumeScanTween.kill(); // GSAP tween - kill
-
-      this.serverDummyAnim.destroy();
     }
   }, {
     key: "destroy",
@@ -100803,6 +100801,8 @@ var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-t
 var _infoTooltip = _interopRequireDefault(require("../../components/interface/ml/info-tooltip/info-tooltip"));
 
 var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
+
+var _stateManager = require("./stateManager.js");
 
 var _newsFeed = _interopRequireDefault(require("../../components/interface/ml/news-feed/news-feed.js"));
 
@@ -100905,7 +100905,10 @@ function () {
           'event_category': 'default',
           'event_label': 'how-far-do-ppl-get'
         });
-        new _endgameOverlay["default"]();
+
+        _stateManager.gameFSM.nextStage(); // new EndGameOverlay();
+
+
         return;
       }
     } // update schedule: pop the first timer value from the array
@@ -100938,7 +100941,14 @@ function () {
     }
   }, {
     key: "destroy",
-    value: function destroy() {}
+    value: function destroy() {
+      this.stop();
+      this.animator.destroy();
+
+      this._removeEventListeners();
+
+      this.newsFeed.destroy();
+    }
   }]);
 
   return MlLabNarrator;
@@ -100946,7 +100956,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":582,"./mlLabAnimator.js":583}],585:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":582,"./mlLabAnimator.js":583,"./stateManager.js":585}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100974,6 +100984,8 @@ var _trainingOverlay = _interopRequireDefault(require("../../components/interfac
 
 var _events = _interopRequireDefault(require("../constants/events"));
 
+var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
@@ -100984,6 +100996,7 @@ var revenue;
 var transitionOverlay;
 var trainingStageOverlay;
 var titlePageUI;
+var mlLab;
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
  * Gamestates is for the orchestration and sequencing of object creation.
@@ -100994,10 +101007,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
+        // this.transition('gameBreakdown');
       }
     },
 
@@ -101150,10 +101164,16 @@ var gameFSM = new machina.Fsm({
           new _perfMetrics["default"]().show();
         }
 
-        new _mlLabNarrator["default"]();
+        mlLab = new _mlLabNarrator["default"]();
       },
-      // TODO destroy the lab!
-      nextStage: 'Oh gosh we haven\'t even started it hahah'
+      nextStage: 'gameBreakdown',
+      _onExit: function _onExit() {}
+    },
+    gameBreakdown: {
+      _onEnter: function _onEnter() {
+        new _endgameOverlay["default"]();
+        if (mlLab) mlLab.destroy();
+      }
     }
   },
   startGame: function startGame() {
@@ -101168,7 +101188,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":582,"./mlLabNarrator":584,"machina":337}],586:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":582,"./mlLabNarrator":584,"machina":337}],586:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101206,6 +101226,7 @@ function () {
     this.colorArr = [];
     this.averageScore = [0, 0, 0, 0];
     this.skillFeatureSize = _cvCollection.cvCollection.cvFeatures.length;
+    this.toInspectIndex;
   }
 
   _createClass(DataModule, [{
@@ -101228,7 +101249,6 @@ function () {
     value: function getAverageScore(options) {
       var _this = this;
 
-      //TODO optimize calculation so that any additional one CV can be calculated without having to recalc the whole batch
       var _index = 0;
       var averageScore = [0, 0, 0, 0];
       var selectedIndexArray = []; //this is for an array of all selected indices
@@ -101264,7 +101284,7 @@ function () {
       });
       var candidateAverage = this.getAverageScore({
         indexRange: [0, this.lastIndex]
-      });
+      }); //currently displaying only the skill with max difference from the average i.e. most prioritized feature
 
       var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
         return "You hired people with ".concat(maxDiff, "% more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
@@ -101375,6 +101395,35 @@ function () {
       // BE CAREFUL! IF DATASET IS REGENERATED ON THE PYTHON SIDE, THE INDICES STILL REFER TO THE OLD DB
       // function best called in the beginning of training
       return;
+    }
+  }, {
+    key: "chooseCandidateToInspect",
+    value: function chooseCandidateToInspect() {
+      var buffer = 5;
+      var counter = this.lastIndex + buffer;
+
+      var getAverage = function getAverage(array) {
+        return array.reduce(function (a, b) {
+          return a + parseInt(b);
+        }, 0) / array.length;
+      }; //we choose the first blue candidate with average score beyond threshold
+
+
+      while (counter < _cvCollection.cvCollection.cvData.length) {
+        if (_cvCollection.cvCollection.cvData[counter].color == "blue") {
+          var scoreArray = this.getAverageScore({
+            selectedIndexArray: [counter]
+          });
+
+          if (getAverage(scoreArray) > 6) {
+            return counter;
+          }
+        }
+
+        counter++;
+      }
+
+      return this.lastIndex;
     }
   }]);
 

@@ -182,7 +182,6 @@ export default class MlLabAnimator {
         this.resumeLineTween.remove();
         this.machineRayTween.destroy(); // PIXI spritesheet - destroy
         this.resumeScanTween.kill(); // GSAP tween - kill
-        this.serverDummyAnim.destroy();
     };
 
     destroy() {

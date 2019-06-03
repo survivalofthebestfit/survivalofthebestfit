@@ -8,6 +8,7 @@ import PerfMetrics from '~/public/game/components/interface/perf-metrics/perf-me
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
 import EVENTS from '~/public/game/controllers/constants/events';
+import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
 
 let office;
 let currentStage;
@@ -15,6 +16,7 @@ let revenue;
 let transitionOverlay;
 let trainingStageOverlay;
 let titlePageUI;
+let mlLab;
 
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -25,11 +27,12 @@ const gameFSM = new machina.Fsm({
     states: {
         uninitialized: {
             startGame: function() {
-                // this.transition('titleStage');
-                this.transition('smallOfficeStage');
+                this.transition('titleStage');
+                // this.transition('smallOfficeStage');
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 // this.transition('mlLabStage');
+                // this.transition('gameBreakdown');
             },
         },
 
@@ -200,11 +203,20 @@ const gameFSM = new machina.Fsm({
                     new PerfMetrics().show();
                 }
 
-                new MlLabNarrator();
+                mlLab = new MlLabNarrator();
             },
-            // TODO destroy the lab!
-            nextStage: 'Oh gosh we haven\'t even started it hahah',
 
+            nextStage: 'gameBreakdown',
+
+            _onExit: function() {
+            },
+        },
+
+        gameBreakdown: {
+            _onEnter: function() {
+                new EndGameOverlay();
+                if (mlLab) mlLab.destroy();
+            },
         },
 
     },

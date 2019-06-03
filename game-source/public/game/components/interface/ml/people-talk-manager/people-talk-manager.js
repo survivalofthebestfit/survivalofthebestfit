@@ -16,7 +16,6 @@ export default class {
         this.personTooltip = new PersonTooltip();
         // TODO change this to a more robust setup
         this.messages = txt.selfPromoMessages;
-        console.log("HELLO " + this.messages)
         if (this.stage === 'ml') this._addEventListeners();
     }
 

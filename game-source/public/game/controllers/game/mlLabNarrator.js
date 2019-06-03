@@ -4,6 +4,7 @@ import CLASSES from '~/public/game/controllers/constants/classes';
 import TextboxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import InfoTooltip from '~/public/game/components/interface/ml/info-tooltip/info-tooltip';
 import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
+import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 
 import NewsFeedUI from '~/public/game/components/interface/ml/news-feed/news-feed.js';
 import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
@@ -11,8 +12,8 @@ import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class MlLabNarrator {
     constructor() {
+
         this.animator = new MlLabAnimator();
-        
         this.newsFeed = new NewsFeedUI({show: true});
         
         this.ML_TIMELINE = txt.mlLabStage.narration;
@@ -82,7 +83,10 @@ export default class MlLabNarrator {
                 'event_category': 'default',
                 'event_label': 'how-far-do-ppl-get',
             });
-            new EndGameOverlay();
+
+            gameFSM.nextStage();
+            // new EndGameOverlay();
+
             return;
         } 
     }
@@ -109,5 +113,9 @@ export default class MlLabNarrator {
     }
 
     destroy() {
+        this.stop();
+        this.animator.destroy();
+        this._removeEventListeners();
+        this.newsFeed.destroy();
     }
 }
