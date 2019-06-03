@@ -42,7 +42,7 @@ require("core-js/fn/promise/finally");
 require("core-js/web");
 
 require("regenerator-runtime/runtime");
-},{"core-js/es6":15,"core-js/fn/array/flat-map":16,"core-js/fn/array/includes":17,"core-js/fn/object/entries":18,"core-js/fn/object/get-own-property-descriptors":19,"core-js/fn/object/values":20,"core-js/fn/promise/finally":21,"core-js/fn/string/pad-end":22,"core-js/fn/string/pad-start":23,"core-js/fn/string/trim-end":24,"core-js/fn/string/trim-start":25,"core-js/fn/symbol/async-iterator":26,"core-js/web":318,"regenerator-runtime/runtime":521}],3:[function(require,module,exports){
+},{"core-js/es6":15,"core-js/fn/array/flat-map":16,"core-js/fn/array/includes":17,"core-js/fn/object/entries":18,"core-js/fn/object/get-own-property-descriptors":19,"core-js/fn/object/values":20,"core-js/fn/promise/finally":21,"core-js/fn/string/pad-end":22,"core-js/fn/string/pad-start":23,"core-js/fn/string/trim-end":24,"core-js/fn/string/trim-start":25,"core-js/fn/symbol/async-iterator":26,"core-js/web":318,"regenerator-runtime/runtime":522}],3:[function(require,module,exports){
 /**
  * Bit twiddling hacks for JavaScript.
  *
@@ -1044,7 +1044,7 @@ var Component = function () {
 }();
 
 exports.default = Component;
-},{"object-assign":345}],14:[function(require,module,exports){
+},{"object-assign":346}],14:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
+var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -19221,6 +19221,3168 @@ var TweenMaxBase = TweenMax;
 exports.TweenMaxBase = TweenMaxBase;
 
 },{"./TweenLite.js":330}],333:[function(require,module,exports){
+(function (global){
+/*!
+ *  howler.js v2.1.2
+ *  howlerjs.com
+ *
+ *  (c) 2013-2019, James Simpson of GoldFire Studios
+ *  goldfirestudios.com
+ *
+ *  MIT License
+ */
+
+(function() {
+
+  'use strict';
+
+  /** Global Methods **/
+  /***************************************************************************/
+
+  /**
+   * Create the global controller. All contained methods and properties apply
+   * to all sounds that are currently playing or will be in the future.
+   */
+  var HowlerGlobal = function() {
+    this.init();
+  };
+  HowlerGlobal.prototype = {
+    /**
+     * Initialize the global Howler object.
+     * @return {Howler}
+     */
+    init: function() {
+      var self = this || Howler;
+
+      // Create a global ID counter.
+      self._counter = 1000;
+
+      // Pool of unlocked HTML5 Audio objects.
+      self._html5AudioPool = [];
+      self.html5PoolSize = 10;
+
+      // Internal properties.
+      self._codecs = {};
+      self._howls = [];
+      self._muted = false;
+      self._volume = 1;
+      self._canPlayEvent = 'canplaythrough';
+      self._navigator = (typeof window !== 'undefined' && window.navigator) ? window.navigator : null;
+
+      // Public properties.
+      self.masterGain = null;
+      self.noAudio = false;
+      self.usingWebAudio = true;
+      self.autoSuspend = true;
+      self.ctx = null;
+
+      // Set to false to disable the auto audio unlocker.
+      self.autoUnlock = true;
+
+      // Setup the various state values for global tracking.
+      self._setup();
+
+      return self;
+    },
+
+    /**
+     * Get/set the global volume for all sounds.
+     * @param  {Float} vol Volume from 0.0 to 1.0.
+     * @return {Howler/Float}     Returns self or current volume.
+     */
+    volume: function(vol) {
+      var self = this || Howler;
+      vol = parseFloat(vol);
+
+      // If we don't have an AudioContext created yet, run the setup.
+      if (!self.ctx) {
+        setupAudioContext();
+      }
+
+      if (typeof vol !== 'undefined' && vol >= 0 && vol <= 1) {
+        self._volume = vol;
+
+        // Don't update any of the nodes if we are muted.
+        if (self._muted) {
+          return self;
+        }
+
+        // When using Web Audio, we just need to adjust the master gain.
+        if (self.usingWebAudio) {
+          self.masterGain.gain.setValueAtTime(vol, Howler.ctx.currentTime);
+        }
+
+        // Loop through and change volume for all HTML5 audio nodes.
+        for (var i=0; i<self._howls.length; i++) {
+          if (!self._howls[i]._webAudio) {
+            // Get all of the sounds in this Howl group.
+            var ids = self._howls[i]._getSoundIds();
+
+            // Loop through all sounds and change the volumes.
+            for (var j=0; j<ids.length; j++) {
+              var sound = self._howls[i]._soundById(ids[j]);
+
+              if (sound && sound._node) {
+                sound._node.volume = sound._volume * vol;
+              }
+            }
+          }
+        }
+
+        return self;
+      }
+
+      return self._volume;
+    },
+
+    /**
+     * Handle muting and unmuting globally.
+     * @param  {Boolean} muted Is muted or not.
+     */
+    mute: function(muted) {
+      var self = this || Howler;
+
+      // If we don't have an AudioContext created yet, run the setup.
+      if (!self.ctx) {
+        setupAudioContext();
+      }
+
+      self._muted = muted;
+
+      // With Web Audio, we just need to mute the master gain.
+      if (self.usingWebAudio) {
+        self.masterGain.gain.setValueAtTime(muted ? 0 : self._volume, Howler.ctx.currentTime);
+      }
+
+      // Loop through and mute all HTML5 Audio nodes.
+      for (var i=0; i<self._howls.length; i++) {
+        if (!self._howls[i]._webAudio) {
+          // Get all of the sounds in this Howl group.
+          var ids = self._howls[i]._getSoundIds();
+
+          // Loop through all sounds and mark the audio node as muted.
+          for (var j=0; j<ids.length; j++) {
+            var sound = self._howls[i]._soundById(ids[j]);
+
+            if (sound && sound._node) {
+              sound._node.muted = (muted) ? true : sound._muted;
+            }
+          }
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Unload and destroy all currently loaded Howl objects.
+     * @return {Howler}
+     */
+    unload: function() {
+      var self = this || Howler;
+
+      for (var i=self._howls.length-1; i>=0; i--) {
+        self._howls[i].unload();
+      }
+
+      // Create a new AudioContext to make sure it is fully reset.
+      if (self.usingWebAudio && self.ctx && typeof self.ctx.close !== 'undefined') {
+        self.ctx.close();
+        self.ctx = null;
+        setupAudioContext();
+      }
+
+      return self;
+    },
+
+    /**
+     * Check for codec support of specific extension.
+     * @param  {String} ext Audio file extention.
+     * @return {Boolean}
+     */
+    codecs: function(ext) {
+      return (this || Howler)._codecs[ext.replace(/^x-/, '')];
+    },
+
+    /**
+     * Setup various state values for global tracking.
+     * @return {Howler}
+     */
+    _setup: function() {
+      var self = this || Howler;
+
+      // Keeps track of the suspend/resume state of the AudioContext.
+      self.state = self.ctx ? self.ctx.state || 'suspended' : 'suspended';
+
+      // Automatically begin the 30-second suspend process
+      self._autoSuspend();
+
+      // Check if audio is available.
+      if (!self.usingWebAudio) {
+        // No audio is available on this system if noAudio is set to true.
+        if (typeof Audio !== 'undefined') {
+          try {
+            var test = new Audio();
+
+            // Check if the canplaythrough event is available.
+            if (typeof test.oncanplaythrough === 'undefined') {
+              self._canPlayEvent = 'canplay';
+            }
+          } catch(e) {
+            self.noAudio = true;
+          }
+        } else {
+          self.noAudio = true;
+        }
+      }
+
+      // Test to make sure audio isn't disabled in Internet Explorer.
+      try {
+        var test = new Audio();
+        if (test.muted) {
+          self.noAudio = true;
+        }
+      } catch (e) {}
+
+      // Check for supported codecs.
+      if (!self.noAudio) {
+        self._setupCodecs();
+      }
+
+      return self;
+    },
+
+    /**
+     * Check for browser support for various codecs and cache the results.
+     * @return {Howler}
+     */
+    _setupCodecs: function() {
+      var self = this || Howler;
+      var audioTest = null;
+
+      // Must wrap in a try/catch because IE11 in server mode throws an error.
+      try {
+        audioTest = (typeof Audio !== 'undefined') ? new Audio() : null;
+      } catch (err) {
+        return self;
+      }
+
+      if (!audioTest || typeof audioTest.canPlayType !== 'function') {
+        return self;
+      }
+
+      var mpegTest = audioTest.canPlayType('audio/mpeg;').replace(/^no$/, '');
+
+      // Opera version <33 has mixed MP3 support, so we need to check for and block it.
+      var checkOpera = self._navigator && self._navigator.userAgent.match(/OPR\/([0-6].)/g);
+      var isOldOpera = (checkOpera && parseInt(checkOpera[0].split('/')[1], 10) < 33);
+
+      self._codecs = {
+        mp3: !!(!isOldOpera && (mpegTest || audioTest.canPlayType('audio/mp3;').replace(/^no$/, ''))),
+        mpeg: !!mpegTest,
+        opus: !!audioTest.canPlayType('audio/ogg; codecs="opus"').replace(/^no$/, ''),
+        ogg: !!audioTest.canPlayType('audio/ogg; codecs="vorbis"').replace(/^no$/, ''),
+        oga: !!audioTest.canPlayType('audio/ogg; codecs="vorbis"').replace(/^no$/, ''),
+        wav: !!audioTest.canPlayType('audio/wav; codecs="1"').replace(/^no$/, ''),
+        aac: !!audioTest.canPlayType('audio/aac;').replace(/^no$/, ''),
+        caf: !!audioTest.canPlayType('audio/x-caf;').replace(/^no$/, ''),
+        m4a: !!(audioTest.canPlayType('audio/x-m4a;') || audioTest.canPlayType('audio/m4a;') || audioTest.canPlayType('audio/aac;')).replace(/^no$/, ''),
+        mp4: !!(audioTest.canPlayType('audio/x-mp4;') || audioTest.canPlayType('audio/mp4;') || audioTest.canPlayType('audio/aac;')).replace(/^no$/, ''),
+        weba: !!audioTest.canPlayType('audio/webm; codecs="vorbis"').replace(/^no$/, ''),
+        webm: !!audioTest.canPlayType('audio/webm; codecs="vorbis"').replace(/^no$/, ''),
+        dolby: !!audioTest.canPlayType('audio/mp4; codecs="ec-3"').replace(/^no$/, ''),
+        flac: !!(audioTest.canPlayType('audio/x-flac;') || audioTest.canPlayType('audio/flac;')).replace(/^no$/, '')
+      };
+
+      return self;
+    },
+
+    /**
+     * Some browsers/devices will only allow audio to be played after a user interaction.
+     * Attempt to automatically unlock audio on the first user interaction.
+     * Concept from: http://paulbakaus.com/tutorials/html5/web-audio-on-ios/
+     * @return {Howler}
+     */
+    _unlockAudio: function() {
+      var self = this || Howler;
+
+      // Only run this if Web Audio is supported and it hasn't already been unlocked.
+      if (self._audioUnlocked || !self.ctx) {
+        return;
+      }
+
+      self._audioUnlocked = false;
+      self.autoUnlock = false;
+
+      // Some mobile devices/platforms have distortion issues when opening/closing tabs and/or web views.
+      // Bugs in the browser (especially Mobile Safari) can cause the sampleRate to change from 44100 to 48000.
+      // By calling Howler.unload(), we create a new AudioContext with the correct sampleRate.
+      if (!self._mobileUnloaded && self.ctx.sampleRate !== 44100) {
+        self._mobileUnloaded = true;
+        self.unload();
+      }
+
+      // Scratch buffer for enabling iOS to dispose of web audio buffers correctly, as per:
+      // http://stackoverflow.com/questions/24119684
+      self._scratchBuffer = self.ctx.createBuffer(1, 1, 22050);
+
+      // Call this method on touch start to create and play a buffer,
+      // then check if the audio actually played to determine if
+      // audio has now been unlocked on iOS, Android, etc.
+      var unlock = function(e) {
+        // Create a pool of unlocked HTML5 Audio objects that can
+        // be used for playing sounds without user interaction. HTML5
+        // Audio objects must be individually unlocked, as opposed
+        // to the WebAudio API which only needs a single activation.
+        // This must occur before WebAudio setup or the source.onended
+        // event will not fire.
+        for (var i=0; i<self.html5PoolSize; i++) {
+          try {
+            var audioNode = new Audio();
+
+            // Mark this Audio object as unlocked to ensure it can get returned
+            // to the unlocked pool when released.
+            audioNode._unlocked = true;
+
+            // Add the audio node to the pool.
+            self._releaseHtml5Audio(audioNode);
+          } catch (e) {
+            self.noAudio = true;
+          }
+        }
+
+        // Loop through any assigned audio nodes and unlock them.
+        for (var i=0; i<self._howls.length; i++) {
+          if (!self._howls[i]._webAudio) {
+            // Get all of the sounds in this Howl group.
+            var ids = self._howls[i]._getSoundIds();
+
+            // Loop through all sounds and unlock the audio nodes.
+            for (var j=0; j<ids.length; j++) {
+              var sound = self._howls[i]._soundById(ids[j]);
+
+              if (sound && sound._node && !sound._node._unlocked) {
+                sound._node._unlocked = true;
+                sound._node.load();
+              }
+            }
+          }
+        }
+
+        // Fix Android can not play in suspend state.
+        self._autoResume();
+
+        // Create an empty buffer.
+        var source = self.ctx.createBufferSource();
+        source.buffer = self._scratchBuffer;
+        source.connect(self.ctx.destination);
+
+        // Play the empty buffer.
+        if (typeof source.start === 'undefined') {
+          source.noteOn(0);
+        } else {
+          source.start(0);
+        }
+
+        // Calling resume() on a stack initiated by user gesture is what actually unlocks the audio on Android Chrome >= 55.
+        if (typeof self.ctx.resume === 'function') {
+          self.ctx.resume();
+        }
+
+        // Setup a timeout to check that we are unlocked on the next event loop.
+        source.onended = function() {
+          source.disconnect(0);
+
+          // Update the unlocked state and prevent this check from happening again.
+          self._audioUnlocked = true;
+
+          // Remove the touch start listener.
+          document.removeEventListener('touchstart', unlock, true);
+          document.removeEventListener('touchend', unlock, true);
+          document.removeEventListener('click', unlock, true);
+
+          // Let all sounds know that audio has been unlocked.
+          for (var i=0; i<self._howls.length; i++) {
+            self._howls[i]._emit('unlock');
+          }
+        };
+      };
+
+      // Setup a touch start listener to attempt an unlock in.
+      document.addEventListener('touchstart', unlock, true);
+      document.addEventListener('touchend', unlock, true);
+      document.addEventListener('click', unlock, true);
+
+      return self;
+    },
+
+    /**
+     * Get an unlocked HTML5 Audio object from the pool. If none are left,
+     * return a new Audio object and throw a warning.
+     * @return {Audio} HTML5 Audio object.
+     */
+    _obtainHtml5Audio: function() {
+      var self = this || Howler;
+
+      // Return the next object from the pool if one exists.
+      if (self._html5AudioPool.length) {
+        return self._html5AudioPool.pop();
+      }
+
+      //.Check if the audio is locked and throw a warning.
+      var testPlay = new Audio().play();
+      if (testPlay && typeof Promise !== 'undefined' && (testPlay instanceof Promise || typeof testPlay.then === 'function')) {
+        testPlay.catch(function() {
+          console.warn('HTML5 Audio pool exhausted, returning potentially locked audio object.');
+        });
+      }
+
+      return new Audio();
+    },
+
+    /**
+     * Return an activated HTML5 Audio object to the pool.
+     * @return {Howler}
+     */
+    _releaseHtml5Audio: function(audio) {
+      var self = this || Howler;
+
+      // Don't add audio to the pool if we don't know if it has been unlocked.
+      if (audio._unlocked) {
+        self._html5AudioPool.push(audio);
+      }
+
+      return self;
+    },
+
+    /**
+     * Automatically suspend the Web Audio AudioContext after no sound has played for 30 seconds.
+     * This saves processing/energy and fixes various browser-specific bugs with audio getting stuck.
+     * @return {Howler}
+     */
+    _autoSuspend: function() {
+      var self = this;
+
+      if (!self.autoSuspend || !self.ctx || typeof self.ctx.suspend === 'undefined' || !Howler.usingWebAudio) {
+        return;
+      }
+
+      // Check if any sounds are playing.
+      for (var i=0; i<self._howls.length; i++) {
+        if (self._howls[i]._webAudio) {
+          for (var j=0; j<self._howls[i]._sounds.length; j++) {
+            if (!self._howls[i]._sounds[j]._paused) {
+              return self;
+            }
+          }
+        }
+      }
+
+      if (self._suspendTimer) {
+        clearTimeout(self._suspendTimer);
+      }
+
+      // If no sound has played after 30 seconds, suspend the context.
+      self._suspendTimer = setTimeout(function() {
+        if (!self.autoSuspend) {
+          return;
+        }
+
+        self._suspendTimer = null;
+        self.state = 'suspending';
+        self.ctx.suspend().then(function() {
+          self.state = 'suspended';
+
+          if (self._resumeAfterSuspend) {
+            delete self._resumeAfterSuspend;
+            self._autoResume();
+          }
+        });
+      }, 30000);
+
+      return self;
+    },
+
+    /**
+     * Automatically resume the Web Audio AudioContext when a new sound is played.
+     * @return {Howler}
+     */
+    _autoResume: function() {
+      var self = this;
+
+      if (!self.ctx || typeof self.ctx.resume === 'undefined' || !Howler.usingWebAudio) {
+        return;
+      }
+
+      if (self.state === 'running' && self._suspendTimer) {
+        clearTimeout(self._suspendTimer);
+        self._suspendTimer = null;
+      } else if (self.state === 'suspended') {
+        self.ctx.resume().then(function() {
+          self.state = 'running';
+
+          // Emit to all Howls that the audio has resumed.
+          for (var i=0; i<self._howls.length; i++) {
+            self._howls[i]._emit('resume');
+          }
+        });
+
+        if (self._suspendTimer) {
+          clearTimeout(self._suspendTimer);
+          self._suspendTimer = null;
+        }
+      } else if (self.state === 'suspending') {
+        self._resumeAfterSuspend = true;
+      }
+
+      return self;
+    }
+  };
+
+  // Setup the global audio controller.
+  var Howler = new HowlerGlobal();
+
+  /** Group Methods **/
+  /***************************************************************************/
+
+  /**
+   * Create an audio group controller.
+   * @param {Object} o Passed in properties for this group.
+   */
+  var Howl = function(o) {
+    var self = this;
+
+    // Throw an error if no source is provided.
+    if (!o.src || o.src.length === 0) {
+      console.error('An array of source files must be passed with any new Howl.');
+      return;
+    }
+
+    self.init(o);
+  };
+  Howl.prototype = {
+    /**
+     * Initialize a new Howl group object.
+     * @param  {Object} o Passed in properties for this group.
+     * @return {Howl}
+     */
+    init: function(o) {
+      var self = this;
+
+      // If we don't have an AudioContext created yet, run the setup.
+      if (!Howler.ctx) {
+        setupAudioContext();
+      }
+
+      // Setup user-defined default properties.
+      self._autoplay = o.autoplay || false;
+      self._format = (typeof o.format !== 'string') ? o.format : [o.format];
+      self._html5 = o.html5 || false;
+      self._muted = o.mute || false;
+      self._loop = o.loop || false;
+      self._pool = o.pool || 5;
+      self._preload = (typeof o.preload === 'boolean') ? o.preload : true;
+      self._rate = o.rate || 1;
+      self._sprite = o.sprite || {};
+      self._src = (typeof o.src !== 'string') ? o.src : [o.src];
+      self._volume = o.volume !== undefined ? o.volume : 1;
+      self._xhrWithCredentials = o.xhrWithCredentials || false;
+
+      // Setup all other default properties.
+      self._duration = 0;
+      self._state = 'unloaded';
+      self._sounds = [];
+      self._endTimers = {};
+      self._queue = [];
+      self._playLock = false;
+
+      // Setup event listeners.
+      self._onend = o.onend ? [{fn: o.onend}] : [];
+      self._onfade = o.onfade ? [{fn: o.onfade}] : [];
+      self._onload = o.onload ? [{fn: o.onload}] : [];
+      self._onloaderror = o.onloaderror ? [{fn: o.onloaderror}] : [];
+      self._onplayerror = o.onplayerror ? [{fn: o.onplayerror}] : [];
+      self._onpause = o.onpause ? [{fn: o.onpause}] : [];
+      self._onplay = o.onplay ? [{fn: o.onplay}] : [];
+      self._onstop = o.onstop ? [{fn: o.onstop}] : [];
+      self._onmute = o.onmute ? [{fn: o.onmute}] : [];
+      self._onvolume = o.onvolume ? [{fn: o.onvolume}] : [];
+      self._onrate = o.onrate ? [{fn: o.onrate}] : [];
+      self._onseek = o.onseek ? [{fn: o.onseek}] : [];
+      self._onunlock = o.onunlock ? [{fn: o.onunlock}] : [];
+      self._onresume = [];
+
+      // Web Audio or HTML5 Audio?
+      self._webAudio = Howler.usingWebAudio && !self._html5;
+
+      // Automatically try to enable audio.
+      if (typeof Howler.ctx !== 'undefined' && Howler.ctx && Howler.autoUnlock) {
+        Howler._unlockAudio();
+      }
+
+      // Keep track of this Howl group in the global controller.
+      Howler._howls.push(self);
+
+      // If they selected autoplay, add a play event to the load queue.
+      if (self._autoplay) {
+        self._queue.push({
+          event: 'play',
+          action: function() {
+            self.play();
+          }
+        });
+      }
+
+      // Load the source file unless otherwise specified.
+      if (self._preload) {
+        self.load();
+      }
+
+      return self;
+    },
+
+    /**
+     * Load the audio file.
+     * @return {Howler}
+     */
+    load: function() {
+      var self = this;
+      var url = null;
+
+      // If no audio is available, quit immediately.
+      if (Howler.noAudio) {
+        self._emit('loaderror', null, 'No audio support.');
+        return;
+      }
+
+      // Make sure our source is in an array.
+      if (typeof self._src === 'string') {
+        self._src = [self._src];
+      }
+
+      // Loop through the sources and pick the first one that is compatible.
+      for (var i=0; i<self._src.length; i++) {
+        var ext, str;
+
+        if (self._format && self._format[i]) {
+          // If an extension was specified, use that instead.
+          ext = self._format[i];
+        } else {
+          // Make sure the source is a string.
+          str = self._src[i];
+          if (typeof str !== 'string') {
+            self._emit('loaderror', null, 'Non-string found in selected audio sources - ignoring.');
+            continue;
+          }
+
+          // Extract the file extension from the URL or base64 data URI.
+          ext = /^data:audio\/([^;,]+);/i.exec(str);
+          if (!ext) {
+            ext = /\.([^.]+)$/.exec(str.split('?', 1)[0]);
+          }
+
+          if (ext) {
+            ext = ext[1].toLowerCase();
+          }
+        }
+
+        // Log a warning if no extension was found.
+        if (!ext) {
+          console.warn('No file extension was found. Consider using the "format" property or specify an extension.');
+        }
+
+        // Check if this extension is available.
+        if (ext && Howler.codecs(ext)) {
+          url = self._src[i];
+          break;
+        }
+      }
+
+      if (!url) {
+        self._emit('loaderror', null, 'No codec support for selected audio sources.');
+        return;
+      }
+
+      self._src = url;
+      self._state = 'loading';
+
+      // If the hosting page is HTTPS and the source isn't,
+      // drop down to HTML5 Audio to avoid Mixed Content errors.
+      if (window.location.protocol === 'https:' && url.slice(0, 5) === 'http:') {
+        self._html5 = true;
+        self._webAudio = false;
+      }
+
+      // Create a new sound object and add it to the pool.
+      new Sound(self);
+
+      // Load and decode the audio data for playback.
+      if (self._webAudio) {
+        loadBuffer(self);
+      }
+
+      return self;
+    },
+
+    /**
+     * Play a sound or resume previous playback.
+     * @param  {String/Number} sprite   Sprite name for sprite playback or sound id to continue previous.
+     * @param  {Boolean} internal Internal Use: true prevents event firing.
+     * @return {Number}          Sound ID.
+     */
+    play: function(sprite, internal) {
+      var self = this;
+      var id = null;
+
+      // Determine if a sprite, sound id or nothing was passed
+      if (typeof sprite === 'number') {
+        id = sprite;
+        sprite = null;
+      } else if (typeof sprite === 'string' && self._state === 'loaded' && !self._sprite[sprite]) {
+        // If the passed sprite doesn't exist, do nothing.
+        return null;
+      } else if (typeof sprite === 'undefined') {
+        // Use the default sound sprite (plays the full audio length).
+        sprite = '__default';
+
+        // Check if there is a single paused sound that isn't ended. 
+        // If there is, play that sound. If not, continue as usual.  
+        if (!self._playLock) {
+          var num = 0;
+          for (var i=0; i<self._sounds.length; i++) {
+            if (self._sounds[i]._paused && !self._sounds[i]._ended) {
+              num++;
+              id = self._sounds[i]._id;
+            }
+          }
+
+          if (num === 1) {
+            sprite = null;
+          } else {
+            id = null;
+          }
+        }
+      }
+
+      // Get the selected node, or get one from the pool.
+      var sound = id ? self._soundById(id) : self._inactiveSound();
+
+      // If the sound doesn't exist, do nothing.
+      if (!sound) {
+        return null;
+      }
+
+      // Select the sprite definition.
+      if (id && !sprite) {
+        sprite = sound._sprite || '__default';
+      }
+
+      // If the sound hasn't loaded, we must wait to get the audio's duration.
+      // We also need to wait to make sure we don't run into race conditions with
+      // the order of function calls.
+      if (self._state !== 'loaded') {
+        // Set the sprite value on this sound.
+        sound._sprite = sprite;
+
+        // Mark this sound as not ended in case another sound is played before this one loads.
+        sound._ended = false;
+
+        // Add the sound to the queue to be played on load.
+        var soundId = sound._id;
+        self._queue.push({
+          event: 'play',
+          action: function() {
+            self.play(soundId);
+          }
+        });
+
+        return soundId;
+      }
+
+      // Don't play the sound if an id was passed and it is already playing.
+      if (id && !sound._paused) {
+        // Trigger the play event, in order to keep iterating through queue.
+        if (!internal) {
+          self._loadQueue('play');
+        }
+
+        return sound._id;
+      }
+
+      // Make sure the AudioContext isn't suspended, and resume it if it is.
+      if (self._webAudio) {
+        Howler._autoResume();
+      }
+
+      // Determine how long to play for and where to start playing.
+      var seek = Math.max(0, sound._seek > 0 ? sound._seek : self._sprite[sprite][0] / 1000);
+      var duration = Math.max(0, ((self._sprite[sprite][0] + self._sprite[sprite][1]) / 1000) - seek);
+      var timeout = (duration * 1000) / Math.abs(sound._rate);
+      var start = self._sprite[sprite][0] / 1000;
+      var stop = (self._sprite[sprite][0] + self._sprite[sprite][1]) / 1000;
+      var loop = !!(sound._loop || self._sprite[sprite][2]);
+      sound._sprite = sprite;
+
+      // Mark the sound as ended instantly so that this async playback
+      // doesn't get grabbed by another call to play while this one waits to start.
+      sound._ended = false;
+
+      // Update the parameters of the sound.
+      var setParams = function() {
+        sound._paused = false;
+        sound._seek = seek;
+        sound._start = start;
+        sound._stop = stop;
+        sound._loop = loop;
+      };
+
+      // End the sound instantly if seek is at the end.
+      if (seek >= stop) {
+        self._ended(sound);
+        return;
+      }
+
+      // Begin the actual playback.
+      var node = sound._node;
+      if (self._webAudio) {
+        // Fire this when the sound is ready to play to begin Web Audio playback.
+        var playWebAudio = function() {
+          self._playLock = false;
+          setParams();
+          self._refreshBuffer(sound);
+
+          // Setup the playback params.
+          var vol = (sound._muted || self._muted) ? 0 : sound._volume;
+          node.gain.setValueAtTime(vol, Howler.ctx.currentTime);
+          sound._playStart = Howler.ctx.currentTime;
+
+          // Play the sound using the supported method.
+          if (typeof node.bufferSource.start === 'undefined') {
+            sound._loop ? node.bufferSource.noteGrainOn(0, seek, 86400) : node.bufferSource.noteGrainOn(0, seek, duration);
+          } else {
+            sound._loop ? node.bufferSource.start(0, seek, 86400) : node.bufferSource.start(0, seek, duration);
+          }
+
+          // Start a new timer if none is present.
+          if (timeout !== Infinity) {
+            self._endTimers[sound._id] = setTimeout(self._ended.bind(self, sound), timeout);
+          }
+
+          if (!internal) {
+            setTimeout(function() {
+              self._emit('play', sound._id);
+              self._loadQueue();
+            }, 0);
+          }
+        };
+
+        if (Howler.state === 'running') {
+          playWebAudio();
+        } else {
+          self._playLock = true;
+
+          // Wait for the audio context to resume before playing.
+          self.once('resume', playWebAudio);
+
+          // Cancel the end timer.
+          self._clearTimer(sound._id);
+        }
+      } else {
+        // Fire this when the sound is ready to play to begin HTML5 Audio playback.
+        var playHtml5 = function() {
+          node.currentTime = seek;
+          node.muted = sound._muted || self._muted || Howler._muted || node.muted;
+          node.volume = sound._volume * Howler.volume();
+          node.playbackRate = sound._rate;
+
+          // Some browsers will throw an error if this is called without user interaction.
+          try {
+            var play = node.play();
+
+            // Support older browsers that don't support promises, and thus don't have this issue.
+            if (play && typeof Promise !== 'undefined' && (play instanceof Promise || typeof play.then === 'function')) {
+              // Implements a lock to prevent DOMException: The play() request was interrupted by a call to pause().
+              self._playLock = true;
+
+              // Set param values immediately.
+              setParams();
+
+              // Releases the lock and executes queued actions.
+              play
+                .then(function() {
+                  self._playLock = false;
+                  node._unlocked = true;
+                  if (!internal) {
+                    self._emit('play', sound._id);
+                    self._loadQueue();
+                  }
+                })
+                .catch(function() {
+                  self._playLock = false;
+                  self._emit('playerror', sound._id, 'Playback was unable to start. This is most commonly an issue ' +
+                    'on mobile devices and Chrome where playback was not within a user interaction.');
+
+                  // Reset the ended and paused values.
+                  sound._ended = true;
+                  sound._paused = true;
+                });
+            } else if (!internal) {
+              self._playLock = false;
+              setParams();
+              self._emit('play', sound._id);
+              self._loadQueue();
+            }
+
+            // Setting rate before playing won't work in IE, so we set it again here.
+            node.playbackRate = sound._rate;
+
+            // If the node is still paused, then we can assume there was a playback issue.
+            if (node.paused) {
+              self._emit('playerror', sound._id, 'Playback was unable to start. This is most commonly an issue ' +
+                'on mobile devices and Chrome where playback was not within a user interaction.');
+              return;
+            }
+
+            // Setup the end timer on sprites or listen for the ended event.
+            if (sprite !== '__default' || sound._loop) {
+              self._endTimers[sound._id] = setTimeout(self._ended.bind(self, sound), timeout);
+            } else {
+              self._endTimers[sound._id] = function() {
+                // Fire ended on this audio node.
+                self._ended(sound);
+
+                // Clear this listener.
+                node.removeEventListener('ended', self._endTimers[sound._id], false);
+              };
+              node.addEventListener('ended', self._endTimers[sound._id], false);
+            }
+          } catch (err) {
+            self._emit('playerror', sound._id, err);
+          }
+        };
+
+        // If this is streaming audio, make sure the src is set and load again.
+        if (node.src === 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA') {
+          node.src = self._src;
+          node.load();
+        }
+
+        // Play immediately if ready, or wait for the 'canplaythrough'e vent.
+        var loadedNoReadyState = (window && window.ejecta) || (!node.readyState && Howler._navigator.isCocoonJS);
+        if (node.readyState >= 3 || loadedNoReadyState) {
+          playHtml5();
+        } else {
+          self._playLock = true;
+
+          var listener = function() {
+            // Begin playback.
+            playHtml5();
+
+            // Clear this listener.
+            node.removeEventListener(Howler._canPlayEvent, listener, false);
+          };
+          node.addEventListener(Howler._canPlayEvent, listener, false);
+
+          // Cancel the end timer.
+          self._clearTimer(sound._id);
+        }
+      }
+
+      return sound._id;
+    },
+
+    /**
+     * Pause playback and save current position.
+     * @param  {Number} id The sound ID (empty to pause all in group).
+     * @return {Howl}
+     */
+    pause: function(id) {
+      var self = this;
+
+      // If the sound hasn't loaded or a play() promise is pending, add it to the load queue to pause when capable.
+      if (self._state !== 'loaded' || self._playLock) {
+        self._queue.push({
+          event: 'pause',
+          action: function() {
+            self.pause(id);
+          }
+        });
+
+        return self;
+      }
+
+      // If no id is passed, get all ID's to be paused.
+      var ids = self._getSoundIds(id);
+
+      for (var i=0; i<ids.length; i++) {
+        // Clear the end timer.
+        self._clearTimer(ids[i]);
+
+        // Get the sound.
+        var sound = self._soundById(ids[i]);
+
+        if (sound && !sound._paused) {
+          // Reset the seek position.
+          sound._seek = self.seek(ids[i]);
+          sound._rateSeek = 0;
+          sound._paused = true;
+
+          // Stop currently running fades.
+          self._stopFade(ids[i]);
+
+          if (sound._node) {
+            if (self._webAudio) {
+              // Make sure the sound has been created.
+              if (!sound._node.bufferSource) {
+                continue;
+              }
+
+              if (typeof sound._node.bufferSource.stop === 'undefined') {
+                sound._node.bufferSource.noteOff(0);
+              } else {
+                sound._node.bufferSource.stop(0);
+              }
+
+              // Clean up the buffer source.
+              self._cleanBuffer(sound._node);
+            } else if (!isNaN(sound._node.duration) || sound._node.duration === Infinity) {
+              sound._node.pause();
+            }
+          }
+        }
+
+        // Fire the pause event, unless `true` is passed as the 2nd argument.
+        if (!arguments[1]) {
+          self._emit('pause', sound ? sound._id : null);
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Stop playback and reset to start.
+     * @param  {Number} id The sound ID (empty to stop all in group).
+     * @param  {Boolean} internal Internal Use: true prevents event firing.
+     * @return {Howl}
+     */
+    stop: function(id, internal) {
+      var self = this;
+
+      // If the sound hasn't loaded, add it to the load queue to stop when capable.
+      if (self._state !== 'loaded' || self._playLock) {
+        self._queue.push({
+          event: 'stop',
+          action: function() {
+            self.stop(id);
+          }
+        });
+
+        return self;
+      }
+
+      // If no id is passed, get all ID's to be stopped.
+      var ids = self._getSoundIds(id);
+
+      for (var i=0; i<ids.length; i++) {
+        // Clear the end timer.
+        self._clearTimer(ids[i]);
+
+        // Get the sound.
+        var sound = self._soundById(ids[i]);
+
+        if (sound) {
+          // Reset the seek position.
+          sound._seek = sound._start || 0;
+          sound._rateSeek = 0;
+          sound._paused = true;
+          sound._ended = true;
+
+          // Stop currently running fades.
+          self._stopFade(ids[i]);
+
+          if (sound._node) {
+            if (self._webAudio) {
+              // Make sure the sound's AudioBufferSourceNode has been created.
+              if (sound._node.bufferSource) {
+                if (typeof sound._node.bufferSource.stop === 'undefined') {
+                  sound._node.bufferSource.noteOff(0);
+                } else {
+                  sound._node.bufferSource.stop(0);
+                }
+
+                // Clean up the buffer source.
+                self._cleanBuffer(sound._node);
+              }
+            } else if (!isNaN(sound._node.duration) || sound._node.duration === Infinity) {
+              sound._node.currentTime = sound._start || 0;
+              sound._node.pause();
+
+              // If this is a live stream, stop download once the audio is stopped.
+              if (sound._node.duration === Infinity) {
+                self._clearSound(sound._node);
+              }
+            }
+          }
+
+          if (!internal) {
+            self._emit('stop', sound._id);
+          }
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Mute/unmute a single sound or all sounds in this Howl group.
+     * @param  {Boolean} muted Set to true to mute and false to unmute.
+     * @param  {Number} id    The sound ID to update (omit to mute/unmute all).
+     * @return {Howl}
+     */
+    mute: function(muted, id) {
+      var self = this;
+
+      // If the sound hasn't loaded, add it to the load queue to mute when capable.
+      if (self._state !== 'loaded'|| self._playLock) {
+        self._queue.push({
+          event: 'mute',
+          action: function() {
+            self.mute(muted, id);
+          }
+        });
+
+        return self;
+      }
+
+      // If applying mute/unmute to all sounds, update the group's value.
+      if (typeof id === 'undefined') {
+        if (typeof muted === 'boolean') {
+          self._muted = muted;
+        } else {
+          return self._muted;
+        }
+      }
+
+      // If no id is passed, get all ID's to be muted.
+      var ids = self._getSoundIds(id);
+
+      for (var i=0; i<ids.length; i++) {
+        // Get the sound.
+        var sound = self._soundById(ids[i]);
+
+        if (sound) {
+          sound._muted = muted;
+
+          // Cancel active fade and set the volume to the end value.
+          if (sound._interval) {
+            self._stopFade(sound._id);
+          }
+
+          if (self._webAudio && sound._node) {
+            sound._node.gain.setValueAtTime(muted ? 0 : sound._volume, Howler.ctx.currentTime);
+          } else if (sound._node) {
+            sound._node.muted = Howler._muted ? true : muted;
+          }
+
+          self._emit('mute', sound._id);
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Get/set the volume of this sound or of the Howl group. This method can optionally take 0, 1 or 2 arguments.
+     *   volume() -> Returns the group's volume value.
+     *   volume(id) -> Returns the sound id's current volume.
+     *   volume(vol) -> Sets the volume of all sounds in this Howl group.
+     *   volume(vol, id) -> Sets the volume of passed sound id.
+     * @return {Howl/Number} Returns self or current volume.
+     */
+    volume: function() {
+      var self = this;
+      var args = arguments;
+      var vol, id;
+
+      // Determine the values based on arguments.
+      if (args.length === 0) {
+        // Return the value of the groups' volume.
+        return self._volume;
+      } else if (args.length === 1 || args.length === 2 && typeof args[1] === 'undefined') {
+        // First check if this is an ID, and if not, assume it is a new volume.
+        var ids = self._getSoundIds();
+        var index = ids.indexOf(args[0]);
+        if (index >= 0) {
+          id = parseInt(args[0], 10);
+        } else {
+          vol = parseFloat(args[0]);
+        }
+      } else if (args.length >= 2) {
+        vol = parseFloat(args[0]);
+        id = parseInt(args[1], 10);
+      }
+
+      // Update the volume or return the current volume.
+      var sound;
+      if (typeof vol !== 'undefined' && vol >= 0 && vol <= 1) {
+        // If the sound hasn't loaded, add it to the load queue to change volume when capable.
+        if (self._state !== 'loaded'|| self._playLock) {
+          self._queue.push({
+            event: 'volume',
+            action: function() {
+              self.volume.apply(self, args);
+            }
+          });
+
+          return self;
+        }
+
+        // Set the group volume.
+        if (typeof id === 'undefined') {
+          self._volume = vol;
+        }
+
+        // Update one or all volumes.
+        id = self._getSoundIds(id);
+        for (var i=0; i<id.length; i++) {
+          // Get the sound.
+          sound = self._soundById(id[i]);
+
+          if (sound) {
+            sound._volume = vol;
+
+            // Stop currently running fades.
+            if (!args[2]) {
+              self._stopFade(id[i]);
+            }
+
+            if (self._webAudio && sound._node && !sound._muted) {
+              sound._node.gain.setValueAtTime(vol, Howler.ctx.currentTime);
+            } else if (sound._node && !sound._muted) {
+              sound._node.volume = vol * Howler.volume();
+            }
+
+            self._emit('volume', sound._id);
+          }
+        }
+      } else {
+        sound = id ? self._soundById(id) : self._sounds[0];
+        return sound ? sound._volume : 0;
+      }
+
+      return self;
+    },
+
+    /**
+     * Fade a currently playing sound between two volumes (if no id is passsed, all sounds will fade).
+     * @param  {Number} from The value to fade from (0.0 to 1.0).
+     * @param  {Number} to   The volume to fade to (0.0 to 1.0).
+     * @param  {Number} len  Time in milliseconds to fade.
+     * @param  {Number} id   The sound id (omit to fade all sounds).
+     * @return {Howl}
+     */
+    fade: function(from, to, len, id) {
+      var self = this;
+
+      // If the sound hasn't loaded, add it to the load queue to fade when capable.
+      if (self._state !== 'loaded' || self._playLock) {
+        self._queue.push({
+          event: 'fade',
+          action: function() {
+            self.fade(from, to, len, id);
+          }
+        });
+
+        return self;
+      }
+
+      // Make sure the to/from/len values are numbers.
+      from = parseFloat(from);
+      to = parseFloat(to);
+      len = parseFloat(len);
+
+      // Set the volume to the start position.
+      self.volume(from, id);
+
+      // Fade the volume of one or all sounds.
+      var ids = self._getSoundIds(id);
+      for (var i=0; i<ids.length; i++) {
+        // Get the sound.
+        var sound = self._soundById(ids[i]);
+
+        // Create a linear fade or fall back to timeouts with HTML5 Audio.
+        if (sound) {
+          // Stop the previous fade if no sprite is being used (otherwise, volume handles this).
+          if (!id) {
+            self._stopFade(ids[i]);
+          }
+
+          // If we are using Web Audio, let the native methods do the actual fade.
+          if (self._webAudio && !sound._muted) {
+            var currentTime = Howler.ctx.currentTime;
+            var end = currentTime + (len / 1000);
+            sound._volume = from;
+            sound._node.gain.setValueAtTime(from, currentTime);
+            sound._node.gain.linearRampToValueAtTime(to, end);
+          }
+
+          self._startFadeInterval(sound, from, to, len, ids[i], typeof id === 'undefined');
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Starts the internal interval to fade a sound.
+     * @param  {Object} sound Reference to sound to fade.
+     * @param  {Number} from The value to fade from (0.0 to 1.0).
+     * @param  {Number} to   The volume to fade to (0.0 to 1.0).
+     * @param  {Number} len  Time in milliseconds to fade.
+     * @param  {Number} id   The sound id to fade.
+     * @param  {Boolean} isGroup   If true, set the volume on the group.
+     */
+    _startFadeInterval: function(sound, from, to, len, id, isGroup) {
+      var self = this;
+      var vol = from;
+      var diff = to - from;
+      var steps = Math.abs(diff / 0.01);
+      var stepLen = Math.max(4, (steps > 0) ? len / steps : len);
+      var lastTick = Date.now();
+
+      // Store the value being faded to.
+      sound._fadeTo = to;
+
+      // Update the volume value on each interval tick.
+      sound._interval = setInterval(function() {
+        // Update the volume based on the time since the last tick.
+        var tick = (Date.now() - lastTick) / len;
+        lastTick = Date.now();
+        vol += diff * tick;
+
+        // Make sure the volume is in the right bounds.
+        vol = Math.max(0, vol);
+        vol = Math.min(1, vol);
+
+        // Round to within 2 decimal points.
+        vol = Math.round(vol * 100) / 100;
+
+        // Change the volume.
+        if (self._webAudio) {
+          sound._volume = vol;
+        } else {
+          self.volume(vol, sound._id, true);
+        }
+
+        // Set the group's volume.
+        if (isGroup) {
+          self._volume = vol;
+        }
+
+        // When the fade is complete, stop it and fire event.
+        if ((to < from && vol <= to) || (to > from && vol >= to)) {
+          clearInterval(sound._interval);
+          sound._interval = null;
+          sound._fadeTo = null;
+          self.volume(to, sound._id);
+          self._emit('fade', sound._id);
+        }
+      }, stepLen);
+    },
+
+    /**
+     * Internal method that stops the currently playing fade when
+     * a new fade starts, volume is changed or the sound is stopped.
+     * @param  {Number} id The sound id.
+     * @return {Howl}
+     */
+    _stopFade: function(id) {
+      var self = this;
+      var sound = self._soundById(id);
+
+      if (sound && sound._interval) {
+        if (self._webAudio) {
+          sound._node.gain.cancelScheduledValues(Howler.ctx.currentTime);
+        }
+
+        clearInterval(sound._interval);
+        sound._interval = null;
+        self.volume(sound._fadeTo, id);
+        sound._fadeTo = null;
+        self._emit('fade', id);
+      }
+
+      return self;
+    },
+
+    /**
+     * Get/set the loop parameter on a sound. This method can optionally take 0, 1 or 2 arguments.
+     *   loop() -> Returns the group's loop value.
+     *   loop(id) -> Returns the sound id's loop value.
+     *   loop(loop) -> Sets the loop value for all sounds in this Howl group.
+     *   loop(loop, id) -> Sets the loop value of passed sound id.
+     * @return {Howl/Boolean} Returns self or current loop value.
+     */
+    loop: function() {
+      var self = this;
+      var args = arguments;
+      var loop, id, sound;
+
+      // Determine the values for loop and id.
+      if (args.length === 0) {
+        // Return the grou's loop value.
+        return self._loop;
+      } else if (args.length === 1) {
+        if (typeof args[0] === 'boolean') {
+          loop = args[0];
+          self._loop = loop;
+        } else {
+          // Return this sound's loop value.
+          sound = self._soundById(parseInt(args[0], 10));
+          return sound ? sound._loop : false;
+        }
+      } else if (args.length === 2) {
+        loop = args[0];
+        id = parseInt(args[1], 10);
+      }
+
+      // If no id is passed, get all ID's to be looped.
+      var ids = self._getSoundIds(id);
+      for (var i=0; i<ids.length; i++) {
+        sound = self._soundById(ids[i]);
+
+        if (sound) {
+          sound._loop = loop;
+          if (self._webAudio && sound._node && sound._node.bufferSource) {
+            sound._node.bufferSource.loop = loop;
+            if (loop) {
+              sound._node.bufferSource.loopStart = sound._start || 0;
+              sound._node.bufferSource.loopEnd = sound._stop;
+            }
+          }
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Get/set the playback rate of a sound. This method can optionally take 0, 1 or 2 arguments.
+     *   rate() -> Returns the first sound node's current playback rate.
+     *   rate(id) -> Returns the sound id's current playback rate.
+     *   rate(rate) -> Sets the playback rate of all sounds in this Howl group.
+     *   rate(rate, id) -> Sets the playback rate of passed sound id.
+     * @return {Howl/Number} Returns self or the current playback rate.
+     */
+    rate: function() {
+      var self = this;
+      var args = arguments;
+      var rate, id;
+
+      // Determine the values based on arguments.
+      if (args.length === 0) {
+        // We will simply return the current rate of the first node.
+        id = self._sounds[0]._id;
+      } else if (args.length === 1) {
+        // First check if this is an ID, and if not, assume it is a new rate value.
+        var ids = self._getSoundIds();
+        var index = ids.indexOf(args[0]);
+        if (index >= 0) {
+          id = parseInt(args[0], 10);
+        } else {
+          rate = parseFloat(args[0]);
+        }
+      } else if (args.length === 2) {
+        rate = parseFloat(args[0]);
+        id = parseInt(args[1], 10);
+      }
+
+      // Update the playback rate or return the current value.
+      var sound;
+      if (typeof rate === 'number') {
+        // If the sound hasn't loaded, add it to the load queue to change playback rate when capable.
+        if (self._state !== 'loaded' || self._playLock) {
+          self._queue.push({
+            event: 'rate',
+            action: function() {
+              self.rate.apply(self, args);
+            }
+          });
+
+          return self;
+        }
+
+        // Set the group rate.
+        if (typeof id === 'undefined') {
+          self._rate = rate;
+        }
+
+        // Update one or all volumes.
+        id = self._getSoundIds(id);
+        for (var i=0; i<id.length; i++) {
+          // Get the sound.
+          sound = self._soundById(id[i]);
+
+          if (sound) {
+            // Keep track of our position when the rate changed and update the playback
+            // start position so we can properly adjust the seek position for time elapsed.
+            if (self.playing(id[i])) {
+              sound._rateSeek = self.seek(id[i]);
+              sound._playStart = self._webAudio ? Howler.ctx.currentTime : sound._playStart;
+            }
+            sound._rate = rate;
+
+            // Change the playback rate.
+            if (self._webAudio && sound._node && sound._node.bufferSource) {
+              sound._node.bufferSource.playbackRate.setValueAtTime(rate, Howler.ctx.currentTime);
+            } else if (sound._node) {
+              sound._node.playbackRate = rate;
+            }
+
+            // Reset the timers.
+            var seek = self.seek(id[i]);
+            var duration = ((self._sprite[sound._sprite][0] + self._sprite[sound._sprite][1]) / 1000) - seek;
+            var timeout = (duration * 1000) / Math.abs(sound._rate);
+
+            // Start a new end timer if sound is already playing.
+            if (self._endTimers[id[i]] || !sound._paused) {
+              self._clearTimer(id[i]);
+              self._endTimers[id[i]] = setTimeout(self._ended.bind(self, sound), timeout);
+            }
+
+            self._emit('rate', sound._id);
+          }
+        }
+      } else {
+        sound = self._soundById(id);
+        return sound ? sound._rate : self._rate;
+      }
+
+      return self;
+    },
+
+    /**
+     * Get/set the seek position of a sound. This method can optionally take 0, 1 or 2 arguments.
+     *   seek() -> Returns the first sound node's current seek position.
+     *   seek(id) -> Returns the sound id's current seek position.
+     *   seek(seek) -> Sets the seek position of the first sound node.
+     *   seek(seek, id) -> Sets the seek position of passed sound id.
+     * @return {Howl/Number} Returns self or the current seek position.
+     */
+    seek: function() {
+      var self = this;
+      var args = arguments;
+      var seek, id;
+
+      // Determine the values based on arguments.
+      if (args.length === 0) {
+        // We will simply return the current position of the first node.
+        id = self._sounds[0]._id;
+      } else if (args.length === 1) {
+        // First check if this is an ID, and if not, assume it is a new seek position.
+        var ids = self._getSoundIds();
+        var index = ids.indexOf(args[0]);
+        if (index >= 0) {
+          id = parseInt(args[0], 10);
+        } else if (self._sounds.length) {
+          id = self._sounds[0]._id;
+          seek = parseFloat(args[0]);
+        }
+      } else if (args.length === 2) {
+        seek = parseFloat(args[0]);
+        id = parseInt(args[1], 10);
+      }
+
+      // If there is no ID, bail out.
+      if (typeof id === 'undefined') {
+        return self;
+      }
+
+      // If the sound hasn't loaded, add it to the load queue to seek when capable.
+      if (self._state !== 'loaded' || self._playLock) {
+        self._queue.push({
+          event: 'seek',
+          action: function() {
+            self.seek.apply(self, args);
+          }
+        });
+
+        return self;
+      }
+
+      // Get the sound.
+      var sound = self._soundById(id);
+
+      if (sound) {
+        if (typeof seek === 'number' && seek >= 0) {
+          // Pause the sound and update position for restarting playback.
+          var playing = self.playing(id);
+          if (playing) {
+            self.pause(id, true);
+          }
+
+          // Move the position of the track and cancel timer.
+          sound._seek = seek;
+          sound._ended = false;
+          self._clearTimer(id);
+
+          // Update the seek position for HTML5 Audio.
+          if (!self._webAudio && sound._node && !isNaN(sound._node.duration)) {
+            sound._node.currentTime = seek;
+          }
+
+          // Seek and emit when ready.
+          var seekAndEmit = function() {
+            self._emit('seek', id);
+
+            // Restart the playback if the sound was playing.
+            if (playing) {
+              self.play(id, true);
+            }
+          };
+
+          // Wait for the play lock to be unset before emitting (HTML5 Audio).
+          if (playing && !self._webAudio) {
+            var emitSeek = function() {
+              if (!self._playLock) {
+                seekAndEmit();
+              } else {
+                setTimeout(emitSeek, 0);
+              }
+            };
+            setTimeout(emitSeek, 0);
+          } else {
+            seekAndEmit();
+          }
+        } else {
+          if (self._webAudio) {
+            var realTime = self.playing(id) ? Howler.ctx.currentTime - sound._playStart : 0;
+            var rateSeek = sound._rateSeek ? sound._rateSeek - sound._seek : 0;
+            return sound._seek + (rateSeek + realTime * Math.abs(sound._rate));
+          } else {
+            return sound._node.currentTime;
+          }
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Check if a specific sound is currently playing or not (if id is provided), or check if at least one of the sounds in the group is playing or not.
+     * @param  {Number}  id The sound id to check. If none is passed, the whole sound group is checked.
+     * @return {Boolean} True if playing and false if not.
+     */
+    playing: function(id) {
+      var self = this;
+
+      // Check the passed sound ID (if any).
+      if (typeof id === 'number') {
+        var sound = self._soundById(id);
+        return sound ? !sound._paused : false;
+      }
+
+      // Otherwise, loop through all sounds and check if any are playing.
+      for (var i=0; i<self._sounds.length; i++) {
+        if (!self._sounds[i]._paused) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+
+    /**
+     * Get the duration of this sound. Passing a sound id will return the sprite duration.
+     * @param  {Number} id The sound id to check. If none is passed, return full source duration.
+     * @return {Number} Audio duration in seconds.
+     */
+    duration: function(id) {
+      var self = this;
+      var duration = self._duration;
+
+      // If we pass an ID, get the sound and return the sprite length.
+      var sound = self._soundById(id);
+      if (sound) {
+        duration = self._sprite[sound._sprite][1] / 1000;
+      }
+
+      return duration;
+    },
+
+    /**
+     * Returns the current loaded state of this Howl.
+     * @return {String} 'unloaded', 'loading', 'loaded'
+     */
+    state: function() {
+      return this._state;
+    },
+
+    /**
+     * Unload and destroy the current Howl object.
+     * This will immediately stop all sound instances attached to this group.
+     */
+    unload: function() {
+      var self = this;
+
+      // Stop playing any active sounds.
+      var sounds = self._sounds;
+      for (var i=0; i<sounds.length; i++) {
+        // Stop the sound if it is currently playing.
+        if (!sounds[i]._paused) {
+          self.stop(sounds[i]._id);
+        }
+
+        // Remove the source or disconnect.
+        if (!self._webAudio) {
+          // Set the source to 0-second silence to stop any downloading (except in IE).
+          self._clearSound(sounds[i]._node);
+
+          // Remove any event listeners.
+          sounds[i]._node.removeEventListener('error', sounds[i]._errorFn, false);
+          sounds[i]._node.removeEventListener(Howler._canPlayEvent, sounds[i]._loadFn, false);
+
+          // Release the Audio object back to the pool.
+          Howler._releaseHtml5Audio(sounds[i]._node);
+        }
+
+        // Empty out all of the nodes.
+        delete sounds[i]._node;
+
+        // Make sure all timers are cleared out.
+        self._clearTimer(sounds[i]._id);
+      }
+
+      // Remove the references in the global Howler object.
+      var index = Howler._howls.indexOf(self);
+      if (index >= 0) {
+        Howler._howls.splice(index, 1);
+      }
+
+      // Delete this sound from the cache (if no other Howl is using it).
+      var remCache = true;
+      for (i=0; i<Howler._howls.length; i++) {
+        if (Howler._howls[i]._src === self._src || self._src.indexOf(Howler._howls[i]._src) >= 0) {
+          remCache = false;
+          break;
+        }
+      }
+
+      if (cache && remCache) {
+        delete cache[self._src];
+      }
+
+      // Clear global errors.
+      Howler.noAudio = false;
+
+      // Clear out `self`.
+      self._state = 'unloaded';
+      self._sounds = [];
+      self = null;
+
+      return null;
+    },
+
+    /**
+     * Listen to a custom event.
+     * @param  {String}   event Event name.
+     * @param  {Function} fn    Listener to call.
+     * @param  {Number}   id    (optional) Only listen to events for this sound.
+     * @param  {Number}   once  (INTERNAL) Marks event to fire only once.
+     * @return {Howl}
+     */
+    on: function(event, fn, id, once) {
+      var self = this;
+      var events = self['_on' + event];
+
+      if (typeof fn === 'function') {
+        events.push(once ? {id: id, fn: fn, once: once} : {id: id, fn: fn});
+      }
+
+      return self;
+    },
+
+    /**
+     * Remove a custom event. Call without parameters to remove all events.
+     * @param  {String}   event Event name.
+     * @param  {Function} fn    Listener to remove. Leave empty to remove all.
+     * @param  {Number}   id    (optional) Only remove events for this sound.
+     * @return {Howl}
+     */
+    off: function(event, fn, id) {
+      var self = this;
+      var events = self['_on' + event];
+      var i = 0;
+
+      // Allow passing just an event and ID.
+      if (typeof fn === 'number') {
+        id = fn;
+        fn = null;
+      }
+
+      if (fn || id) {
+        // Loop through event store and remove the passed function.
+        for (i=0; i<events.length; i++) {
+          var isId = (id === events[i].id);
+          if (fn === events[i].fn && isId || !fn && isId) {
+            events.splice(i, 1);
+            break;
+          }
+        }
+      } else if (event) {
+        // Clear out all events of this type.
+        self['_on' + event] = [];
+      } else {
+        // Clear out all events of every type.
+        var keys = Object.keys(self);
+        for (i=0; i<keys.length; i++) {
+          if ((keys[i].indexOf('_on') === 0) && Array.isArray(self[keys[i]])) {
+            self[keys[i]] = [];
+          }
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Listen to a custom event and remove it once fired.
+     * @param  {String}   event Event name.
+     * @param  {Function} fn    Listener to call.
+     * @param  {Number}   id    (optional) Only listen to events for this sound.
+     * @return {Howl}
+     */
+    once: function(event, fn, id) {
+      var self = this;
+
+      // Setup the event listener.
+      self.on(event, fn, id, 1);
+
+      return self;
+    },
+
+    /**
+     * Emit all events of a specific type and pass the sound id.
+     * @param  {String} event Event name.
+     * @param  {Number} id    Sound ID.
+     * @param  {Number} msg   Message to go with event.
+     * @return {Howl}
+     */
+    _emit: function(event, id, msg) {
+      var self = this;
+      var events = self['_on' + event];
+
+      // Loop through event store and fire all functions.
+      for (var i=events.length-1; i>=0; i--) {
+        // Only fire the listener if the correct ID is used.
+        if (!events[i].id || events[i].id === id || event === 'load') {
+          setTimeout(function(fn) {
+            fn.call(this, id, msg);
+          }.bind(self, events[i].fn), 0);
+
+          // If this event was setup with `once`, remove it.
+          if (events[i].once) {
+            self.off(event, events[i].fn, events[i].id);
+          }
+        }
+      }
+
+      // Pass the event type into load queue so that it can continue stepping.
+      self._loadQueue(event);
+
+      return self;
+    },
+
+    /**
+     * Queue of actions initiated before the sound has loaded.
+     * These will be called in sequence, with the next only firing
+     * after the previous has finished executing (even if async like play).
+     * @return {Howl}
+     */
+    _loadQueue: function(event) {
+      var self = this;
+
+      if (self._queue.length > 0) {
+        var task = self._queue[0];
+
+        // Remove this task if a matching event was passed.
+        if (task.event === event) {
+          self._queue.shift();
+          self._loadQueue();
+        }
+
+        // Run the task if no event type is passed.
+        if (!event) {
+          task.action();
+        }
+      }
+
+      return self;
+    },
+
+    /**
+     * Fired when playback ends at the end of the duration.
+     * @param  {Sound} sound The sound object to work with.
+     * @return {Howl}
+     */
+    _ended: function(sound) {
+      var self = this;
+      var sprite = sound._sprite;
+
+      // If we are using IE and there was network latency we may be clipping
+      // audio before it completes playing. Lets check the node to make sure it
+      // believes it has completed, before ending the playback.
+      if (!self._webAudio && sound._node && !sound._node.paused && !sound._node.ended && sound._node.currentTime < sound._stop) {
+        setTimeout(self._ended.bind(self, sound), 100);
+        return self;
+      }
+
+      // Should this sound loop?
+      var loop = !!(sound._loop || self._sprite[sprite][2]);
+
+      // Fire the ended event.
+      self._emit('end', sound._id);
+
+      // Restart the playback for HTML5 Audio loop.
+      if (!self._webAudio && loop) {
+        self.stop(sound._id, true).play(sound._id);
+      }
+
+      // Restart this timer if on a Web Audio loop.
+      if (self._webAudio && loop) {
+        self._emit('play', sound._id);
+        sound._seek = sound._start || 0;
+        sound._rateSeek = 0;
+        sound._playStart = Howler.ctx.currentTime;
+
+        var timeout = ((sound._stop - sound._start) * 1000) / Math.abs(sound._rate);
+        self._endTimers[sound._id] = setTimeout(self._ended.bind(self, sound), timeout);
+      }
+
+      // Mark the node as paused.
+      if (self._webAudio && !loop) {
+        sound._paused = true;
+        sound._ended = true;
+        sound._seek = sound._start || 0;
+        sound._rateSeek = 0;
+        self._clearTimer(sound._id);
+
+        // Clean up the buffer source.
+        self._cleanBuffer(sound._node);
+
+        // Attempt to auto-suspend AudioContext if no sounds are still playing.
+        Howler._autoSuspend();
+      }
+
+      // When using a sprite, end the track.
+      if (!self._webAudio && !loop) {
+        self.stop(sound._id, true);
+      }
+
+      return self;
+    },
+
+    /**
+     * Clear the end timer for a sound playback.
+     * @param  {Number} id The sound ID.
+     * @return {Howl}
+     */
+    _clearTimer: function(id) {
+      var self = this;
+
+      if (self._endTimers[id]) {
+        // Clear the timeout or remove the ended listener.
+        if (typeof self._endTimers[id] !== 'function') {
+          clearTimeout(self._endTimers[id]);
+        } else {
+          var sound = self._soundById(id);
+          if (sound && sound._node) {
+            sound._node.removeEventListener('ended', self._endTimers[id], false);
+          }
+        }
+
+        delete self._endTimers[id];
+      }
+
+      return self;
+    },
+
+    /**
+     * Return the sound identified by this ID, or return null.
+     * @param  {Number} id Sound ID
+     * @return {Object}    Sound object or null.
+     */
+    _soundById: function(id) {
+      var self = this;
+
+      // Loop through all sounds and find the one with this ID.
+      for (var i=0; i<self._sounds.length; i++) {
+        if (id === self._sounds[i]._id) {
+          return self._sounds[i];
+        }
+      }
+
+      return null;
+    },
+
+    /**
+     * Return an inactive sound from the pool or create a new one.
+     * @return {Sound} Sound playback object.
+     */
+    _inactiveSound: function() {
+      var self = this;
+
+      self._drain();
+
+      // Find the first inactive node to recycle.
+      for (var i=0; i<self._sounds.length; i++) {
+        if (self._sounds[i]._ended) {
+          return self._sounds[i].reset();
+        }
+      }
+
+      // If no inactive node was found, create a new one.
+      return new Sound(self);
+    },
+
+    /**
+     * Drain excess inactive sounds from the pool.
+     */
+    _drain: function() {
+      var self = this;
+      var limit = self._pool;
+      var cnt = 0;
+      var i = 0;
+
+      // If there are less sounds than the max pool size, we are done.
+      if (self._sounds.length < limit) {
+        return;
+      }
+
+      // Count the number of inactive sounds.
+      for (i=0; i<self._sounds.length; i++) {
+        if (self._sounds[i]._ended) {
+          cnt++;
+        }
+      }
+
+      // Remove excess inactive sounds, going in reverse order.
+      for (i=self._sounds.length - 1; i>=0; i--) {
+        if (cnt <= limit) {
+          return;
+        }
+
+        if (self._sounds[i]._ended) {
+          // Disconnect the audio source when using Web Audio.
+          if (self._webAudio && self._sounds[i]._node) {
+            self._sounds[i]._node.disconnect(0);
+          }
+
+          // Remove sounds until we have the pool size.
+          self._sounds.splice(i, 1);
+          cnt--;
+        }
+      }
+    },
+
+    /**
+     * Get all ID's from the sounds pool.
+     * @param  {Number} id Only return one ID if one is passed.
+     * @return {Array}    Array of IDs.
+     */
+    _getSoundIds: function(id) {
+      var self = this;
+
+      if (typeof id === 'undefined') {
+        var ids = [];
+        for (var i=0; i<self._sounds.length; i++) {
+          ids.push(self._sounds[i]._id);
+        }
+
+        return ids;
+      } else {
+        return [id];
+      }
+    },
+
+    /**
+     * Load the sound back into the buffer source.
+     * @param  {Sound} sound The sound object to work with.
+     * @return {Howl}
+     */
+    _refreshBuffer: function(sound) {
+      var self = this;
+
+      // Setup the buffer source for playback.
+      sound._node.bufferSource = Howler.ctx.createBufferSource();
+      sound._node.bufferSource.buffer = cache[self._src];
+
+      // Connect to the correct node.
+      if (sound._panner) {
+        sound._node.bufferSource.connect(sound._panner);
+      } else {
+        sound._node.bufferSource.connect(sound._node);
+      }
+
+      // Setup looping and playback rate.
+      sound._node.bufferSource.loop = sound._loop;
+      if (sound._loop) {
+        sound._node.bufferSource.loopStart = sound._start || 0;
+        sound._node.bufferSource.loopEnd = sound._stop || 0;
+      }
+      sound._node.bufferSource.playbackRate.setValueAtTime(sound._rate, Howler.ctx.currentTime);
+
+      return self;
+    },
+
+    /**
+     * Prevent memory leaks by cleaning up the buffer source after playback.
+     * @param  {Object} node Sound's audio node containing the buffer source.
+     * @return {Howl}
+     */
+    _cleanBuffer: function(node) {
+      var self = this;
+      var isIOS = Howler._navigator && Howler._navigator.vendor.indexOf('Apple') >= 0;
+
+      if (Howler._scratchBuffer && node.bufferSource) {
+        node.bufferSource.onended = null;
+        node.bufferSource.disconnect(0);
+        if (isIOS) {
+          try { node.bufferSource.buffer = Howler._scratchBuffer; } catch(e) {}
+        }
+      }
+      node.bufferSource = null;
+
+      return self;
+    },
+
+    /**
+     * Set the source to a 0-second silence to stop any downloading (except in IE).
+     * @param  {Object} node Audio node to clear.
+     */
+    _clearSound: function(node) {
+      var checkIE = /MSIE |Trident\//.test(Howler._navigator && Howler._navigator.userAgent);
+      if (!checkIE) {
+        node.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+      }
+    }
+  };
+
+  /** Single Sound Methods **/
+  /***************************************************************************/
+
+  /**
+   * Setup the sound object, which each node attached to a Howl group is contained in.
+   * @param {Object} howl The Howl parent group.
+   */
+  var Sound = function(howl) {
+    this._parent = howl;
+    this.init();
+  };
+  Sound.prototype = {
+    /**
+     * Initialize a new Sound object.
+     * @return {Sound}
+     */
+    init: function() {
+      var self = this;
+      var parent = self._parent;
+
+      // Setup the default parameters.
+      self._muted = parent._muted;
+      self._loop = parent._loop;
+      self._volume = parent._volume;
+      self._rate = parent._rate;
+      self._seek = 0;
+      self._paused = true;
+      self._ended = true;
+      self._sprite = '__default';
+
+      // Generate a unique ID for this sound.
+      self._id = ++Howler._counter;
+
+      // Add itself to the parent's pool.
+      parent._sounds.push(self);
+
+      // Create the new node.
+      self.create();
+
+      return self;
+    },
+
+    /**
+     * Create and setup a new sound object, whether HTML5 Audio or Web Audio.
+     * @return {Sound}
+     */
+    create: function() {
+      var self = this;
+      var parent = self._parent;
+      var volume = (Howler._muted || self._muted || self._parent._muted) ? 0 : self._volume;
+
+      if (parent._webAudio) {
+        // Create the gain node for controlling volume (the source will connect to this).
+        self._node = (typeof Howler.ctx.createGain === 'undefined') ? Howler.ctx.createGainNode() : Howler.ctx.createGain();
+        self._node.gain.setValueAtTime(volume, Howler.ctx.currentTime);
+        self._node.paused = true;
+        self._node.connect(Howler.masterGain);
+      } else {
+        // Get an unlocked Audio object from the pool.
+        self._node = Howler._obtainHtml5Audio();
+
+        // Listen for errors (http://dev.w3.org/html5/spec-author-view/spec.html#mediaerror).
+        self._errorFn = self._errorListener.bind(self);
+        self._node.addEventListener('error', self._errorFn, false);
+
+        // Listen for 'canplaythrough' event to let us know the sound is ready.
+        self._loadFn = self._loadListener.bind(self);
+        self._node.addEventListener(Howler._canPlayEvent, self._loadFn, false);
+
+        // Setup the new audio node.
+        self._node.src = parent._src;
+        self._node.preload = 'auto';
+        self._node.volume = volume * Howler.volume();
+
+        // Begin loading the source.
+        self._node.load();
+      }
+
+      return self;
+    },
+
+    /**
+     * Reset the parameters of this sound to the original state (for recycle).
+     * @return {Sound}
+     */
+    reset: function() {
+      var self = this;
+      var parent = self._parent;
+
+      // Reset all of the parameters of this sound.
+      self._muted = parent._muted;
+      self._loop = parent._loop;
+      self._volume = parent._volume;
+      self._rate = parent._rate;
+      self._seek = 0;
+      self._rateSeek = 0;
+      self._paused = true;
+      self._ended = true;
+      self._sprite = '__default';
+
+      // Generate a new ID so that it isn't confused with the previous sound.
+      self._id = ++Howler._counter;
+
+      return self;
+    },
+
+    /**
+     * HTML5 Audio error listener callback.
+     */
+    _errorListener: function() {
+      var self = this;
+
+      // Fire an error event and pass back the code.
+      self._parent._emit('loaderror', self._id, self._node.error ? self._node.error.code : 0);
+
+      // Clear the event listener.
+      self._node.removeEventListener('error', self._errorFn, false);
+    },
+
+    /**
+     * HTML5 Audio canplaythrough listener callback.
+     */
+    _loadListener: function() {
+      var self = this;
+      var parent = self._parent;
+
+      // Round up the duration to account for the lower precision in HTML5 Audio.
+      parent._duration = Math.ceil(self._node.duration * 10) / 10;
+
+      // Setup a sprite if none is defined.
+      if (Object.keys(parent._sprite).length === 0) {
+        parent._sprite = {__default: [0, parent._duration * 1000]};
+      }
+
+      if (parent._state !== 'loaded') {
+        parent._state = 'loaded';
+        parent._emit('load');
+        parent._loadQueue();
+      }
+
+      // Clear the event listener.
+      self._node.removeEventListener(Howler._canPlayEvent, self._loadFn, false);
+    }
+  };
+
+  /** Helper Methods **/
+  /***************************************************************************/
+
+  var cache = {};
+
+  /**
+   * Buffer a sound from URL, Data URI or cache and decode to audio source (Web Audio API).
+   * @param  {Howl} self
+   */
+  var loadBuffer = function(self) {
+    var url = self._src;
+
+    // Check if the buffer has already been cached and use it instead.
+    if (cache[url]) {
+      // Set the duration from the cache.
+      self._duration = cache[url].duration;
+
+      // Load the sound into this Howl.
+      loadSound(self);
+
+      return;
+    }
+
+    if (/^data:[^;]+;base64,/.test(url)) {
+      // Decode the base64 data URI without XHR, since some browsers don't support it.
+      var data = atob(url.split(',')[1]);
+      var dataView = new Uint8Array(data.length);
+      for (var i=0; i<data.length; ++i) {
+        dataView[i] = data.charCodeAt(i);
+      }
+
+      decodeAudioData(dataView.buffer, self);
+    } else {
+      // Load the buffer from the URL.
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.withCredentials = self._xhrWithCredentials;
+      xhr.responseType = 'arraybuffer';
+      xhr.onload = function() {
+        // Make sure we get a successful response back.
+        var code = (xhr.status + '')[0];
+        if (code !== '0' && code !== '2' && code !== '3') {
+          self._emit('loaderror', null, 'Failed loading audio file with status: ' + xhr.status + '.');
+          return;
+        }
+
+        decodeAudioData(xhr.response, self);
+      };
+      xhr.onerror = function() {
+        // If there is an error, switch to HTML5 Audio.
+        if (self._webAudio) {
+          self._html5 = true;
+          self._webAudio = false;
+          self._sounds = [];
+          delete cache[url];
+          self.load();
+        }
+      };
+      safeXhrSend(xhr);
+    }
+  };
+
+  /**
+   * Send the XHR request wrapped in a try/catch.
+   * @param  {Object} xhr XHR to send.
+   */
+  var safeXhrSend = function(xhr) {
+    try {
+      xhr.send();
+    } catch (e) {
+      xhr.onerror();
+    }
+  };
+
+  /**
+   * Decode audio data from an array buffer.
+   * @param  {ArrayBuffer} arraybuffer The audio data.
+   * @param  {Howl}        self
+   */
+  var decodeAudioData = function(arraybuffer, self) {
+    // Fire a load error if something broke.
+    var error = function() {
+      self._emit('loaderror', null, 'Decoding audio data failed.');
+    };
+
+    // Load the sound on success.
+    var success = function(buffer) {
+      if (buffer && self._sounds.length > 0) {
+        cache[self._src] = buffer;
+        loadSound(self, buffer);
+      } else {
+        error();
+      }
+    };
+
+    // Decode the buffer into an audio source.
+    if (typeof Promise !== 'undefined' && Howler.ctx.decodeAudioData.length === 1) {
+      Howler.ctx.decodeAudioData(arraybuffer).then(success).catch(error);
+    } else {
+      Howler.ctx.decodeAudioData(arraybuffer, success, error);
+    }
+  }
+
+  /**
+   * Sound is now loaded, so finish setting everything up and fire the loaded event.
+   * @param  {Howl} self
+   * @param  {Object} buffer The decoded buffer sound source.
+   */
+  var loadSound = function(self, buffer) {
+    // Set the duration.
+    if (buffer && !self._duration) {
+      self._duration = buffer.duration;
+    }
+
+    // Setup a sprite if none is defined.
+    if (Object.keys(self._sprite).length === 0) {
+      self._sprite = {__default: [0, self._duration * 1000]};
+    }
+
+    // Fire the loaded event.
+    if (self._state !== 'loaded') {
+      self._state = 'loaded';
+      self._emit('load');
+      self._loadQueue();
+    }
+  };
+
+  /**
+   * Setup the audio context when available, or switch to HTML5 Audio mode.
+   */
+  var setupAudioContext = function() {
+    // If we have already detected that Web Audio isn't supported, don't run this step again.
+    if (!Howler.usingWebAudio) {
+      return;
+    }
+
+    // Check if we are using Web Audio and setup the AudioContext if we are.
+    try {
+      if (typeof AudioContext !== 'undefined') {
+        Howler.ctx = new AudioContext();
+      } else if (typeof webkitAudioContext !== 'undefined') {
+        Howler.ctx = new webkitAudioContext();
+      } else {
+        Howler.usingWebAudio = false;
+      }
+    } catch(e) {
+      Howler.usingWebAudio = false;
+    }
+
+    // If the audio context creation still failed, set using web audio to false.
+    if (!Howler.ctx) {
+      Howler.usingWebAudio = false;
+    }
+
+    // Check if a webview is being used on iOS8 or earlier (rather than the browser).
+    // If it is, disable Web Audio as it causes crashing.
+    var iOS = (/iP(hone|od|ad)/.test(Howler._navigator && Howler._navigator.platform));
+    var appVersion = Howler._navigator && Howler._navigator.appVersion.match(/OS (\d+)_(\d+)_?(\d+)?/);
+    var version = appVersion ? parseInt(appVersion[1], 10) : null;
+    if (iOS && version && version < 9) {
+      var safari = /safari/.test(Howler._navigator && Howler._navigator.userAgent.toLowerCase());
+      if (Howler._navigator && Howler._navigator.standalone && !safari || Howler._navigator && !Howler._navigator.standalone && !safari) {
+        Howler.usingWebAudio = false;
+      }
+    }
+
+    // Create and expose the master GainNode when using Web Audio (useful for plugins or advanced usage).
+    if (Howler.usingWebAudio) {
+      Howler.masterGain = (typeof Howler.ctx.createGain === 'undefined') ? Howler.ctx.createGainNode() : Howler.ctx.createGain();
+      Howler.masterGain.gain.setValueAtTime(Howler._muted ? 0 : 1, Howler.ctx.currentTime);
+      Howler.masterGain.connect(Howler.ctx.destination);
+    }
+
+    // Re-run the setup on Howler.
+    Howler._setup();
+  };
+
+  // Add support for AMD (Asynchronous Module Definition) libraries such as require.js.
+  if (typeof define === 'function' && define.amd) {
+    define([], function() {
+      return {
+        Howler: Howler,
+        Howl: Howl
+      };
+    });
+  }
+
+  // Add support for CommonJS libraries such as browserify.
+  if (typeof exports !== 'undefined') {
+    exports.Howler = Howler;
+    exports.Howl = Howl;
+  }
+
+  // Define globally in case AMD is not available or unused.
+  if (typeof window !== 'undefined') {
+    window.HowlerGlobal = HowlerGlobal;
+    window.Howler = Howler;
+    window.Howl = Howl;
+    window.Sound = Sound;
+  } else if (typeof global !== 'undefined') { // Add to global in Node.js (for testing, etc).
+    global.HowlerGlobal = HowlerGlobal;
+    global.Howler = Howler;
+    global.Howl = Howl;
+    global.Sound = Sound;
+  }
+})();
+
+
+/*!
+ *  Spatial Plugin - Adds support for stereo and 3D audio where Web Audio is supported.
+ *  
+ *  howler.js v2.1.2
+ *  howlerjs.com
+ *
+ *  (c) 2013-2019, James Simpson of GoldFire Studios
+ *  goldfirestudios.com
+ *
+ *  MIT License
+ */
+
+(function() {
+
+  'use strict';
+
+  // Setup default properties.
+  HowlerGlobal.prototype._pos = [0, 0, 0];
+  HowlerGlobal.prototype._orientation = [0, 0, -1, 0, 1, 0];
+
+  /** Global Methods **/
+  /***************************************************************************/
+
+  /**
+   * Helper method to update the stereo panning position of all current Howls.
+   * Future Howls will not use this value unless explicitly set.
+   * @param  {Number} pan A value of -1.0 is all the way left and 1.0 is all the way right.
+   * @return {Howler/Number}     Self or current stereo panning value.
+   */
+  HowlerGlobal.prototype.stereo = function(pan) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self.ctx || !self.ctx.listener) {
+      return self;
+    }
+
+    // Loop through all Howls and update their stereo panning.
+    for (var i=self._howls.length-1; i>=0; i--) {
+      self._howls[i].stereo(pan);
+    }
+
+    return self;
+  };
+
+  /**
+   * Get/set the position of the listener in 3D cartesian space. Sounds using
+   * 3D position will be relative to the listener's position.
+   * @param  {Number} x The x-position of the listener.
+   * @param  {Number} y The y-position of the listener.
+   * @param  {Number} z The z-position of the listener.
+   * @return {Howler/Array}   Self or current listener position.
+   */
+  HowlerGlobal.prototype.pos = function(x, y, z) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self.ctx || !self.ctx.listener) {
+      return self;
+    }
+
+    // Set the defaults for optional 'y' & 'z'.
+    y = (typeof y !== 'number') ? self._pos[1] : y;
+    z = (typeof z !== 'number') ? self._pos[2] : z;
+
+    if (typeof x === 'number') {
+      self._pos = [x, y, z];
+
+      if (typeof self.ctx.listener.positionX !== 'undefined') {
+        self.ctx.listener.positionX.setTargetAtTime(self._pos[0], Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.positionY.setTargetAtTime(self._pos[1], Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.positionZ.setTargetAtTime(self._pos[2], Howler.ctx.currentTime, 0.1);
+      } else {
+        self.ctx.listener.setPosition(self._pos[0], self._pos[1], self._pos[2]);
+      }
+    } else {
+      return self._pos;
+    }
+
+    return self;
+  };
+
+  /**
+   * Get/set the direction the listener is pointing in the 3D cartesian space.
+   * A front and up vector must be provided. The front is the direction the
+   * face of the listener is pointing, and up is the direction the top of the
+   * listener is pointing. Thus, these values are expected to be at right angles
+   * from each other.
+   * @param  {Number} x   The x-orientation of the listener.
+   * @param  {Number} y   The y-orientation of the listener.
+   * @param  {Number} z   The z-orientation of the listener.
+   * @param  {Number} xUp The x-orientation of the top of the listener.
+   * @param  {Number} yUp The y-orientation of the top of the listener.
+   * @param  {Number} zUp The z-orientation of the top of the listener.
+   * @return {Howler/Array}     Returns self or the current orientation vectors.
+   */
+  HowlerGlobal.prototype.orientation = function(x, y, z, xUp, yUp, zUp) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self.ctx || !self.ctx.listener) {
+      return self;
+    }
+
+    // Set the defaults for optional 'y' & 'z'.
+    var or = self._orientation;
+    y = (typeof y !== 'number') ? or[1] : y;
+    z = (typeof z !== 'number') ? or[2] : z;
+    xUp = (typeof xUp !== 'number') ? or[3] : xUp;
+    yUp = (typeof yUp !== 'number') ? or[4] : yUp;
+    zUp = (typeof zUp !== 'number') ? or[5] : zUp;
+
+    if (typeof x === 'number') {
+      self._orientation = [x, y, z, xUp, yUp, zUp];
+
+      if (typeof self.ctx.listener.forwardX !== 'undefined') {
+        self.ctx.listener.forwardX.setTargetAtTime(x, Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.forwardY.setTargetAtTime(y, Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.forwardZ.setTargetAtTime(z, Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.upX.setTargetAtTime(x, Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.upY.setTargetAtTime(y, Howler.ctx.currentTime, 0.1);
+        self.ctx.listener.upZ.setTargetAtTime(z, Howler.ctx.currentTime, 0.1);
+      } else {
+        self.ctx.listener.setOrientation(x, y, z, xUp, yUp, zUp);
+      }
+    } else {
+      return or;
+    }
+
+    return self;
+  };
+
+  /** Group Methods **/
+  /***************************************************************************/
+
+  /**
+   * Add new properties to the core init.
+   * @param  {Function} _super Core init method.
+   * @return {Howl}
+   */
+  Howl.prototype.init = (function(_super) {
+    return function(o) {
+      var self = this;
+
+      // Setup user-defined default properties.
+      self._orientation = o.orientation || [1, 0, 0];
+      self._stereo = o.stereo || null;
+      self._pos = o.pos || null;
+      self._pannerAttr = {
+        coneInnerAngle: typeof o.coneInnerAngle !== 'undefined' ? o.coneInnerAngle : 360,
+        coneOuterAngle: typeof o.coneOuterAngle !== 'undefined' ? o.coneOuterAngle : 360,
+        coneOuterGain: typeof o.coneOuterGain !== 'undefined' ? o.coneOuterGain : 0,
+        distanceModel: typeof o.distanceModel !== 'undefined' ? o.distanceModel : 'inverse',
+        maxDistance: typeof o.maxDistance !== 'undefined' ? o.maxDistance : 10000,
+        panningModel: typeof o.panningModel !== 'undefined' ? o.panningModel : 'HRTF',
+        refDistance: typeof o.refDistance !== 'undefined' ? o.refDistance : 1,
+        rolloffFactor: typeof o.rolloffFactor !== 'undefined' ? o.rolloffFactor : 1
+      };
+
+      // Setup event listeners.
+      self._onstereo = o.onstereo ? [{fn: o.onstereo}] : [];
+      self._onpos = o.onpos ? [{fn: o.onpos}] : [];
+      self._onorientation = o.onorientation ? [{fn: o.onorientation}] : [];
+
+      // Complete initilization with howler.js core's init function.
+      return _super.call(this, o);
+    };
+  })(Howl.prototype.init);
+
+  /**
+   * Get/set the stereo panning of the audio source for this sound or all in the group.
+   * @param  {Number} pan  A value of -1.0 is all the way left and 1.0 is all the way right.
+   * @param  {Number} id (optional) The sound ID. If none is passed, all in group will be updated.
+   * @return {Howl/Number}    Returns self or the current stereo panning value.
+   */
+  Howl.prototype.stereo = function(pan, id) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self._webAudio) {
+      return self;
+    }
+
+    // If the sound hasn't loaded, add it to the load queue to change stereo pan when capable.
+    if (self._state !== 'loaded') {
+      self._queue.push({
+        event: 'stereo',
+        action: function() {
+          self.stereo(pan, id);
+        }
+      });
+
+      return self;
+    }
+
+    // Check for PannerStereoNode support and fallback to PannerNode if it doesn't exist.
+    var pannerType = (typeof Howler.ctx.createStereoPanner === 'undefined') ? 'spatial' : 'stereo';
+
+    // Setup the group's stereo panning if no ID is passed.
+    if (typeof id === 'undefined') {
+      // Return the group's stereo panning if no parameters are passed.
+      if (typeof pan === 'number') {
+        self._stereo = pan;
+        self._pos = [pan, 0, 0];
+      } else {
+        return self._stereo;
+      }
+    }
+
+    // Change the streo panning of one or all sounds in group.
+    var ids = self._getSoundIds(id);
+    for (var i=0; i<ids.length; i++) {
+      // Get the sound.
+      var sound = self._soundById(ids[i]);
+
+      if (sound) {
+        if (typeof pan === 'number') {
+          sound._stereo = pan;
+          sound._pos = [pan, 0, 0];
+
+          if (sound._node) {
+            // If we are falling back, make sure the panningModel is equalpower.
+            sound._pannerAttr.panningModel = 'equalpower';
+
+            // Check if there is a panner setup and create a new one if not.
+            if (!sound._panner || !sound._panner.pan) {
+              setupPanner(sound, pannerType);
+            }
+
+            if (pannerType === 'spatial') {
+              if (typeof sound._panner.positionX !== 'undefined') {
+                sound._panner.positionX.setValueAtTime(pan, Howler.ctx.currentTime);
+                sound._panner.positionY.setValueAtTime(0, Howler.ctx.currentTime);
+                sound._panner.positionZ.setValueAtTime(0, Howler.ctx.currentTime);
+              } else {
+                sound._panner.setPosition(pan, 0, 0);
+              }
+            } else {
+              sound._panner.pan.setValueAtTime(pan, Howler.ctx.currentTime);
+            }
+          }
+
+          self._emit('stereo', sound._id);
+        } else {
+          return sound._stereo;
+        }
+      }
+    }
+
+    return self;
+  };
+
+  /**
+   * Get/set the 3D spatial position of the audio source for this sound or group relative to the global listener.
+   * @param  {Number} x  The x-position of the audio source.
+   * @param  {Number} y  The y-position of the audio source.
+   * @param  {Number} z  The z-position of the audio source.
+   * @param  {Number} id (optional) The sound ID. If none is passed, all in group will be updated.
+   * @return {Howl/Array}    Returns self or the current 3D spatial position: [x, y, z].
+   */
+  Howl.prototype.pos = function(x, y, z, id) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self._webAudio) {
+      return self;
+    }
+
+    // If the sound hasn't loaded, add it to the load queue to change position when capable.
+    if (self._state !== 'loaded') {
+      self._queue.push({
+        event: 'pos',
+        action: function() {
+          self.pos(x, y, z, id);
+        }
+      });
+
+      return self;
+    }
+
+    // Set the defaults for optional 'y' & 'z'.
+    y = (typeof y !== 'number') ? 0 : y;
+    z = (typeof z !== 'number') ? -0.5 : z;
+
+    // Setup the group's spatial position if no ID is passed.
+    if (typeof id === 'undefined') {
+      // Return the group's spatial position if no parameters are passed.
+      if (typeof x === 'number') {
+        self._pos = [x, y, z];
+      } else {
+        return self._pos;
+      }
+    }
+
+    // Change the spatial position of one or all sounds in group.
+    var ids = self._getSoundIds(id);
+    for (var i=0; i<ids.length; i++) {
+      // Get the sound.
+      var sound = self._soundById(ids[i]);
+
+      if (sound) {
+        if (typeof x === 'number') {
+          sound._pos = [x, y, z];
+
+          if (sound._node) {
+            // Check if there is a panner setup and create a new one if not.
+            if (!sound._panner || sound._panner.pan) {
+              setupPanner(sound, 'spatial');
+            }
+
+            if (typeof sound._panner.positionX !== 'undefined') {
+              sound._panner.positionX.setValueAtTime(x, Howler.ctx.currentTime);
+              sound._panner.positionY.setValueAtTime(y, Howler.ctx.currentTime);
+              sound._panner.positionZ.setValueAtTime(z, Howler.ctx.currentTime);
+            } else {
+              sound._panner.setPosition(x, y, z);
+            }
+          }
+
+          self._emit('pos', sound._id);
+        } else {
+          return sound._pos;
+        }
+      }
+    }
+
+    return self;
+  };
+
+  /**
+   * Get/set the direction the audio source is pointing in the 3D cartesian coordinate
+   * space. Depending on how direction the sound is, based on the `cone` attributes,
+   * a sound pointing away from the listener can be quiet or silent.
+   * @param  {Number} x  The x-orientation of the source.
+   * @param  {Number} y  The y-orientation of the source.
+   * @param  {Number} z  The z-orientation of the source.
+   * @param  {Number} id (optional) The sound ID. If none is passed, all in group will be updated.
+   * @return {Howl/Array}    Returns self or the current 3D spatial orientation: [x, y, z].
+   */
+  Howl.prototype.orientation = function(x, y, z, id) {
+    var self = this;
+
+    // Stop right here if not using Web Audio.
+    if (!self._webAudio) {
+      return self;
+    }
+
+    // If the sound hasn't loaded, add it to the load queue to change orientation when capable.
+    if (self._state !== 'loaded') {
+      self._queue.push({
+        event: 'orientation',
+        action: function() {
+          self.orientation(x, y, z, id);
+        }
+      });
+
+      return self;
+    }
+
+    // Set the defaults for optional 'y' & 'z'.
+    y = (typeof y !== 'number') ? self._orientation[1] : y;
+    z = (typeof z !== 'number') ? self._orientation[2] : z;
+
+    // Setup the group's spatial orientation if no ID is passed.
+    if (typeof id === 'undefined') {
+      // Return the group's spatial orientation if no parameters are passed.
+      if (typeof x === 'number') {
+        self._orientation = [x, y, z];
+      } else {
+        return self._orientation;
+      }
+    }
+
+    // Change the spatial orientation of one or all sounds in group.
+    var ids = self._getSoundIds(id);
+    for (var i=0; i<ids.length; i++) {
+      // Get the sound.
+      var sound = self._soundById(ids[i]);
+
+      if (sound) {
+        if (typeof x === 'number') {
+          sound._orientation = [x, y, z];
+
+          if (sound._node) {
+            // Check if there is a panner setup and create a new one if not.
+            if (!sound._panner) {
+              // Make sure we have a position to setup the node with.
+              if (!sound._pos) {
+                sound._pos = self._pos || [0, 0, -0.5];
+              }
+
+              setupPanner(sound, 'spatial');
+            }
+
+            if (typeof sound._panner.orientationX !== 'undefined') {
+              sound._panner.orientationX.setValueAtTime(x, Howler.ctx.currentTime);
+              sound._panner.orientationY.setValueAtTime(y, Howler.ctx.currentTime);
+              sound._panner.orientationZ.setValueAtTime(z, Howler.ctx.currentTime);
+            } else {
+              sound._panner.setOrientation(x, y, z);
+            }
+          }
+
+          self._emit('orientation', sound._id);
+        } else {
+          return sound._orientation;
+        }
+      }
+    }
+
+    return self;
+  };
+
+  /**
+   * Get/set the panner node's attributes for a sound or group of sounds.
+   * This method can optionall take 0, 1 or 2 arguments.
+   *   pannerAttr() -> Returns the group's values.
+   *   pannerAttr(id) -> Returns the sound id's values.
+   *   pannerAttr(o) -> Set's the values of all sounds in this Howl group.
+   *   pannerAttr(o, id) -> Set's the values of passed sound id.
+   *
+   *   Attributes:
+   *     coneInnerAngle - (360 by default) A parameter for directional audio sources, this is an angle, in degrees,
+   *                      inside of which there will be no volume reduction.
+   *     coneOuterAngle - (360 by default) A parameter for directional audio sources, this is an angle, in degrees,
+   *                      outside of which the volume will be reduced to a constant value of `coneOuterGain`.
+   *     coneOuterGain - (0 by default) A parameter for directional audio sources, this is the gain outside of the
+   *                     `coneOuterAngle`. It is a linear value in the range `[0, 1]`.
+   *     distanceModel - ('inverse' by default) Determines algorithm used to reduce volume as audio moves away from
+   *                     listener. Can be `linear`, `inverse` or `exponential.
+   *     maxDistance - (10000 by default) The maximum distance between source and listener, after which the volume
+   *                   will not be reduced any further.
+   *     refDistance - (1 by default) A reference distance for reducing volume as source moves further from the listener.
+   *                   This is simply a variable of the distance model and has a different effect depending on which model
+   *                   is used and the scale of your coordinates. Generally, volume will be equal to 1 at this distance.
+   *     rolloffFactor - (1 by default) How quickly the volume reduces as source moves from listener. This is simply a
+   *                     variable of the distance model and can be in the range of `[0, 1]` with `linear` and `[0, ∞]`
+   *                     with `inverse` and `exponential`.
+   *     panningModel - ('HRTF' by default) Determines which spatialization algorithm is used to position audio.
+   *                     Can be `HRTF` or `equalpower`.
+   *
+   * @return {Howl/Object} Returns self or current panner attributes.
+   */
+  Howl.prototype.pannerAttr = function() {
+    var self = this;
+    var args = arguments;
+    var o, id, sound;
+
+    // Stop right here if not using Web Audio.
+    if (!self._webAudio) {
+      return self;
+    }
+
+    // Determine the values based on arguments.
+    if (args.length === 0) {
+      // Return the group's panner attribute values.
+      return self._pannerAttr;
+    } else if (args.length === 1) {
+      if (typeof args[0] === 'object') {
+        o = args[0];
+
+        // Set the grou's panner attribute values.
+        if (typeof id === 'undefined') {
+          if (!o.pannerAttr) {
+            o.pannerAttr = {
+              coneInnerAngle: o.coneInnerAngle,
+              coneOuterAngle: o.coneOuterAngle,
+              coneOuterGain: o.coneOuterGain,
+              distanceModel: o.distanceModel,
+              maxDistance: o.maxDistance,
+              refDistance: o.refDistance,
+              rolloffFactor: o.rolloffFactor,
+              panningModel: o.panningModel
+            };
+          }
+
+          self._pannerAttr = {
+            coneInnerAngle: typeof o.pannerAttr.coneInnerAngle !== 'undefined' ? o.pannerAttr.coneInnerAngle : self._coneInnerAngle,
+            coneOuterAngle: typeof o.pannerAttr.coneOuterAngle !== 'undefined' ? o.pannerAttr.coneOuterAngle : self._coneOuterAngle,
+            coneOuterGain: typeof o.pannerAttr.coneOuterGain !== 'undefined' ? o.pannerAttr.coneOuterGain : self._coneOuterGain,
+            distanceModel: typeof o.pannerAttr.distanceModel !== 'undefined' ? o.pannerAttr.distanceModel : self._distanceModel,
+            maxDistance: typeof o.pannerAttr.maxDistance !== 'undefined' ? o.pannerAttr.maxDistance : self._maxDistance,
+            refDistance: typeof o.pannerAttr.refDistance !== 'undefined' ? o.pannerAttr.refDistance : self._refDistance,
+            rolloffFactor: typeof o.pannerAttr.rolloffFactor !== 'undefined' ? o.pannerAttr.rolloffFactor : self._rolloffFactor,
+            panningModel: typeof o.pannerAttr.panningModel !== 'undefined' ? o.pannerAttr.panningModel : self._panningModel
+          };
+        }
+      } else {
+        // Return this sound's panner attribute values.
+        sound = self._soundById(parseInt(args[0], 10));
+        return sound ? sound._pannerAttr : self._pannerAttr;
+      }
+    } else if (args.length === 2) {
+      o = args[0];
+      id = parseInt(args[1], 10);
+    }
+
+    // Update the values of the specified sounds.
+    var ids = self._getSoundIds(id);
+    for (var i=0; i<ids.length; i++) {
+      sound = self._soundById(ids[i]);
+
+      if (sound) {
+        // Merge the new values into the sound.
+        var pa = sound._pannerAttr;
+        pa = {
+          coneInnerAngle: typeof o.coneInnerAngle !== 'undefined' ? o.coneInnerAngle : pa.coneInnerAngle,
+          coneOuterAngle: typeof o.coneOuterAngle !== 'undefined' ? o.coneOuterAngle : pa.coneOuterAngle,
+          coneOuterGain: typeof o.coneOuterGain !== 'undefined' ? o.coneOuterGain : pa.coneOuterGain,
+          distanceModel: typeof o.distanceModel !== 'undefined' ? o.distanceModel : pa.distanceModel,
+          maxDistance: typeof o.maxDistance !== 'undefined' ? o.maxDistance : pa.maxDistance,
+          refDistance: typeof o.refDistance !== 'undefined' ? o.refDistance : pa.refDistance,
+          rolloffFactor: typeof o.rolloffFactor !== 'undefined' ? o.rolloffFactor : pa.rolloffFactor,
+          panningModel: typeof o.panningModel !== 'undefined' ? o.panningModel : pa.panningModel
+        };
+
+        // Update the panner values or create a new panner if none exists.
+        var panner = sound._panner;
+        if (panner) {
+          panner.coneInnerAngle = pa.coneInnerAngle;
+          panner.coneOuterAngle = pa.coneOuterAngle;
+          panner.coneOuterGain = pa.coneOuterGain;
+          panner.distanceModel = pa.distanceModel;
+          panner.maxDistance = pa.maxDistance;
+          panner.refDistance = pa.refDistance;
+          panner.rolloffFactor = pa.rolloffFactor;
+          panner.panningModel = pa.panningModel;
+        } else {
+          // Make sure we have a position to setup the node with.
+          if (!sound._pos) {
+            sound._pos = self._pos || [0, 0, -0.5];
+          }
+
+          // Create a new panner node.
+          setupPanner(sound, 'spatial');
+        }
+      }
+    }
+
+    return self;
+  };
+
+  /** Single Sound Methods **/
+  /***************************************************************************/
+
+  /**
+   * Add new properties to the core Sound init.
+   * @param  {Function} _super Core Sound init method.
+   * @return {Sound}
+   */
+  Sound.prototype.init = (function(_super) {
+    return function() {
+      var self = this;
+      var parent = self._parent;
+
+      // Setup user-defined default properties.
+      self._orientation = parent._orientation;
+      self._stereo = parent._stereo;
+      self._pos = parent._pos;
+      self._pannerAttr = parent._pannerAttr;
+
+      // Complete initilization with howler.js core Sound's init function.
+      _super.call(this);
+
+      // If a stereo or position was specified, set it up.
+      if (self._stereo) {
+        parent.stereo(self._stereo);
+      } else if (self._pos) {
+        parent.pos(self._pos[0], self._pos[1], self._pos[2], self._id);
+      }
+    };
+  })(Sound.prototype.init);
+
+  /**
+   * Override the Sound.reset method to clean up properties from the spatial plugin.
+   * @param  {Function} _super Sound reset method.
+   * @return {Sound}
+   */
+  Sound.prototype.reset = (function(_super) {
+    return function() {
+      var self = this;
+      var parent = self._parent;
+
+      // Reset all spatial plugin properties on this sound.
+      self._orientation = parent._orientation;
+      self._stereo = parent._stereo;
+      self._pos = parent._pos;
+      self._pannerAttr = parent._pannerAttr;
+
+      // If a stereo or position was specified, set it up.
+      if (self._stereo) {
+        parent.stereo(self._stereo);
+      } else if (self._pos) {
+        parent.pos(self._pos[0], self._pos[1], self._pos[2], self._id);
+      } else if (self._panner) {
+        // Disconnect the panner.
+        self._panner.disconnect(0);
+        self._panner = undefined;
+        parent._refreshBuffer(self);
+      }
+
+      // Complete resetting of the sound.
+      return _super.call(this);
+    };
+  })(Sound.prototype.reset);
+
+  /** Helper Methods **/
+  /***************************************************************************/
+
+  /**
+   * Create a new panner node and save it on the sound.
+   * @param  {Sound} sound Specific sound to setup panning on.
+   * @param {String} type Type of panner to create: 'stereo' or 'spatial'.
+   */
+  var setupPanner = function(sound, type) {
+    type = type || 'spatial';
+
+    // Create the new panner node.
+    if (type === 'spatial') {
+      sound._panner = Howler.ctx.createPanner();
+      sound._panner.coneInnerAngle = sound._pannerAttr.coneInnerAngle;
+      sound._panner.coneOuterAngle = sound._pannerAttr.coneOuterAngle;
+      sound._panner.coneOuterGain = sound._pannerAttr.coneOuterGain;
+      sound._panner.distanceModel = sound._pannerAttr.distanceModel;
+      sound._panner.maxDistance = sound._pannerAttr.maxDistance;
+      sound._panner.refDistance = sound._pannerAttr.refDistance;
+      sound._panner.rolloffFactor = sound._pannerAttr.rolloffFactor;
+      sound._panner.panningModel = sound._pannerAttr.panningModel;
+
+      if (typeof sound._panner.positionX !== 'undefined') {
+        sound._panner.positionX.setValueAtTime(sound._pos[0], Howler.ctx.currentTime);
+        sound._panner.positionY.setValueAtTime(sound._pos[1], Howler.ctx.currentTime);
+        sound._panner.positionZ.setValueAtTime(sound._pos[2], Howler.ctx.currentTime);
+      } else {
+        sound._panner.setPosition(sound._pos[0], sound._pos[1], sound._pos[2]);
+      }
+
+      if (typeof sound._panner.orientationX !== 'undefined') {
+        sound._panner.orientationX.setValueAtTime(sound._orientation[0], Howler.ctx.currentTime);
+        sound._panner.orientationY.setValueAtTime(sound._orientation[1], Howler.ctx.currentTime);
+        sound._panner.orientationZ.setValueAtTime(sound._orientation[2], Howler.ctx.currentTime);
+      } else {
+        sound._panner.setOrientation(sound._orientation[0], sound._orientation[1], sound._orientation[2]);
+      }
+    } else {
+      sound._panner = Howler.ctx.createStereoPanner();
+      sound._panner.pan.setValueAtTime(sound._stereo, Howler.ctx.currentTime);
+    }
+
+    sound._panner.connect(sound._node);
+
+    // Update the connections.
+    if (!sound._paused) {
+      sound._parent.pause(sound._id, true).play(sound._id, true);
+    }
+  };
+})();
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
+},{}],334:[function(require,module,exports){
 'use strict';
 
 const toString = Object.prototype.toString;
@@ -19231,9 +22393,9 @@ function isAnyArray(object) {
 
 module.exports = isAnyArray;
 
-},{}],334:[function(require,module,exports){
-!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,b=/\bAndroid(?:.+)SD4930UR\b/i,l=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,s=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,c=/BB10/i,h=/Opera Mini/i,v=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(b,i),tablet:!m(b,i)&&m(l,i),device:m(b,i)||m(l,i)},android:{phone:!m(f,i)&&m(b,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(b,i)&&!m(a,i)&&(m(l,i)||m(p,i)),device:!m(f,i)&&(m(b,i)||m(l,i)||m(a,i)||m(p,i))||m(/\bokhttp\b/i,i)},windows:{phone:m(f,i),tablet:m(s,i),device:m(f,i)||m(s,i)},other:{blackberry:m(u,i),blackberry10:m(c,i),opera:m(h,i),firefox:m(w,i),chrome:m(v,i),device:m(u,i)||m(c,i)||m(h,i)||m(w,i)||m(v,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?(module.exports=i(),module.exports.isMobile=i):"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
 },{}],335:[function(require,module,exports){
+!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,b=/\bAndroid(?:.+)SD4930UR\b/i,l=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,s=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,c=/BB10/i,h=/Opera Mini/i,v=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(b,i),tablet:!m(b,i)&&m(l,i),device:m(b,i)||m(l,i)},android:{phone:!m(f,i)&&m(b,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(b,i)&&!m(a,i)&&(m(l,i)||m(p,i)),device:!m(f,i)&&(m(b,i)||m(l,i)||m(a,i)||m(p,i))||m(/\bokhttp\b/i,i)},windows:{phone:m(f,i),tablet:m(s,i),device:m(f,i)||m(s,i)},other:{blackberry:m(u,i),blackberry10:m(c,i),opera:m(h,i),firefox:m(w,i),chrome:m(v,i),device:m(u,i)||m(c,i)||m(h,i)||m(w,i)||m(v,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?(module.exports=i(),module.exports.isMobile=i):"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
+},{}],336:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.4.1
  * https://jquery.com/
@@ -29833,7 +32995,7 @@ if ( !noGlobal ) {
 return jQuery;
 } );
 
-},{}],336:[function(require,module,exports){
+},{}],337:[function(require,module,exports){
 (function (global){
 /**
  * @license
@@ -46945,7 +50107,7 @@ return jQuery;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],337:[function(require,module,exports){
+},{}],338:[function(require,module,exports){
 /*!
  *  * machina - A library for creating powerful and flexible finite state machines. Loosely inspired by Erlang/OTP's gen_fsm behavior.
  *  * Author: Jim Cowart (http://ifandelse.com)
@@ -47690,7 +50852,7 @@ return /******/ (function(modules) { // webpackBootstrap
 });
 ;
 
-},{"lodash":336}],338:[function(require,module,exports){
+},{"lodash":337}],339:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -47857,7 +51019,7 @@ MiniSignal.MiniSignalBinding = MiniSignalBinding;
 exports['default'] = MiniSignal;
 module.exports = exports['default'];
 
-},{}],339:[function(require,module,exports){
+},{}],340:[function(require,module,exports){
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -47887,7 +51049,7 @@ function max(input) {
 
 module.exports = max;
 
-},{"is-any-array":333}],340:[function(require,module,exports){
+},{"is-any-array":334}],341:[function(require,module,exports){
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -47917,7 +51079,7 @@ function mean(input) {
 
 module.exports = mean;
 
-},{"is-any-array":333}],341:[function(require,module,exports){
+},{"is-any-array":334}],342:[function(require,module,exports){
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -47947,7 +51109,7 @@ function min(input) {
 
 module.exports = min;
 
-},{"is-any-array":333}],342:[function(require,module,exports){
+},{"is-any-array":334}],343:[function(require,module,exports){
 'use strict';
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
@@ -48001,7 +51163,7 @@ function rescale(input, options = {}) {
 
 module.exports = rescale;
 
-},{"is-any-array":333,"ml-array-max":339,"ml-array-min":341}],343:[function(require,module,exports){
+},{"is-any-array":334,"ml-array-max":340,"ml-array-min":342}],344:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -48577,7 +51739,7 @@ class DecisionTreeRegression {
 exports.DecisionTreeClassifier = DecisionTreeClassifier;
 exports.DecisionTreeRegression = DecisionTreeRegression;
 
-},{"ml-array-mean":340,"ml-matrix":344}],344:[function(require,module,exports){
+},{"ml-array-mean":341,"ml-matrix":345}],345:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', { value: true });
@@ -53043,7 +56205,7 @@ exports.linearDependencies = linearDependencies;
 exports.solve = solve;
 exports.wrap = wrap;
 
-},{"ml-array-max":339,"ml-array-rescale":342}],345:[function(require,module,exports){
+},{"ml-array-max":340,"ml-array-rescale":343}],346:[function(require,module,exports){
 /*
 object-assign
 (c) Sindre Sorhus
@@ -53135,7 +56297,7 @@ module.exports = shouldUseNative() ? Object.assign : function (target, source) {
 	return to;
 };
 
-},{}],346:[function(require,module,exports){
+},{}],347:[function(require,module,exports){
 'use strict'
 
 module.exports = function parseURI (str, opts) {
@@ -53167,7 +56329,7 @@ module.exports = function parseURI (str, opts) {
   return uri
 }
 
-},{}],347:[function(require,module,exports){
+},{}],348:[function(require,module,exports){
 (function (process){
 // .dirname, .basename, and .extname methods are extracted from Node.js v8.11.1,
 // backported and transplited with Babel, with backwards-compat fixes
@@ -53474,7 +56636,7 @@ var substr = 'ab'.substr(-1) === 'b'
 
 }).call(this,require('_process'))
 
-},{"_process":516}],348:[function(require,module,exports){
+},{"_process":517}],349:[function(require,module,exports){
 var EMPTY_ARRAY_BUFFER = new ArrayBuffer(0);
 
 /**
@@ -53595,7 +56757,7 @@ Buffer.prototype.destroy = function(){
 
 module.exports = Buffer;
 
-},{}],349:[function(require,module,exports){
+},{}],350:[function(require,module,exports){
 
 var Texture = require('./GLTexture');
 
@@ -53823,7 +56985,7 @@ Framebuffer.createFloat32 = function(gl, width, height, data)
 
 module.exports = Framebuffer;
 
-},{"./GLTexture":351}],350:[function(require,module,exports){
+},{"./GLTexture":352}],351:[function(require,module,exports){
 
 var compileProgram = require('./shader/compileProgram'),
 	extractAttributes = require('./shader/extractAttributes'),
@@ -53919,7 +57081,7 @@ Shader.prototype.destroy = function()
 
 module.exports = Shader;
 
-},{"./shader/compileProgram":356,"./shader/extractAttributes":358,"./shader/extractUniforms":359,"./shader/generateUniformAccessObject":360,"./shader/setPrecision":364}],351:[function(require,module,exports){
+},{"./shader/compileProgram":357,"./shader/extractAttributes":359,"./shader/extractUniforms":360,"./shader/generateUniformAccessObject":361,"./shader/setPrecision":365}],352:[function(require,module,exports){
 
 /**
  * Helper class to create a WebGL Texture
@@ -54254,7 +57416,7 @@ Texture.fromData = function(gl, data, width, height)
 
 module.exports = Texture;
 
-},{}],352:[function(require,module,exports){
+},{}],353:[function(require,module,exports){
 
 // state object//
 var setVertexAttribArrays = require( './setVertexAttribArrays' );
@@ -54522,7 +57684,7 @@ VertexArrayObject.prototype.getSize = function()
     return attrib.buffer.data.length / (( attrib.stride/4 ) || attrib.attribute.size);
 };
 
-},{"./setVertexAttribArrays":355}],353:[function(require,module,exports){
+},{"./setVertexAttribArrays":356}],354:[function(require,module,exports){
 
 /**
  * Helper class to create a webGL Context
@@ -54550,7 +57712,7 @@ var createContext = function(canvas, options)
 
 module.exports = createContext;
 
-},{}],354:[function(require,module,exports){
+},{}],355:[function(require,module,exports){
 var gl = {
     createContext:          require('./createContext'),
     setVertexAttribArrays:  require('./setVertexAttribArrays'),
@@ -54577,7 +57739,7 @@ if (typeof window !== 'undefined')
     window.PIXI.glCore = gl;
 }
 
-},{"./GLBuffer":348,"./GLFramebuffer":349,"./GLShader":350,"./GLTexture":351,"./VertexArrayObject":352,"./createContext":353,"./setVertexAttribArrays":355,"./shader":361}],355:[function(require,module,exports){
+},{"./GLBuffer":349,"./GLFramebuffer":350,"./GLShader":351,"./GLTexture":352,"./VertexArrayObject":353,"./createContext":354,"./setVertexAttribArrays":356,"./shader":362}],356:[function(require,module,exports){
 // var GL_MAP = {};
 
 /**
@@ -54634,7 +57796,7 @@ var setVertexAttribArrays = function (gl, attribs, state)
 
 module.exports = setVertexAttribArrays;
 
-},{}],356:[function(require,module,exports){
+},{}],357:[function(require,module,exports){
 
 /**
  * @class
@@ -54716,7 +57878,7 @@ var compileShader = function (gl, type, src)
 
 module.exports = compileProgram;
 
-},{}],357:[function(require,module,exports){
+},{}],358:[function(require,module,exports){
 /**
  * @class
  * @memberof PIXI.glCore.shader
@@ -54796,7 +57958,7 @@ var booleanArray = function(size)
 
 module.exports = defaultValue;
 
-},{}],358:[function(require,module,exports){
+},{}],359:[function(require,module,exports){
 
 var mapType = require('./mapType');
 var mapSize = require('./mapSize');
@@ -54839,7 +58001,7 @@ var pointer = function(type, normalized, stride, start){
 
 module.exports = extractAttributes;
 
-},{"./mapSize":362,"./mapType":363}],359:[function(require,module,exports){
+},{"./mapSize":363,"./mapType":364}],360:[function(require,module,exports){
 var mapType = require('./mapType');
 var defaultValue = require('./defaultValue');
 
@@ -54876,7 +58038,7 @@ var extractUniforms = function(gl, program)
 
 module.exports = extractUniforms;
 
-},{"./defaultValue":357,"./mapType":363}],360:[function(require,module,exports){
+},{"./defaultValue":358,"./mapType":364}],361:[function(require,module,exports){
 /**
  * Extracts the attributes
  * @class
@@ -54999,7 +58161,7 @@ function getUniformGroup(nameTokens, uniform)
 
 module.exports = generateUniformAccessObject;
 
-},{}],361:[function(require,module,exports){
+},{}],362:[function(require,module,exports){
 module.exports = {
     compileProgram: require('./compileProgram'),
     defaultValue: require('./defaultValue'),
@@ -55010,7 +58172,7 @@ module.exports = {
     mapSize: require('./mapSize'),
     mapType: require('./mapType')
 };
-},{"./compileProgram":356,"./defaultValue":357,"./extractAttributes":358,"./extractUniforms":359,"./generateUniformAccessObject":360,"./mapSize":362,"./mapType":363,"./setPrecision":364}],362:[function(require,module,exports){
+},{"./compileProgram":357,"./defaultValue":358,"./extractAttributes":359,"./extractUniforms":360,"./generateUniformAccessObject":361,"./mapSize":363,"./mapType":364,"./setPrecision":365}],363:[function(require,module,exports){
 /**
  * @class
  * @memberof PIXI.glCore.shader
@@ -55048,7 +58210,7 @@ var GLSL_TO_SIZE = {
 
 module.exports = mapSize;
 
-},{}],363:[function(require,module,exports){
+},{}],364:[function(require,module,exports){
 
 
 var mapType = function(gl, type) 
@@ -55096,7 +58258,7 @@ var GL_TO_GLSL_TYPES = {
 
 module.exports = mapType;
 
-},{}],364:[function(require,module,exports){
+},{}],365:[function(require,module,exports){
 /**
  * Sets the float precision on the shader. If the precision is already present this function will do nothing
  * @param {string} src       the shader source
@@ -55116,10 +58278,10 @@ var setPrecision = function(src, precision)
 
 module.exports = setPrecision;
 
-},{}],365:[function(require,module,exports){
+},{}],366:[function(require,module,exports){
 !function(t){function e(i){if(n[i])return n[i].exports;var r=n[i]={exports:{},id:i,loaded:!1};return t[i].call(r.exports,r,r.exports,e),r.loaded=!0,r.exports}var n={};return e.m=t,e.c=n,e.p="",e(0)}([function(t,e,n){t.exports=n(6)},function(t,e){t.exports=PIXI},function(t,e){"use strict";Object.defineProperty(e,"__esModule",{value:!0});var n={linear:function(){return function(t){return t}},inQuad:function(){return function(t){return t*t}},outQuad:function(){return function(t){return t*(2-t)}},inOutQuad:function(){return function(t){return t*=2,1>t?.5*t*t:-.5*(--t*(t-2)-1)}},inCubic:function(){return function(t){return t*t*t}},outCubic:function(){return function(t){return--t*t*t+1}},inOutCubic:function(){return function(t){return t*=2,1>t?.5*t*t*t:(t-=2,.5*(t*t*t+2))}},inQuart:function(){return function(t){return t*t*t*t}},outQuart:function(){return function(t){return 1- --t*t*t*t}},inOutQuart:function(){return function(t){return t*=2,1>t?.5*t*t*t*t:(t-=2,-.5*(t*t*t*t-2))}},inQuint:function(){return function(t){return t*t*t*t*t}},outQuint:function(){return function(t){return--t*t*t*t*t+1}},inOutQuint:function(){return function(t){return t*=2,1>t?.5*t*t*t*t*t:(t-=2,.5*(t*t*t*t*t+2))}},inSine:function(){return function(t){return 1-Math.cos(t*Math.PI/2)}},outSine:function(){return function(t){return Math.sin(t*Math.PI/2)}},inOutSine:function(){return function(t){return.5*(1-Math.cos(Math.PI*t))}},inExpo:function(){return function(t){return 0===t?0:Math.pow(1024,t-1)}},outExpo:function(){return function(t){return 1===t?1:1-Math.pow(2,-10*t)}},inOutExpo:function(){return function(t){return 0===t?0:1===t?1:(t*=2,1>t?.5*Math.pow(1024,t-1):.5*(-Math.pow(2,-10*(t-1))+2))}},inCirc:function(){return function(t){return 1-Math.sqrt(1-t*t)}},outCirc:function(){return function(t){return Math.sqrt(1- --t*t)}},inOutCirc:function(){return function(t){return t*=2,1>t?-.5*(Math.sqrt(1-t*t)-1):.5*(Math.sqrt(1-(t-2)*(t-2))+1)}},inElastic:function(){var t=arguments.length<=0||void 0===arguments[0]?.1:arguments[0],e=arguments.length<=1||void 0===arguments[1]?.4:arguments[1];return function(n){var i=void 0;return 0===n?0:1===n?1:(!t||1>t?(t=1,i=e/4):i=e*Math.asin(1/t)/(2*Math.PI),-(t*Math.pow(2,10*(n-1))*Math.sin((n-1-i)*(2*Math.PI)/e)))}},outElastic:function(){var t=arguments.length<=0||void 0===arguments[0]?.1:arguments[0],e=arguments.length<=1||void 0===arguments[1]?.4:arguments[1];return function(n){var i=void 0;return 0===n?0:1===n?1:(!t||1>t?(t=1,i=e/4):i=e*Math.asin(1/t)/(2*Math.PI),t*Math.pow(2,-10*n)*Math.sin((n-i)*(2*Math.PI)/e)+1)}},inOutElastic:function(){var t=arguments.length<=0||void 0===arguments[0]?.1:arguments[0],e=arguments.length<=1||void 0===arguments[1]?.4:arguments[1];return function(n){var i=void 0;return 0===n?0:1===n?1:(!t||1>t?(t=1,i=e/4):i=e*Math.asin(1/t)/(2*Math.PI),n*=2,1>n?-.5*(t*Math.pow(2,10*(n-1))*Math.sin((n-1-i)*(2*Math.PI)/e)):t*Math.pow(2,-10*(n-1))*Math.sin((n-1-i)*(2*Math.PI)/e)*.5+1)}},inBack:function(t){return function(e){var n=t||1.70158;return e*e*((n+1)*e-n)}},outBack:function(t){return function(e){var n=t||1.70158;return--e*e*((n+1)*e+n)+1}},inOutBack:function(t){return function(e){var n=1.525*(t||1.70158);return e*=2,1>e?.5*(e*e*((n+1)*e-n)):.5*((e-2)*(e-2)*((n+1)*(e-2)+n)+2)}},inBounce:function(){return function(t){return 1-n.outBounce()(1-t)}},outBounce:function(){return function(t){return 1/2.75>t?7.5625*t*t:2/2.75>t?(t-=1.5/2.75,7.5625*t*t+.75):2.5/2.75>t?(t-=2.25/2.75,7.5625*t*t+.9375):(t-=2.625/2.75,7.5625*t*t+.984375)}},inOutBounce:function(){return function(t){return.5>t?.5*n.inBounce()(2*t):.5*n.outBounce()(2*t-1)+.5}},customArray:function(t){return t?function(t){return t}:n.linear()}};e["default"]=n},function(t,e,n){"use strict";function i(t){return t&&t.__esModule?t:{"default":t}}function r(t){if(t&&t.__esModule)return t;var e={};if(null!=t)for(var n in t)Object.prototype.hasOwnProperty.call(t,n)&&(e[n]=t[n]);return e["default"]=t,e}function s(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}function o(t,e){if(!t)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return!e||"object"!=typeof e&&"function"!=typeof e?t:e}function a(t,e){if("function"!=typeof e&&null!==e)throw new TypeError("Super expression must either be null or a function, not "+typeof e);t.prototype=Object.create(e&&e.prototype,{constructor:{value:t,enumerable:!1,writable:!0,configurable:!0}}),e&&(Object.setPrototypeOf?Object.setPrototypeOf(t,e):t.__proto__=e)}function u(t,e,n,i,r,s){for(var o in t)if(c(t[o]))u(t[o],e[o],n[o],i,r,s);else{var a=e[o],h=t[o]-e[o],l=i,f=r/l;n[o]=a+h*s(f)}}function h(t,e,n){for(var i in t)0===e[i]||e[i]||(c(n[i])?(e[i]=JSON.parse(JSON.stringify(n[i])),h(t[i],e[i],n[i])):e[i]=n[i])}function c(t){return"[object Object]"===Object.prototype.toString.call(t)}var l=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}();Object.defineProperty(e,"__esModule",{value:!0});var f=n(1),p=r(f),d=n(2),g=i(d),v=function(t){function e(t,n){s(this,e);var i=o(this,Object.getPrototypeOf(e).call(this));return i.target=t,n&&i.addTo(n),i.clear(),i}return a(e,t),l(e,[{key:"addTo",value:function(t){return this.manager=t,this.manager.addTween(this),this}},{key:"chain",value:function(t){return t||(t=new e(this.target)),this._chainTween=t,t}},{key:"start",value:function(){return this.active=!0,this}},{key:"stop",value:function(){return this.active=!1,this.emit("stop"),this}},{key:"to",value:function(t){return this._to=t,this}},{key:"from",value:function(t){return this._from=t,this}},{key:"remove",value:function(){return this.manager?(this.manager.removeTween(this),this):this}},{key:"clear",value:function(){this.time=0,this.active=!1,this.easing=g["default"].linear(),this.expire=!1,this.repeat=0,this.loop=!1,this.delay=0,this.pingPong=!1,this.isStarted=!1,this.isEnded=!1,this._to=null,this._from=null,this._delayTime=0,this._elapsedTime=0,this._repeat=0,this._pingPong=!1,this._chainTween=null,this.path=null,this.pathReverse=!1,this.pathFrom=0,this.pathTo=0}},{key:"reset",value:function(){if(this._elapsedTime=0,this._repeat=0,this._delayTime=0,this.isStarted=!1,this.isEnded=!1,this.pingPong&&this._pingPong){var t=this._to,e=this._from;this._to=e,this._from=t,this._pingPong=!1}return this}},{key:"update",value:function(t,e){if(this._canUpdate()||!this._to&&!this.path){var n=void 0,i=void 0;if(this.delay>this._delayTime)return void(this._delayTime+=e);this.isStarted||(this._parseData(),this.isStarted=!0,this.emit("start"));var r=this.pingPong?this.time/2:this.time;if(r>this._elapsedTime){var s=this._elapsedTime+e,o=s>=r;this._elapsedTime=o?r:s,this._apply(r);var a=this._pingPong?r+this._elapsedTime:this._elapsedTime;if(this.emit("update",a),o){if(this.pingPong&&!this._pingPong)return this._pingPong=!0,n=this._to,i=this._from,this._from=n,this._to=i,this.path&&(n=this.pathTo,i=this.pathFrom,this.pathTo=i,this.pathFrom=n),this.emit("pingpong"),void(this._elapsedTime=0);if(this.loop||this.repeat>this._repeat)return this._repeat++,this.emit("repeat",this._repeat),this._elapsedTime=0,void(this.pingPong&&this._pingPong&&(n=this._to,i=this._from,this._to=i,this._from=n,this.path&&(n=this.pathTo,i=this.pathFrom,this.pathTo=i,this.pathFrom=n),this._pingPong=!1));this.isEnded=!0,this.active=!1,this.emit("end"),this._chainTween&&(this._chainTween.addTo(this.manager),this._chainTween.start())}}}}},{key:"_parseData",value:function(){if(!this.isStarted&&(this._from||(this._from={}),h(this._to,this._from,this.target),this.path)){var t=this.path.totalDistance();this.pathReverse?(this.pathFrom=t,this.pathTo=0):(this.pathFrom=0,this.pathTo=t)}}},{key:"_apply",value:function(t){if(u(this._to,this._from,this.target,t,this._elapsedTime,this.easing),this.path){var e=this.pingPong?this.time/2:this.time,n=this.pathFrom,i=this.pathTo-this.pathFrom,r=e,s=this._elapsedTime/r,o=n+i*this.easing(s),a=this.path.getPointAtDistance(o);this.target.position.set(a.x,a.y)}}},{key:"_canUpdate",value:function(){return this.time&&this.active&&this.target}}]),e}(p.utils.EventEmitter);e["default"]=v},function(t,e,n){"use strict";function i(t){return t&&t.__esModule?t:{"default":t}}function r(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}var s=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}();Object.defineProperty(e,"__esModule",{value:!0});var o=n(3),a=i(o),u=function(){function t(){r(this,t),this.tweens=[],this._tweensToDelete=[],this._last=0}return s(t,[{key:"update",value:function(t){var e=void 0;t||0===t?e=1e3*t:(e=this._getDeltaMS(),t=e/1e3);for(var n=0;n<this.tweens.length;n++){var i=this.tweens[n];i.active&&(i.update(t,e),i.isEnded&&i.expire&&i.remove())}if(this._tweensToDelete.length){for(var n=0;n<this._tweensToDelete.length;n++)this._remove(this._tweensToDelete[n]);this._tweensToDelete.length=0}}},{key:"getTweensForTarget",value:function(t){for(var e=[],n=0;n<this.tweens.length;n++)this.tweens[n].target===t&&e.push(this.tweens[n]);return e}},{key:"createTween",value:function(t){return new a["default"](t,this)}},{key:"addTween",value:function(t){t.manager=this,this.tweens.push(t)}},{key:"removeTween",value:function(t){this._tweensToDelete.push(t)}},{key:"_remove",value:function(t){var e=this.tweens.indexOf(t);-1!==e&&this.tweens.splice(e,1)}},{key:"_getDeltaMS",value:function(){0===this._last&&(this._last=Date.now());var t=Date.now(),e=t-this._last;return this._last=t,e}}]),t}();e["default"]=u},function(t,e,n){"use strict";function i(t){if(t&&t.__esModule)return t;var e={};if(null!=t)for(var n in t)Object.prototype.hasOwnProperty.call(t,n)&&(e[n]=t[n]);return e["default"]=t,e}function r(t,e){if(!(t instanceof e))throw new TypeError("Cannot call a class as a function")}var s=function(){function t(t,e){for(var n=0;n<e.length;n++){var i=e[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(t,i.key,i)}}return function(e,n,i){return n&&t(e.prototype,n),i&&t(e,i),e}}();Object.defineProperty(e,"__esModule",{value:!0});var o=n(1),a=i(o),u=function(){function t(){r(this,t),this._colsed=!1,this.polygon=new a.Polygon,this.polygon.closed=!1,this._tmpPoint=new a.Point,this._tmpPoint2=new a.Point,this._tmpDistance=[],this.currentPath=null,this.graphicsData=[],this.dirty=!0}return s(t,[{key:"moveTo",value:function(t,e){return a.Graphics.prototype.moveTo.call(this,t,e),this.dirty=!0,this}},{key:"lineTo",value:function(t,e){return a.Graphics.prototype.lineTo.call(this,t,e),this.dirty=!0,this}},{key:"bezierCurveTo",value:function(t,e,n,i,r,s){return a.Graphics.prototype.bezierCurveTo.call(this,t,e,n,i,r,s),this.dirty=!0,this}},{key:"quadraticCurveTo",value:function(t,e,n,i){return a.Graphics.prototype.quadraticCurveTo.call(this,t,e,n,i),this.dirty=!0,this}},{key:"arcTo",value:function(t,e,n,i,r){return a.Graphics.prototype.arcTo.call(this,t,e,n,i,r),this.dirty=!0,this}},{key:"arc",value:function(t,e,n,i,r,s){return a.Graphics.prototype.arc.call(this,t,e,n,i,r,s),this.dirty=!0,this}},{key:"drawShape",value:function(t){return a.Graphics.prototype.drawShape.call(this,t),this.dirty=!0,this}},{key:"getPoint",value:function(t){this.parsePoints();var e=this.closed&&t>=this.length-1?0:2*t;return this._tmpPoint.set(this.polygon.points[e],this.polygon.points[e+1]),this._tmpPoint}},{key:"distanceBetween",value:function(t,e){this.parsePoints();var n=this.getPoint(t),i=n.x,r=n.y,s=this.getPoint(e),o=s.x,a=s.y,u=o-i,h=a-r;return Math.sqrt(u*u+h*h)}},{key:"totalDistance",value:function(){this.parsePoints(),this._tmpDistance.length=0,this._tmpDistance.push(0);for(var t=this.length,e=0,n=0;t-1>n;n++)e+=this.distanceBetween(n,n+1),this._tmpDistance.push(e);return e}},{key:"getPointAt",value:function(t){if(this.parsePoints(),t>this.length)return this.getPoint(this.length-1);if(t%1===0)return this.getPoint(t);this._tmpPoint2.set(0,0);var e=t%1,n=this.getPoint(Math.ceil(t)),i=n.x,r=n.y,s=this.getPoint(Math.floor(t)),o=s.x,a=s.y,u=-((o-i)*e),h=-((a-r)*e);return this._tmpPoint2.set(o+u,a+h),this._tmpPoint2}},{key:"getPointAtDistance",value:function(t){this.parsePoints(),this._tmpDistance||this.totalDistance();var e=this._tmpDistance.length,n=0,i=this._tmpDistance[this._tmpDistance.length-1];0>t?t=i+t:t>i&&(t-=i);for(var r=0;e>r&&(t>=this._tmpDistance[r]&&(n=r),!(t<this._tmpDistance[r]));r++);if(n===this.length-1)return this.getPointAt(n);var s=t-this._tmpDistance[n],o=this._tmpDistance[n+1]-this._tmpDistance[n];return this.getPointAt(n+s/o)}},{key:"parsePoints",value:function(){if(!this.dirty)return this;this.dirty=!1,this.polygon.points.length=0;for(var t=0;t<this.graphicsData.length;t++){var e=this.graphicsData[t].shape;e&&e.points&&(this.polygon.points=this.polygon.points.concat(e.points))}return this}},{key:"clear",value:function(){return this.graphicsData.length=0,this.currentPath=null,this.polygon.points.length=0,this._closed=!1,this.dirty=!1,this}},{key:"closed",get:function(){return this._closed},set:function(t){this._closed!==t&&(this.polygon.closed=t,this._closed=t,this.dirty=!0)}},{key:"length",get:function(){return this.polygon.points.length?this.polygon.points.length/2+(this._closed?1:0):0}}]),t}();e["default"]=u},function(t,e,n){"use strict";function i(t){return t&&t.__esModule?t:{"default":t}}function r(t){if(t&&t.__esModule)return t;var e={};if(null!=t)for(var n in t)Object.prototype.hasOwnProperty.call(t,n)&&(e[n]=t[n]);return e["default"]=t,e}Object.defineProperty(e,"__esModule",{value:!0});var s=n(1),o=r(s),a=n(4),u=i(a),h=n(3),c=i(h),l=n(5),f=i(l),p=n(2),d=i(p);o.Graphics.prototype.drawPath=function(t){return t.parsePoints(),this.drawShape(t.polygon),this};var g={TweenManager:u["default"],Tween:c["default"],Easing:d["default"],TweenPath:f["default"]};o.tweenManager||(o.tweenManager=new u["default"],o.tween=g),e["default"]=g}]);
 
-},{}],366:[function(require,module,exports){
+},{}],367:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55648,7 +58810,7 @@ exports.default = AccessibilityManager;
 core.WebGLRenderer.registerPlugin('accessibility', AccessibilityManager);
 core.CanvasRenderer.registerPlugin('accessibility', AccessibilityManager);
 
-},{"../core":391,"./accessibleTarget":367,"ismobilejs":334}],367:[function(require,module,exports){
+},{"../core":392,"./accessibleTarget":368,"ismobilejs":335}],368:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -55706,7 +58868,7 @@ exports.default = {
   _accessibleDiv: false
 };
 
-},{}],368:[function(require,module,exports){
+},{}],369:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55731,7 +58893,7 @@ Object.defineProperty(exports, 'AccessibilityManager', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./AccessibilityManager":366,"./accessibleTarget":367}],369:[function(require,module,exports){
+},{"./AccessibilityManager":367,"./accessibleTarget":368}],370:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -55963,7 +59125,7 @@ var Application = function () {
 
 exports.default = Application;
 
-},{"./autoDetectRenderer":371,"./const":372,"./display/Container":374,"./settings":427,"./ticker":447}],370:[function(require,module,exports){
+},{"./autoDetectRenderer":372,"./const":373,"./display/Container":375,"./settings":428,"./ticker":448}],371:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56030,7 +59192,7 @@ var Shader = function (_GLShader) {
 
 exports.default = Shader;
 
-},{"./settings":427,"pixi-gl-core":354}],371:[function(require,module,exports){
+},{"./settings":428,"pixi-gl-core":355}],372:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56099,7 +59261,7 @@ function autoDetectRenderer(options, arg1, arg2, arg3) {
     return new _CanvasRenderer2.default(options, arg1, arg2);
 }
 
-},{"./renderers/canvas/CanvasRenderer":403,"./renderers/webgl/WebGLRenderer":410,"./utils":451}],372:[function(require,module,exports){
+},{"./renderers/canvas/CanvasRenderer":404,"./renderers/webgl/WebGLRenderer":411,"./utils":452}],373:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56442,7 +59604,7 @@ var UPDATE_PRIORITY = exports.UPDATE_PRIORITY = {
   UTILITY: -50
 };
 
-},{}],373:[function(require,module,exports){
+},{}],374:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -56785,7 +59947,7 @@ var Bounds = function () {
 
 exports.default = Bounds;
 
-},{"../math":396}],374:[function(require,module,exports){
+},{"../math":397}],375:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -57403,7 +60565,7 @@ var Container = function (_DisplayObject) {
 exports.default = Container;
 Container.prototype.containerUpdateTransform = Container.prototype.updateTransform;
 
-},{"../utils":451,"./DisplayObject":375}],375:[function(require,module,exports){
+},{"../utils":452,"./DisplayObject":376}],376:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -58097,7 +61259,7 @@ var DisplayObject = function (_EventEmitter) {
 exports.default = DisplayObject;
 DisplayObject.prototype.displayObjectUpdateTransform = DisplayObject.prototype.updateTransform;
 
-},{"../const":372,"../math":396,"../settings":427,"./Bounds":373,"./Transform":376,"./TransformStatic":378,"eventemitter3":321}],376:[function(require,module,exports){
+},{"../const":373,"../math":397,"../settings":428,"./Bounds":374,"./Transform":377,"./TransformStatic":379,"eventemitter3":321}],377:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -58278,7 +61440,7 @@ var Transform = function (_TransformBase) {
 
 exports.default = Transform;
 
-},{"../math":396,"./TransformBase":377}],377:[function(require,module,exports){
+},{"../math":397,"./TransformBase":378}],378:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -58365,7 +61527,7 @@ TransformBase.prototype.updateWorldTransform = TransformBase.prototype.updateTra
 
 TransformBase.IDENTITY = new TransformBase();
 
-},{"../math":396}],378:[function(require,module,exports){
+},{"../math":397}],379:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -58577,7 +61739,7 @@ var TransformStatic = function (_TransformBase) {
 
 exports.default = TransformStatic;
 
-},{"../math":396,"./TransformBase":377}],379:[function(require,module,exports){
+},{"../math":397,"./TransformBase":378}],380:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -59957,7 +63119,7 @@ Graphics.CURVES = {
     maxSegments: 2048
 };
 
-},{"../const":372,"../display/Bounds":373,"../display/Container":374,"../math":396,"../renderers/canvas/CanvasRenderer":403,"../sprites/Sprite":428,"../textures/RenderTexture":439,"../textures/Texture":441,"../utils":451,"./GraphicsData":380,"./utils/bezierCurveTo":382}],380:[function(require,module,exports){
+},{"../const":373,"../display/Bounds":374,"../display/Container":375,"../math":397,"../renderers/canvas/CanvasRenderer":404,"../sprites/Sprite":429,"../textures/RenderTexture":440,"../textures/Texture":442,"../utils":452,"./GraphicsData":381,"./utils/bezierCurveTo":383}],381:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -60102,7 +63264,7 @@ var GraphicsData = function () {
 
 exports.default = GraphicsData;
 
-},{}],381:[function(require,module,exports){
+},{}],382:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -60409,7 +63571,7 @@ exports.default = CanvasGraphicsRenderer;
 
 _CanvasRenderer2.default.registerPlugin('graphics', CanvasGraphicsRenderer);
 
-},{"../../const":372,"../../renderers/canvas/CanvasRenderer":403}],382:[function(require,module,exports){
+},{"../../const":373,"../../renderers/canvas/CanvasRenderer":404}],383:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -60459,7 +63621,7 @@ function bezierCurveTo(fromX, fromY, cpX, cpY, cpX2, cpY2, toX, toY, n) {
     return path;
 }
 
-},{}],383:[function(require,module,exports){
+},{}],384:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -60724,7 +63886,7 @@ exports.default = GraphicsRenderer;
 
 _WebGLRenderer2.default.registerPlugin('graphics', GraphicsRenderer);
 
-},{"../../const":372,"../../renderers/webgl/WebGLRenderer":410,"../../renderers/webgl/utils/ObjectRenderer":420,"../../utils":451,"./WebGLGraphicsData":384,"./shaders/PrimitiveShader":385,"./utils/buildCircle":386,"./utils/buildPoly":388,"./utils/buildRectangle":389,"./utils/buildRoundedRectangle":390}],384:[function(require,module,exports){
+},{"../../const":373,"../../renderers/webgl/WebGLRenderer":411,"../../renderers/webgl/utils/ObjectRenderer":421,"../../utils":452,"./WebGLGraphicsData":385,"./shaders/PrimitiveShader":386,"./utils/buildCircle":387,"./utils/buildPoly":389,"./utils/buildRectangle":390,"./utils/buildRoundedRectangle":391}],385:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -60867,7 +64029,7 @@ var WebGLGraphicsData = function () {
 
 exports.default = WebGLGraphicsData;
 
-},{"pixi-gl-core":354}],385:[function(require,module,exports){
+},{"pixi-gl-core":355}],386:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -60912,7 +64074,7 @@ var PrimitiveShader = function (_Shader) {
 
 exports.default = PrimitiveShader;
 
-},{"../../../Shader":370}],386:[function(require,module,exports){
+},{"../../../Shader":371}],387:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61007,7 +64169,7 @@ function buildCircle(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../const":372,"../../../utils":451,"./buildLine":387}],387:[function(require,module,exports){
+},{"../../../const":373,"../../../utils":452,"./buildLine":388}],388:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61281,7 +64443,7 @@ function buildNativeLine(graphicsData, webGLData) {
     }
 }
 
-},{"../../../math":396,"../../../utils":451}],388:[function(require,module,exports){
+},{"../../../math":397,"../../../utils":452}],389:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61367,7 +64529,7 @@ function buildPoly(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../utils":451,"./buildLine":387,"earcut":320}],389:[function(require,module,exports){
+},{"../../../utils":452,"./buildLine":388,"earcut":320}],390:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61443,7 +64605,7 @@ function buildRectangle(graphicsData, webGLData, webGLDataNativeLines) {
     }
 }
 
-},{"../../../utils":451,"./buildLine":387}],390:[function(require,module,exports){
+},{"../../../utils":452,"./buildLine":388}],391:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61599,7 +64761,7 @@ function quadraticBezierCurve(fromX, fromY, cpX, cpY, toX, toY) {
     return points;
 }
 
-},{"../../../utils":451,"./buildLine":387,"earcut":320}],391:[function(require,module,exports){
+},{"../../../utils":452,"./buildLine":388,"earcut":320}],392:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -61985,7 +65147,7 @@ exports.WebGLRenderer = _WebGLRenderer2.default; /**
                                                   * @namespace PIXI
                                                   */
 
-},{"./Application":369,"./Shader":370,"./autoDetectRenderer":371,"./const":372,"./display/Bounds":373,"./display/Container":374,"./display/DisplayObject":375,"./display/Transform":376,"./display/TransformBase":377,"./display/TransformStatic":378,"./graphics/Graphics":379,"./graphics/GraphicsData":380,"./graphics/canvas/CanvasGraphicsRenderer":381,"./graphics/webgl/GraphicsRenderer":383,"./math":396,"./renderers/canvas/CanvasRenderer":403,"./renderers/canvas/utils/CanvasRenderTarget":405,"./renderers/webgl/WebGLRenderer":410,"./renderers/webgl/filters/Filter":412,"./renderers/webgl/filters/spriteMask/SpriteMaskFilter":415,"./renderers/webgl/managers/WebGLManager":419,"./renderers/webgl/utils/ObjectRenderer":420,"./renderers/webgl/utils/Quad":421,"./renderers/webgl/utils/RenderTarget":422,"./settings":427,"./sprites/Sprite":428,"./sprites/canvas/CanvasSpriteRenderer":429,"./sprites/canvas/CanvasTinter":430,"./sprites/webgl/SpriteRenderer":432,"./text/Text":434,"./text/TextMetrics":435,"./text/TextStyle":436,"./textures/BaseRenderTexture":437,"./textures/BaseTexture":438,"./textures/RenderTexture":439,"./textures/Spritesheet":440,"./textures/Texture":441,"./textures/TextureMatrix":442,"./textures/TextureUvs":443,"./textures/VideoBaseTexture":444,"./ticker":447,"./utils":451,"pixi-gl-core":354}],392:[function(require,module,exports){
+},{"./Application":370,"./Shader":371,"./autoDetectRenderer":372,"./const":373,"./display/Bounds":374,"./display/Container":375,"./display/DisplayObject":376,"./display/Transform":377,"./display/TransformBase":378,"./display/TransformStatic":379,"./graphics/Graphics":380,"./graphics/GraphicsData":381,"./graphics/canvas/CanvasGraphicsRenderer":382,"./graphics/webgl/GraphicsRenderer":384,"./math":397,"./renderers/canvas/CanvasRenderer":404,"./renderers/canvas/utils/CanvasRenderTarget":406,"./renderers/webgl/WebGLRenderer":411,"./renderers/webgl/filters/Filter":413,"./renderers/webgl/filters/spriteMask/SpriteMaskFilter":416,"./renderers/webgl/managers/WebGLManager":420,"./renderers/webgl/utils/ObjectRenderer":421,"./renderers/webgl/utils/Quad":422,"./renderers/webgl/utils/RenderTarget":423,"./settings":428,"./sprites/Sprite":429,"./sprites/canvas/CanvasSpriteRenderer":430,"./sprites/canvas/CanvasTinter":431,"./sprites/webgl/SpriteRenderer":433,"./text/Text":435,"./text/TextMetrics":436,"./text/TextStyle":437,"./textures/BaseRenderTexture":438,"./textures/BaseTexture":439,"./textures/RenderTexture":440,"./textures/Spritesheet":441,"./textures/Texture":442,"./textures/TextureMatrix":443,"./textures/TextureUvs":444,"./textures/VideoBaseTexture":445,"./ticker":448,"./utils":452,"pixi-gl-core":355}],393:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -62178,7 +65340,7 @@ var GroupD8 = {
 
 exports.default = GroupD8;
 
-},{"./Matrix":393}],393:[function(require,module,exports){
+},{"./Matrix":394}],394:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -62695,7 +65857,7 @@ var Matrix = function () {
 
 exports.default = Matrix;
 
-},{"../const":372,"./Point":395}],394:[function(require,module,exports){
+},{"../const":373,"./Point":396}],395:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -62846,7 +66008,7 @@ var ObservablePoint = function () {
 
 exports.default = ObservablePoint;
 
-},{}],395:[function(require,module,exports){
+},{}],396:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -62937,7 +66099,7 @@ var Point = function () {
 
 exports.default = Point;
 
-},{}],396:[function(require,module,exports){
+},{}],397:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63025,7 +66187,7 @@ Object.defineProperty(exports, 'RoundedRectangle', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./GroupD8":392,"./Matrix":393,"./ObservablePoint":394,"./Point":395,"./shapes/Circle":397,"./shapes/Ellipse":398,"./shapes/Polygon":399,"./shapes/Rectangle":400,"./shapes/RoundedRectangle":401}],397:[function(require,module,exports){
+},{"./GroupD8":393,"./Matrix":394,"./ObservablePoint":395,"./Point":396,"./shapes/Circle":398,"./shapes/Ellipse":399,"./shapes/Polygon":400,"./shapes/Rectangle":401,"./shapes/RoundedRectangle":402}],398:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63139,7 +66301,7 @@ var Circle = function () {
 
 exports.default = Circle;
 
-},{"../../const":372,"./Rectangle":400}],398:[function(require,module,exports){
+},{"../../const":373,"./Rectangle":401}],399:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63261,7 +66423,7 @@ var Ellipse = function () {
 
 exports.default = Ellipse;
 
-},{"../../const":372,"./Rectangle":400}],399:[function(require,module,exports){
+},{"../../const":373,"./Rectangle":401}],400:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63392,7 +66554,7 @@ var Polygon = function () {
 
 exports.default = Polygon;
 
-},{"../../const":372,"../Point":395}],400:[function(require,module,exports){
+},{"../../const":373,"../Point":396}],401:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63656,7 +66818,7 @@ var Rectangle = function () {
 
 exports.default = Rectangle;
 
-},{"../../const":372}],401:[function(require,module,exports){
+},{"../../const":373}],402:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -63789,7 +66951,7 @@ var RoundedRectangle = function () {
 
 exports.default = RoundedRectangle;
 
-},{"../../const":372}],402:[function(require,module,exports){
+},{"../../const":373}],403:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64154,7 +67316,7 @@ var SystemRenderer = function (_EventEmitter) {
 
 exports.default = SystemRenderer;
 
-},{"../const":372,"../display/Container":374,"../math":396,"../settings":427,"../textures/RenderTexture":439,"../utils":451,"eventemitter3":321}],403:[function(require,module,exports){
+},{"../const":373,"../display/Container":375,"../math":397,"../settings":428,"../textures/RenderTexture":440,"../utils":452,"eventemitter3":321}],404:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64519,7 +67681,7 @@ var CanvasRenderer = function (_SystemRenderer) {
 exports.default = CanvasRenderer;
 _utils.pluginTarget.mixin(CanvasRenderer);
 
-},{"../../const":372,"../../settings":427,"../../utils":451,"../SystemRenderer":402,"./utils/CanvasMaskManager":404,"./utils/CanvasRenderTarget":405,"./utils/mapCanvasBlendModesToPixi":407}],404:[function(require,module,exports){
+},{"../../const":373,"../../settings":428,"../../utils":452,"../SystemRenderer":403,"./utils/CanvasMaskManager":405,"./utils/CanvasRenderTarget":406,"./utils/mapCanvasBlendModesToPixi":408}],405:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64719,7 +67881,7 @@ var CanvasMaskManager = function () {
 
 exports.default = CanvasMaskManager;
 
-},{"../../../const":372}],405:[function(require,module,exports){
+},{"../../../const":373}],406:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64843,7 +68005,7 @@ var CanvasRenderTarget = function () {
 
 exports.default = CanvasRenderTarget;
 
-},{"../../../settings":427}],406:[function(require,module,exports){
+},{"../../../settings":428}],407:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64904,7 +68066,7 @@ function canUseNewCanvasBlendModes() {
     return data[0] === 255 && data[1] === 0 && data[2] === 0;
 }
 
-},{}],407:[function(require,module,exports){
+},{}],408:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -64976,7 +68138,7 @@ function mapCanvasBlendModesToPixi() {
     return array;
 }
 
-},{"../../../const":372,"./canUseNewCanvasBlendModes":406}],408:[function(require,module,exports){
+},{"../../../const":373,"./canUseNewCanvasBlendModes":407}],409:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -65096,7 +68258,7 @@ var TextureGarbageCollector = function () {
 
 exports.default = TextureGarbageCollector;
 
-},{"../../const":372,"../../settings":427}],409:[function(require,module,exports){
+},{"../../const":373,"../../settings":428}],410:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -65362,7 +68524,7 @@ var TextureManager = function () {
 
 exports.default = TextureManager;
 
-},{"../../const":372,"../../utils":451,"./utils/RenderTarget":422,"pixi-gl-core":354}],410:[function(require,module,exports){
+},{"../../const":373,"../../utils":452,"./utils/RenderTarget":423,"pixi-gl-core":355}],411:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66201,7 +69363,7 @@ var WebGLRenderer = function (_SystemRenderer) {
 exports.default = WebGLRenderer;
 _utils.pluginTarget.mixin(WebGLRenderer);
 
-},{"../../const":372,"../../textures/BaseTexture":438,"../../utils":451,"../SystemRenderer":402,"./TextureGarbageCollector":408,"./TextureManager":409,"./WebGLState":411,"./managers/FilterManager":416,"./managers/MaskManager":417,"./managers/StencilManager":418,"./utils/ObjectRenderer":420,"./utils/RenderTarget":422,"./utils/mapWebGLDrawModesToPixi":425,"./utils/validateContext":426,"pixi-gl-core":354}],411:[function(require,module,exports){
+},{"../../const":373,"../../textures/BaseTexture":439,"../../utils":452,"../SystemRenderer":403,"./TextureGarbageCollector":409,"./TextureManager":410,"./WebGLState":412,"./managers/FilterManager":417,"./managers/MaskManager":418,"./managers/StencilManager":419,"./utils/ObjectRenderer":421,"./utils/RenderTarget":423,"./utils/mapWebGLDrawModesToPixi":426,"./utils/validateContext":427,"pixi-gl-core":355}],412:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66481,7 +69643,7 @@ var WebGLState = function () {
 
 exports.default = WebGLState;
 
-},{"./utils/mapWebGLBlendModesToPixi":424}],412:[function(require,module,exports){
+},{"./utils/mapWebGLBlendModesToPixi":425}],413:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66677,7 +69839,7 @@ var Filter = function () {
 
 exports.default = Filter;
 
-},{"../../../const":372,"../../../settings":427,"../../../utils":451,"./extractUniformsFromSrc":413}],413:[function(require,module,exports){
+},{"../../../const":373,"../../../settings":428,"../../../utils":452,"./extractUniformsFromSrc":414}],414:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66739,7 +69901,7 @@ function extractUniformsFromString(string) {
     return uniforms;
 }
 
-},{"pixi-gl-core":354}],414:[function(require,module,exports){
+},{"pixi-gl-core":355}],415:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66799,7 +69961,7 @@ function calculateSpriteMatrix(outputMatrix, filterArea, textureSize, sprite) {
     return mappedMatrix;
 }
 
-},{"../../../math":396}],415:[function(require,module,exports){
+},{"../../../math":397}],416:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -66888,7 +70050,7 @@ var SpriteMaskFilter = function (_Filter) {
 
 exports.default = SpriteMaskFilter;
 
-},{"../../../../math":396,"../../../../textures/TextureMatrix":442,"../Filter":412,"path":347}],416:[function(require,module,exports){
+},{"../../../../math":397,"../../../../textures/TextureMatrix":443,"../Filter":413,"path":348}],417:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67542,7 +70704,7 @@ var FilterManager = function (_WebGLManager) {
 
 exports.default = FilterManager;
 
-},{"../../../Shader":370,"../../../math":396,"../filters/filterTransforms":414,"../utils/Quad":421,"../utils/RenderTarget":422,"./WebGLManager":419,"bit-twiddle":3}],417:[function(require,module,exports){
+},{"../../../Shader":371,"../../../math":397,"../filters/filterTransforms":415,"../utils/Quad":422,"../utils/RenderTarget":423,"./WebGLManager":420,"bit-twiddle":3}],418:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67753,7 +70915,7 @@ var MaskManager = function (_WebGLManager) {
 
 exports.default = MaskManager;
 
-},{"../filters/spriteMask/SpriteMaskFilter":415,"./WebGLManager":419}],418:[function(require,module,exports){
+},{"../filters/spriteMask/SpriteMaskFilter":416,"./WebGLManager":420}],419:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67906,7 +71068,7 @@ var StencilManager = function (_WebGLManager) {
 
 exports.default = StencilManager;
 
-},{"./WebGLManager":419}],419:[function(require,module,exports){
+},{"./WebGLManager":420}],420:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -67961,7 +71123,7 @@ var WebGLManager = function () {
 
 exports.default = WebGLManager;
 
-},{}],420:[function(require,module,exports){
+},{}],421:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68039,7 +71201,7 @@ var ObjectRenderer = function (_WebGLManager) {
 
 exports.default = ObjectRenderer;
 
-},{"../managers/WebGLManager":419}],421:[function(require,module,exports){
+},{"../managers/WebGLManager":420}],422:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68220,7 +71382,7 @@ var Quad = function () {
 
 exports.default = Quad;
 
-},{"../../../utils/createIndicesForQuads":449,"pixi-gl-core":354}],422:[function(require,module,exports){
+},{"../../../utils/createIndicesForQuads":450,"pixi-gl-core":355}],423:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68558,7 +71720,7 @@ var RenderTarget = function () {
 
 exports.default = RenderTarget;
 
-},{"../../../const":372,"../../../math":396,"../../../settings":427,"pixi-gl-core":354}],423:[function(require,module,exports){
+},{"../../../const":373,"../../../math":397,"../../../settings":428,"pixi-gl-core":355}],424:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68633,7 +71795,7 @@ function generateIfTestSrc(maxIfs) {
     return src;
 }
 
-},{"pixi-gl-core":354}],424:[function(require,module,exports){
+},{"pixi-gl-core":355}],425:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68682,7 +71844,7 @@ function mapWebGLBlendModesToPixi(gl) {
     return array;
 }
 
-},{"../../../const":372}],425:[function(require,module,exports){
+},{"../../../const":373}],426:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68714,7 +71876,7 @@ function mapWebGLDrawModesToPixi(gl) {
   return object;
 }
 
-},{"../../../const":372}],426:[function(require,module,exports){
+},{"../../../const":373}],427:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68730,7 +71892,7 @@ function validateContext(gl) {
     }
 }
 
-},{}],427:[function(require,module,exports){
+},{}],428:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -68975,7 +72137,7 @@ exports.default = {
   MESH_CANVAS_PADDING: 0
 };
 
-},{"./utils/canUploadSameBuffer":448,"./utils/maxRecommendedTextures":453}],428:[function(require,module,exports){
+},{"./utils/canUploadSameBuffer":449,"./utils/maxRecommendedTextures":454}],429:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -69616,7 +72778,7 @@ var Sprite = function (_Container) {
 
 exports.default = Sprite;
 
-},{"../const":372,"../display/Container":374,"../math":396,"../textures/Texture":441,"../utils":451}],429:[function(require,module,exports){
+},{"../const":373,"../display/Container":375,"../math":397,"../textures/Texture":442,"../utils":452}],430:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -69769,7 +72931,7 @@ exports.default = CanvasSpriteRenderer;
 
 _CanvasRenderer2.default.registerPlugin('sprite', CanvasSpriteRenderer);
 
-},{"../../const":372,"../../math":396,"../../renderers/canvas/CanvasRenderer":403,"./CanvasTinter":430}],430:[function(require,module,exports){
+},{"../../const":373,"../../math":397,"../../renderers/canvas/CanvasRenderer":404,"./CanvasTinter":431}],431:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -70020,7 +73182,7 @@ CanvasTinter.tintMethod = CanvasTinter.canUseMultiply ? CanvasTinter.tintWithMul
 
 exports.default = CanvasTinter;
 
-},{"../../renderers/canvas/utils/canUseNewCanvasBlendModes":406,"../../utils":451}],431:[function(require,module,exports){
+},{"../../renderers/canvas/utils/canUseNewCanvasBlendModes":407,"../../utils":452}],432:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -70073,7 +73235,7 @@ var Buffer = function () {
 
 exports.default = Buffer;
 
-},{}],432:[function(require,module,exports){
+},{}],433:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -70626,7 +73788,7 @@ exports.default = SpriteRenderer;
 
 _WebGLRenderer2.default.registerPlugin('sprite', SpriteRenderer);
 
-},{"../../renderers/webgl/WebGLRenderer":410,"../../renderers/webgl/utils/ObjectRenderer":420,"../../renderers/webgl/utils/checkMaxIfStatmentsInShader":423,"../../settings":427,"../../utils":451,"../../utils/createIndicesForQuads":449,"./BatchBuffer":431,"./generateMultiTextureShader":433,"bit-twiddle":3,"pixi-gl-core":354}],433:[function(require,module,exports){
+},{"../../renderers/webgl/WebGLRenderer":411,"../../renderers/webgl/utils/ObjectRenderer":421,"../../renderers/webgl/utils/checkMaxIfStatmentsInShader":424,"../../settings":428,"../../utils":452,"../../utils/createIndicesForQuads":450,"./BatchBuffer":432,"./generateMultiTextureShader":434,"bit-twiddle":3,"pixi-gl-core":355}],434:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -70689,7 +73851,7 @@ function generateSampleSrc(maxTextures) {
     return src;
 }
 
-},{"../../Shader":370,"path":347}],434:[function(require,module,exports){
+},{"../../Shader":371,"path":348}],435:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -71347,7 +74509,7 @@ var Text = function (_Sprite) {
 
 exports.default = Text;
 
-},{"../const":372,"../math":396,"../settings":427,"../sprites/Sprite":428,"../textures/Texture":441,"../utils":451,"../utils/trimCanvas":456,"./TextMetrics":435,"./TextStyle":436}],435:[function(require,module,exports){
+},{"../const":373,"../math":397,"../settings":428,"../sprites/Sprite":429,"../textures/Texture":442,"../utils":452,"../utils/trimCanvas":457,"./TextMetrics":436,"./TextStyle":437}],436:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -72047,7 +75209,7 @@ TextMetrics._breakingSpaces = [0x0009, // character tabulation
 0x205F, // medium mathematical space
 0x3000];
 
-},{}],436:[function(require,module,exports){
+},{}],437:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -72881,7 +76043,7 @@ function deepCopyProperties(target, source, propertyObj) {
     }
 }
 
-},{"../const":372,"../utils":451}],437:[function(require,module,exports){
+},{"../const":373,"../utils":452}],438:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -73044,7 +76206,7 @@ var BaseRenderTexture = function (_BaseTexture) {
 
 exports.default = BaseRenderTexture;
 
-},{"../settings":427,"./BaseTexture":438}],438:[function(require,module,exports){
+},{"../settings":428,"./BaseTexture":439}],439:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -73890,7 +77052,7 @@ var BaseTexture = function (_EventEmitter) {
 
 exports.default = BaseTexture;
 
-},{"../settings":427,"../utils":451,"../utils/determineCrossOrigin":450,"bit-twiddle":3,"eventemitter3":321}],439:[function(require,module,exports){
+},{"../settings":428,"../utils":452,"../utils/determineCrossOrigin":451,"bit-twiddle":3,"eventemitter3":321}],440:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -74044,7 +77206,7 @@ var RenderTexture = function (_Texture) {
 
 exports.default = RenderTexture;
 
-},{"./BaseRenderTexture":437,"./Texture":441}],440:[function(require,module,exports){
+},{"./BaseRenderTexture":438,"./Texture":442}],441:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -74373,7 +77535,7 @@ var Spritesheet = function () {
 
 exports.default = Spritesheet;
 
-},{"../":391,"../utils":451}],441:[function(require,module,exports){
+},{"../":392,"../utils":452}],442:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -75078,7 +78240,7 @@ Texture.WHITE = createWhiteTexture();
 removeAllHandlers(Texture.WHITE);
 removeAllHandlers(Texture.WHITE.baseTexture);
 
-},{"../math":396,"../settings":427,"../utils":451,"./BaseTexture":438,"./TextureUvs":443,"./VideoBaseTexture":444,"eventemitter3":321}],442:[function(require,module,exports){
+},{"../math":397,"../settings":428,"../utils":452,"./BaseTexture":439,"./TextureUvs":444,"./VideoBaseTexture":445,"eventemitter3":321}],443:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -75242,7 +78404,7 @@ var TextureMatrix = function () {
 
 exports.default = TextureMatrix;
 
-},{"../math/Matrix":393}],443:[function(require,module,exports){
+},{"../math/Matrix":394}],444:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -75347,7 +78509,7 @@ var TextureUvs = function () {
 
 exports.default = TextureUvs;
 
-},{"../math/GroupD8":392}],444:[function(require,module,exports){
+},{"../math/GroupD8":393}],445:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -75696,7 +78858,7 @@ function createSource(path, type) {
     return source;
 }
 
-},{"../const":372,"../ticker":447,"../utils":451,"../utils/determineCrossOrigin":450,"./BaseTexture":438}],445:[function(require,module,exports){
+},{"../const":373,"../ticker":448,"../utils":452,"../utils/determineCrossOrigin":451,"./BaseTexture":439}],446:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -76169,7 +79331,7 @@ var Ticker = function () {
 
 exports.default = Ticker;
 
-},{"../const":372,"../settings":427,"./TickerListener":446}],446:[function(require,module,exports){
+},{"../const":373,"../settings":428,"./TickerListener":447}],447:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -76343,7 +79505,7 @@ var TickerListener = function () {
 
 exports.default = TickerListener;
 
-},{}],447:[function(require,module,exports){
+},{}],448:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -76423,7 +79585,7 @@ shared.destroy = function () {
 exports.shared = shared;
 exports.Ticker = _Ticker2.default;
 
-},{"./Ticker":445}],448:[function(require,module,exports){
+},{"./Ticker":446}],449:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -76437,7 +79599,7 @@ function canUploadSameBuffer() {
 	return !ios;
 }
 
-},{}],449:[function(require,module,exports){
+},{}],450:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -76471,7 +79633,7 @@ function createIndicesForQuads(size) {
     return indices;
 }
 
-},{}],450:[function(require,module,exports){
+},{}],451:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -76527,7 +79689,7 @@ function determineCrossOrigin(url) {
     return '';
 }
 
-},{"url":530}],451:[function(require,module,exports){
+},{"url":531}],452:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -77010,7 +80172,7 @@ function premultiplyTintToRgba(tint, alpha, out, premultiply) {
     return out;
 }
 
-},{"../const":372,"../settings":427,"./mapPremultipliedBlendModes":452,"./mixin":454,"./pluginTarget":455,"earcut":320,"eventemitter3":321,"ismobilejs":334,"remove-array-items":522}],452:[function(require,module,exports){
+},{"../const":373,"../settings":428,"./mapPremultipliedBlendModes":453,"./mixin":455,"./pluginTarget":456,"earcut":320,"eventemitter3":321,"ismobilejs":335,"remove-array-items":523}],453:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -77053,7 +80215,7 @@ function mapPremultipliedBlendModes() {
     return array;
 }
 
-},{"../const":372}],453:[function(require,module,exports){
+},{"../const":373}],454:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -77075,7 +80237,7 @@ function maxRecommendedTextures(max) {
     return max;
 }
 
-},{"ismobilejs":334}],454:[function(require,module,exports){
+},{"ismobilejs":335}],455:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -77137,7 +80299,7 @@ function performMixins() {
     mixins.length = 0;
 }
 
-},{}],455:[function(require,module,exports){
+},{}],456:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -77203,7 +80365,7 @@ exports.default = {
     }
 };
 
-},{}],456:[function(require,module,exports){
+},{}],457:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -77281,7 +80443,7 @@ function trimCanvas(canvas) {
     };
 }
 
-},{}],457:[function(require,module,exports){
+},{}],458:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -78437,7 +81599,7 @@ function deprecation(core) {
     }
 }
 
-},{}],458:[function(require,module,exports){
+},{}],459:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -78617,7 +81779,7 @@ exports.default = CanvasExtract;
 
 core.CanvasRenderer.registerPlugin('extract', CanvasExtract);
 
-},{"../../core":391}],459:[function(require,module,exports){
+},{"../../core":392}],460:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -78642,7 +81804,7 @@ Object.defineProperty(exports, 'canvas', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./canvas/CanvasExtract":458,"./webgl/WebGLExtract":460}],460:[function(require,module,exports){
+},{"./canvas/CanvasExtract":459,"./webgl/WebGLExtract":461}],461:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -78877,7 +82039,7 @@ exports.default = WebGLExtract;
 
 core.WebGLRenderer.registerPlugin('extract', WebGLExtract);
 
-},{"../../core":391}],461:[function(require,module,exports){
+},{"../../core":392}],462:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -79317,7 +82479,7 @@ var AnimatedSprite = function (_core$Sprite) {
 
 exports.default = AnimatedSprite;
 
-},{"../core":391}],462:[function(require,module,exports){
+},{"../core":392}],463:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -79962,7 +83124,7 @@ exports.default = BitmapText;
 
 BitmapText.fonts = {};
 
-},{"../core":391,"../core/math/ObservablePoint":394,"../core/settings":427,"../core/utils":451}],463:[function(require,module,exports){
+},{"../core":392,"../core/math/ObservablePoint":395,"../core/settings":428,"../core/utils":452}],464:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -80426,7 +83588,7 @@ var TilingSprite = function (_core$Sprite) {
 
 exports.default = TilingSprite;
 
-},{"../core":391,"../core/sprites/canvas/CanvasTinter":430}],464:[function(require,module,exports){
+},{"../core":392,"../core/sprites/canvas/CanvasTinter":431}],465:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -80839,7 +84001,7 @@ DisplayObject.prototype._cacheAsBitmapDestroy = function _cacheAsBitmapDestroy(o
     this.destroy(options);
 };
 
-},{"../core":391,"../core/textures/BaseTexture":438,"../core/textures/Texture":441,"../core/utils":451}],465:[function(require,module,exports){
+},{"../core":392,"../core/textures/BaseTexture":439,"../core/textures/Texture":442,"../core/utils":452}],466:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -80874,7 +84036,7 @@ core.Container.prototype.getChildByName = function getChildByName(name) {
     return null;
 };
 
-},{"../core":391}],466:[function(require,module,exports){
+},{"../core":392}],467:[function(require,module,exports){
 'use strict';
 
 var _core = require('../core');
@@ -80908,7 +84070,7 @@ core.DisplayObject.prototype.getGlobalPosition = function getGlobalPosition() {
     return point;
 };
 
-},{"../core":391}],467:[function(require,module,exports){
+},{"../core":392}],468:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -80960,7 +84122,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 // imported for side effect of extending the prototype only, contains no exports
 
-},{"./AnimatedSprite":461,"./BitmapText":462,"./TilingSprite":463,"./cacheAsBitmap":464,"./getChildByName":465,"./getGlobalPosition":466,"./webgl/TilingSpriteRenderer":468}],468:[function(require,module,exports){
+},{"./AnimatedSprite":462,"./BitmapText":463,"./TilingSprite":464,"./cacheAsBitmap":465,"./getChildByName":466,"./getGlobalPosition":467,"./webgl/TilingSpriteRenderer":469}],469:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81122,7 +84284,7 @@ exports.default = TilingSpriteRenderer;
 
 core.WebGLRenderer.registerPlugin('tilingSprite', TilingSpriteRenderer);
 
-},{"../../core":391,"../../core/const":372,"path":347}],469:[function(require,module,exports){
+},{"../../core":392,"../../core/const":373,"path":348}],470:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81206,7 +84368,7 @@ var AlphaFilter = function (_core$Filter) {
 
 exports.default = AlphaFilter;
 
-},{"../../core":391,"path":347}],470:[function(require,module,exports){
+},{"../../core":392,"path":348}],471:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81380,7 +84542,7 @@ var BlurFilter = function (_core$Filter) {
 
 exports.default = BlurFilter;
 
-},{"../../core":391,"./BlurXFilter":471,"./BlurYFilter":472}],471:[function(require,module,exports){
+},{"../../core":392,"./BlurXFilter":472,"./BlurYFilter":473}],472:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81546,7 +84708,7 @@ var BlurXFilter = function (_core$Filter) {
 
 exports.default = BlurXFilter;
 
-},{"../../core":391,"./generateBlurFragSource":473,"./generateBlurVertSource":474,"./getMaxBlurKernelSize":475}],472:[function(require,module,exports){
+},{"../../core":392,"./generateBlurFragSource":474,"./generateBlurVertSource":475,"./getMaxBlurKernelSize":476}],473:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81711,7 +84873,7 @@ var BlurYFilter = function (_core$Filter) {
 
 exports.default = BlurYFilter;
 
-},{"../../core":391,"./generateBlurFragSource":473,"./generateBlurVertSource":474,"./getMaxBlurKernelSize":475}],473:[function(require,module,exports){
+},{"../../core":392,"./generateBlurFragSource":474,"./generateBlurVertSource":475,"./getMaxBlurKernelSize":476}],474:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81758,7 +84920,7 @@ function generateFragBlurSource(kernelSize) {
     return fragSource;
 }
 
-},{}],474:[function(require,module,exports){
+},{}],475:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -81802,7 +84964,7 @@ function generateVertBlurSource(kernelSize, x) {
     return vertSource;
 }
 
-},{}],475:[function(require,module,exports){
+},{}],476:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -81818,7 +84980,7 @@ function getMaxKernelSize(gl) {
     return kernelSize;
 }
 
-},{}],476:[function(require,module,exports){
+},{}],477:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -82369,7 +85531,7 @@ var ColorMatrixFilter = function (_core$Filter) {
 exports.default = ColorMatrixFilter;
 ColorMatrixFilter.prototype.grayscale = ColorMatrixFilter.prototype.greyscale;
 
-},{"../../core":391,"path":347}],477:[function(require,module,exports){
+},{"../../core":392,"path":348}],478:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -82477,7 +85639,7 @@ var DisplacementFilter = function (_core$Filter) {
 
 exports.default = DisplacementFilter;
 
-},{"../../core":391,"path":347}],478:[function(require,module,exports){
+},{"../../core":392,"path":348}],479:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -82531,7 +85693,7 @@ var FXAAFilter = function (_core$Filter) {
 
 exports.default = FXAAFilter;
 
-},{"../../core":391,"path":347}],479:[function(require,module,exports){
+},{"../../core":392,"path":348}],480:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -82610,7 +85772,7 @@ Object.defineProperty(exports, 'AlphaFilter', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./alpha/AlphaFilter":469,"./blur/BlurFilter":470,"./blur/BlurXFilter":471,"./blur/BlurYFilter":472,"./colormatrix/ColorMatrixFilter":476,"./displacement/DisplacementFilter":477,"./fxaa/FXAAFilter":478,"./noise/NoiseFilter":480}],480:[function(require,module,exports){
+},{"./alpha/AlphaFilter":470,"./blur/BlurFilter":471,"./blur/BlurXFilter":472,"./blur/BlurYFilter":473,"./colormatrix/ColorMatrixFilter":477,"./displacement/DisplacementFilter":478,"./fxaa/FXAAFilter":479,"./noise/NoiseFilter":481}],481:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -82707,7 +85869,7 @@ var NoiseFilter = function (_core$Filter) {
 
 exports.default = NoiseFilter;
 
-},{"../../core":391,"path":347}],481:[function(require,module,exports){
+},{"../../core":392,"path":348}],482:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -82822,7 +85984,7 @@ global.PIXI = exports; // eslint-disable-line
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./accessibility":368,"./core":391,"./deprecation":457,"./extract":459,"./extras":467,"./filters":479,"./interaction":486,"./loaders":489,"./mesh":498,"./particles":501,"./polyfill":508,"./prepare":512}],482:[function(require,module,exports){
+},{"./accessibility":369,"./core":392,"./deprecation":458,"./extract":460,"./extras":468,"./filters":480,"./interaction":487,"./loaders":490,"./mesh":499,"./particles":502,"./polyfill":509,"./prepare":513}],483:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -83045,7 +86207,7 @@ var InteractionData = function () {
 
 exports.default = InteractionData;
 
-},{"../core":391}],483:[function(require,module,exports){
+},{"../core":392}],484:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -83128,7 +86290,7 @@ var InteractionEvent = function () {
 
 exports.default = InteractionEvent;
 
-},{}],484:[function(require,module,exports){
+},{}],485:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -84910,7 +88072,7 @@ exports.default = InteractionManager;
 core.WebGLRenderer.registerPlugin('interaction', InteractionManager);
 core.CanvasRenderer.registerPlugin('interaction', InteractionManager);
 
-},{"../core":391,"./InteractionData":482,"./InteractionEvent":483,"./InteractionTrackingData":485,"./interactiveTarget":487,"eventemitter3":321}],485:[function(require,module,exports){
+},{"../core":392,"./InteractionData":483,"./InteractionEvent":484,"./InteractionTrackingData":486,"./interactiveTarget":488,"eventemitter3":321}],486:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -85086,7 +88248,7 @@ InteractionTrackingData.FLAGS = Object.freeze({
     RIGHT_DOWN: 1 << 2
 });
 
-},{}],486:[function(require,module,exports){
+},{}],487:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85138,7 +88300,7 @@ Object.defineProperty(exports, 'InteractionEvent', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./InteractionData":482,"./InteractionEvent":483,"./InteractionManager":484,"./InteractionTrackingData":485,"./interactiveTarget":487}],487:[function(require,module,exports){
+},{"./InteractionData":483,"./InteractionEvent":484,"./InteractionManager":485,"./InteractionTrackingData":486,"./interactiveTarget":488}],488:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85255,7 +88417,7 @@ exports.default = {
   _trackedPointers: undefined
 };
 
-},{}],488:[function(require,module,exports){
+},{}],489:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85375,7 +88537,7 @@ function parse(resource, textures) {
     resource.bitmapFont = _extras.BitmapText.registerFont(resource.data, textures);
 }
 
-},{"../extras":467,"path":347,"resource-loader":527}],489:[function(require,module,exports){
+},{"../extras":468,"path":348,"resource-loader":528}],490:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85503,7 +88665,7 @@ AppPrototype.destroy = function destroy(removeView, stageOptions) {
     this._parentDestroy(removeView, stageOptions);
 };
 
-},{"../core/Application":369,"./bitmapFontParser":488,"./loader":490,"./spritesheetParser":491,"./textureParser":492,"resource-loader":527}],490:[function(require,module,exports){
+},{"../core/Application":370,"./bitmapFontParser":489,"./loader":491,"./spritesheetParser":492,"./textureParser":493,"resource-loader":528}],491:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85674,7 +88836,7 @@ var Resource = _resourceLoader2.default.Resource;
 
 Resource.setExtensionXhrType('fnt', Resource.XHR_RESPONSE_TYPE.DOCUMENT);
 
-},{"./bitmapFontParser":488,"./spritesheetParser":491,"./textureParser":492,"eventemitter3":321,"resource-loader":527,"resource-loader/lib/middlewares/parsing/blob":528}],491:[function(require,module,exports){
+},{"./bitmapFontParser":489,"./spritesheetParser":492,"./textureParser":493,"eventemitter3":321,"resource-loader":528,"resource-loader/lib/middlewares/parsing/blob":529}],492:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85738,7 +88900,7 @@ function getResourcePath(resource, baseUrl) {
     return _url2.default.resolve(resource.url.replace(baseUrl, ''), resource.data.meta.image);
 }
 
-},{"../core":391,"resource-loader":527,"url":530}],492:[function(require,module,exports){
+},{"../core":392,"resource-loader":528,"url":531}],493:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -85761,7 +88923,7 @@ var _Texture2 = _interopRequireDefault(_Texture);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"../core/textures/Texture":441,"resource-loader":527}],493:[function(require,module,exports){
+},{"../core/textures/Texture":442,"resource-loader":528}],494:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -86192,7 +89354,7 @@ Mesh.DRAW_MODES = {
     TRIANGLES: 1
 };
 
-},{"../core":391,"../core/textures/Texture":441}],494:[function(require,module,exports){
+},{"../core":392,"../core/textures/Texture":442}],495:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -86599,7 +89761,7 @@ var NineSlicePlane = function (_Plane) {
 
 exports.default = NineSlicePlane;
 
-},{"../core/sprites/canvas/CanvasTinter":430,"./Plane":495}],495:[function(require,module,exports){
+},{"../core/sprites/canvas/CanvasTinter":431,"./Plane":496}],496:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -86740,7 +89902,7 @@ var Plane = function (_Mesh) {
 
 exports.default = Plane;
 
-},{"./Mesh":493}],496:[function(require,module,exports){
+},{"./Mesh":494}],497:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -86976,7 +90138,7 @@ var Rope = function (_Mesh) {
 
 exports.default = Rope;
 
-},{"./Mesh":493}],497:[function(require,module,exports){
+},{"./Mesh":494}],498:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -87262,7 +90424,7 @@ exports.default = MeshSpriteRenderer;
 
 core.CanvasRenderer.registerPlugin('mesh', MeshSpriteRenderer);
 
-},{"../../core":391,"../Mesh":493}],498:[function(require,module,exports){
+},{"../../core":392,"../Mesh":494}],499:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -87323,7 +90485,7 @@ Object.defineProperty(exports, 'Rope', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./Mesh":493,"./NineSlicePlane":494,"./Plane":495,"./Rope":496,"./canvas/CanvasMeshRenderer":497,"./webgl/MeshRenderer":499}],499:[function(require,module,exports){
+},{"./Mesh":494,"./NineSlicePlane":495,"./Plane":496,"./Rope":497,"./canvas/CanvasMeshRenderer":498,"./webgl/MeshRenderer":500}],500:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -87478,7 +90640,7 @@ exports.default = MeshRenderer;
 
 core.WebGLRenderer.registerPlugin('mesh', MeshRenderer);
 
-},{"../../core":391,"../Mesh":493,"path":347,"pixi-gl-core":354}],500:[function(require,module,exports){
+},{"../../core":392,"../Mesh":494,"path":348,"pixi-gl-core":355}],501:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -87868,7 +91030,7 @@ var ParticleContainer = function (_core$Container) {
 
 exports.default = ParticleContainer;
 
-},{"../core":391,"../core/utils":451}],501:[function(require,module,exports){
+},{"../core":392,"../core/utils":452}],502:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -87893,7 +91055,7 @@ Object.defineProperty(exports, 'ParticleRenderer', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./ParticleContainer":500,"./webgl/ParticleRenderer":503}],502:[function(require,module,exports){
+},{"./ParticleContainer":501,"./webgl/ParticleRenderer":504}],503:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -88142,7 +91304,7 @@ var ParticleBuffer = function () {
 
 exports.default = ParticleBuffer;
 
-},{"../../core/utils/createIndicesForQuads":449,"pixi-gl-core":354}],503:[function(require,module,exports){
+},{"../../core/utils/createIndicesForQuads":450,"pixi-gl-core":355}],504:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -88623,7 +91785,7 @@ exports.default = ParticleRenderer;
 
 core.WebGLRenderer.registerPlugin('particle', ParticleRenderer);
 
-},{"../../core":391,"../../core/utils":451,"./ParticleBuffer":502,"./ParticleShader":504}],504:[function(require,module,exports){
+},{"../../core":392,"../../core/utils":452,"./ParticleBuffer":503,"./ParticleShader":505}],505:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -88666,7 +91828,7 @@ var ParticleShader = function (_Shader) {
 
 exports.default = ParticleShader;
 
-},{"../../core/Shader":370}],505:[function(require,module,exports){
+},{"../../core/Shader":371}],506:[function(require,module,exports){
 "use strict";
 
 // References:
@@ -88684,7 +91846,7 @@ if (!Math.sign) {
     };
 }
 
-},{}],506:[function(require,module,exports){
+},{}],507:[function(require,module,exports){
 'use strict';
 
 // References:
@@ -88696,7 +91858,7 @@ if (!Number.isInteger) {
     };
 }
 
-},{}],507:[function(require,module,exports){
+},{}],508:[function(require,module,exports){
 'use strict';
 
 var _objectAssign = require('object-assign');
@@ -88711,7 +91873,7 @@ if (!Object.assign) {
 // https://github.com/sindresorhus/object-assign
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign
 
-},{"object-assign":345}],508:[function(require,module,exports){
+},{"object-assign":346}],509:[function(require,module,exports){
 'use strict';
 
 require('./Object.assign');
@@ -88738,7 +91900,7 @@ if (!window.Uint16Array) {
     window.Uint16Array = Array;
 }
 
-},{"./Math.sign":505,"./Number.isInteger":506,"./Object.assign":507,"./requestAnimationFrame":509}],509:[function(require,module,exports){
+},{"./Math.sign":506,"./Number.isInteger":507,"./Object.assign":508,"./requestAnimationFrame":510}],510:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -88816,7 +91978,7 @@ if (!global.cancelAnimationFrame) {
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],510:[function(require,module,exports){
+},{}],511:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -89304,7 +92466,7 @@ function findTextStyle(item, queue) {
     return false;
 }
 
-},{"../core":391,"./limiters/CountLimiter":513}],511:[function(require,module,exports){
+},{"../core":392,"./limiters/CountLimiter":514}],512:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -89424,7 +92586,7 @@ function uploadBaseTextures(prepare, item) {
 
 core.CanvasRenderer.registerPlugin('prepare', CanvasPrepare);
 
-},{"../../core":391,"../BasePrepare":510}],512:[function(require,module,exports){
+},{"../../core":392,"../BasePrepare":511}],513:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -89476,7 +92638,7 @@ Object.defineProperty(exports, 'TimeLimiter', {
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./BasePrepare":510,"./canvas/CanvasPrepare":511,"./limiters/CountLimiter":513,"./limiters/TimeLimiter":514,"./webgl/WebGLPrepare":515}],513:[function(require,module,exports){
+},{"./BasePrepare":511,"./canvas/CanvasPrepare":512,"./limiters/CountLimiter":514,"./limiters/TimeLimiter":515,"./webgl/WebGLPrepare":516}],514:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -89534,7 +92696,7 @@ var CountLimiter = function () {
 
 exports.default = CountLimiter;
 
-},{}],514:[function(require,module,exports){
+},{}],515:[function(require,module,exports){
 "use strict";
 
 exports.__esModule = true;
@@ -89592,7 +92754,7 @@ var TimeLimiter = function () {
 
 exports.default = TimeLimiter;
 
-},{}],515:[function(require,module,exports){
+},{}],516:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -89714,7 +92876,7 @@ function findGraphics(item, queue) {
 
 core.WebGLRenderer.registerPlugin('prepare', WebGLPrepare);
 
-},{"../../core":391,"../BasePrepare":510}],516:[function(require,module,exports){
+},{"../../core":392,"../BasePrepare":511}],517:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -89900,7 +93062,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],517:[function(require,module,exports){
+},{}],518:[function(require,module,exports){
 (function (global){
 /*! https://mths.be/punycode v1.4.1 by @mathias */
 ;(function(root) {
@@ -90438,7 +93600,7 @@ process.umask = function() { return 0; };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{}],518:[function(require,module,exports){
+},{}],519:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -90524,7 +93686,7 @@ var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
 
-},{}],519:[function(require,module,exports){
+},{}],520:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -90611,13 +93773,13 @@ var objectKeys = Object.keys || function (obj) {
   return res;
 };
 
-},{}],520:[function(require,module,exports){
+},{}],521:[function(require,module,exports){
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
 
-},{"./decode":518,"./encode":519}],521:[function(require,module,exports){
+},{"./decode":519,"./encode":520}],522:[function(require,module,exports){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -91345,7 +94507,7 @@ try {
   Function("r", "regeneratorRuntime = r")(runtime);
 }
 
-},{}],522:[function(require,module,exports){
+},{}],523:[function(require,module,exports){
 'use strict'
 
 /**
@@ -91374,7 +94536,7 @@ module.exports = function removeItems (arr, startIdx, removeCount) {
   arr.length = len
 }
 
-},{}],523:[function(require,module,exports){
+},{}],524:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -92135,7 +95297,7 @@ Loader.use = function LoaderUseStatic(fn) {
     return Loader;
 };
 
-},{"./Resource":524,"./async":525,"mini-signals":338,"parse-uri":346}],524:[function(require,module,exports){
+},{"./Resource":525,"./async":526,"mini-signals":339,"parse-uri":347}],525:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -93384,7 +96546,7 @@ if (typeof module !== 'undefined') {
     module.exports.default = Resource; // eslint-disable-line no-undef
 }
 
-},{"mini-signals":338,"parse-uri":346}],525:[function(require,module,exports){
+},{"mini-signals":339,"parse-uri":347}],526:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -93606,7 +96768,7 @@ function queue(worker, concurrency) {
     return q;
 }
 
-},{}],526:[function(require,module,exports){
+},{}],527:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -93685,7 +96847,7 @@ if (typeof module !== 'undefined') {
     module.exports.default = encodeBinary; // eslint-disable-line no-undef
 }
 
-},{}],527:[function(require,module,exports){
+},{}],528:[function(require,module,exports){
 'use strict';
 
 // import Loader from './Loader';
@@ -93742,7 +96904,7 @@ module.exports = Loader;
 module.exports.Loader = Loader;
 module.exports.default = Loader;
 
-},{"./Loader":523,"./Resource":524,"./async":525,"./b64":526}],528:[function(require,module,exports){
+},{"./Loader":524,"./Resource":525,"./async":526,"./b64":527}],529:[function(require,module,exports){
 'use strict';
 
 exports.__esModule = true;
@@ -93815,7 +96977,7 @@ function blobMiddlewareFactory() {
     };
 }
 
-},{"../../Resource":524,"../../b64":526}],529:[function(require,module,exports){
+},{"../../Resource":525,"../../b64":527}],530:[function(require,module,exports){
 /*!
 * screenfull
 * v4.2.0 - 2019-04-01
@@ -94006,7 +97168,7 @@ function blobMiddlewareFactory() {
 	}
 })();
 
-},{}],530:[function(require,module,exports){
+},{}],531:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -94740,7 +97902,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"./util":531,"punycode":517,"querystring":520}],531:[function(require,module,exports){
+},{"./util":532,"punycode":518,"querystring":521}],532:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -94758,9 +97920,9 @@ module.exports = {
   }
 };
 
-},{}],532:[function(require,module,exports){
-module.exports={"candidates": [{"city": 0, "empl": 0, "qualifications": [2, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 0]}]}
 },{}],533:[function(require,module,exports){
+module.exports={"candidates": [{"city": 0, "empl": 0, "qualifications": [2, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 3, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [5, 5, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 3, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 2, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 1, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 3, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 5, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 4, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 4, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 4, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 3, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 4, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 3, 5]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 0]}]}
+},{}],534:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -94795,13 +97957,13 @@ var cvCollection = {
 };
 exports.cvCollection = cvCollection;
 
-},{"../../controllers/constants/classes":574,"./cvData.json":534}],534:[function(require,module,exports){
+},{"../../controllers/constants/classes":576,"./cvData.json":535}],535:[function(require,module,exports){
 module.exports={"candidates": [{"name": "Vincent Rojas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 2, 7]}, {"name": "Robert Phillips", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 6, 2]}, {"name": "Lance Hill", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 2, 2, 5]}, {"name": "Jennifer Giles", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 4, 4, 6]}, {"name": "Dakota Lara", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 1, 8]}, {"name": "Marie Haynes", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 3, 4, 2]}, {"name": "Melissa Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 1, 3, 2]}, {"name": "Tanner George", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 2, 2]}, {"name": "Michelle Peters", "city": 0, "color": "blue", "empl": 1, "qualifications": [5, 8, 8, 7]}, {"name": "Nicholas White", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 8, 2, 2]}, {"name": "Kaitlyn Orozco", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 0, 5]}, {"name": "Andrea Campos", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 0, 0]}, {"name": "Dennis Li", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 5, 6, 9]}, {"name": "Amanda Doyle", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 1, 3, 1]}, {"name": "Dylan Shields", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 1, 2]}, {"name": "Matthew Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 5, 6]}, {"name": "Timothy Bailey", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 3, 5]}, {"name": "Michael Chen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 5, 1]}, {"name": "Victor Hurst", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 3, 6]}, {"name": "Lisa Mcdaniel", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 7, 0, 7]}, {"name": "Samuel Todd", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 3, 6, 3]}, {"name": "Stephen Gilmore", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 4, 7]}, {"name": "Elizabeth Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 1, 5]}, {"name": "Anna English", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 8, 5]}, {"name": "Sean Edwards", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 1, 9]}, {"name": "Erica Little", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 5, 3, 7]}, {"name": "Seth Best", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 2, 9]}, {"name": "Jennifer Atkins", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 2, 1, 3]}, {"name": "Vincent Holland", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 7, 2, 4]}, {"name": "Jamie Campbell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 3, 6]}, {"name": "Bryan Moses", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 0, 8]}, {"name": "Jason Jackson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 6, 0, 2]}, {"name": "Jade Bell", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 2, 2, 8]}, {"name": "Kayla Wise", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 9, 3]}, {"name": "Scott Jennings", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 7, 2, 0]}, {"name": "Mary Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 3, 0]}, {"name": "Patrick Griffin", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 3, 7, 7]}, {"name": "Edward Roberts", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 4, 7]}, {"name": "Colin Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 8, 6]}, {"name": "Michael Roberson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 4, 8]}, {"name": "Tammy Reed", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 3, 1]}, {"name": "Robert Ruiz", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 3, 2, 1]}, {"name": "Sabrina Lopez", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 7, 3, 9]}, {"name": "Evelyn Blankenship", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 6, 4, 4]}, {"name": "Amy Ortega", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 6, 4]}, {"name": "Christopher Perez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 4, 8]}, {"name": "David Perkins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 6, 7, 5]}, {"name": "James Mack", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 1, 9]}, {"name": "Crystal Finley", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 3, 4]}, {"name": "Ryan Bell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 3, 1, 0]}, {"name": "Lauren Pineda", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 7, 2, 2]}, {"name": "Olivia Scott", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 8, 0, 4]}, {"name": "Samantha Cobb", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 5, 2]}, {"name": "Stacy Ritter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 2, 7]}, {"name": "Stephanie Martinez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 4, 4]}, {"name": "Nicholas Lopez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 0, 0]}, {"name": "Elizabeth Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 0, 3]}, {"name": "Maria Rosario", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 0, 8, 7]}, {"name": "Andrew West", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 7, 2, 9]}, {"name": "Kim Kline", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 2, 4]}, {"name": "Maria Sharp", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 2, 2]}, {"name": "Leonard Mendoza", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 5, 8]}, {"name": "Stacy Harris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 1, 9]}, {"name": "Micheal Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 9, 8, 3]}, {"name": "Jessica Davidson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 0, 1]}, {"name": "Brian Jordan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 1, 2, 3]}, {"name": "Sharon Hernandez", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 6, 1]}, {"name": "Charles Reed", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 6, 7]}, {"name": "Mason Wood", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 6, 1, 2]}, {"name": "Krista Sanchez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 4, 2, 2]}, {"name": "Michelle Stewart", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 8, 1, 0]}, {"name": "David Nelson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 1, 2, 5]}, {"name": "Nicholas Tucker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 5, 6]}, {"name": "Holly Collins", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 4, 3]}, {"name": "Michele Newman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 5, 0]}, {"name": "Krista Ross", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 2, 5]}, {"name": "Brandon Hicks", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 1, 1]}, {"name": "Robert Ferguson PhD", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 2, 2]}, {"name": "James Sullivan", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 2, 3, 3]}, {"name": "Daniel Brewer", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 3, 7]}, {"name": "Billy King", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 4, 5]}, {"name": "Darrell Sanders", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 3, 7]}, {"name": "Laura Ochoa", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 6, 2]}, {"name": "Benjamin Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 6, 2, 0]}, {"name": "Bryan Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 7, 2]}, {"name": "Derek Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 7, 8]}, {"name": "Dr. Anthony Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 0, 7]}, {"name": "Stephen Harris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 3, 5]}, {"name": "Gregory Valencia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 9, 6, 9]}, {"name": "Robert Moyer", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 0, 0, 2]}, {"name": "Richard Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 2, 6]}, {"name": "Kevin Erickson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 9, 1]}, {"name": "David Drake", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 3, 6]}, {"name": "Melanie Evans", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 5, 1, 7]}, {"name": "Dawn Turner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 7, 0]}, {"name": "Jennifer Pena", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 7, 0]}, {"name": "Jennifer Graves", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 3, 7]}, {"name": "Bryan Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 8, 1]}, {"name": "Deborah Wilson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 5, 8]}, {"name": "Erin Horton", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 7, 1]}, {"name": "Gregory Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 0, 0]}, {"name": "Austin Hicks", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 2, 1, 3]}, {"name": "Matthew Duke", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 0, 5]}, {"name": "Joshua Yu", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 9, 1, 3]}, {"name": "Jessica Collins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 5, 7]}, {"name": "Patrick Brown", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 1, 8]}, {"name": "Kaitlyn Peterson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 3, 8]}, {"name": "Russell Burns", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 1, 8]}, {"name": "Jackson Gonzales", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 1, 2, 9]}, {"name": "Jessica Brock", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 6, 7]}, {"name": "Dennis Russo", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 5, 9, 7]}, {"name": "Julie Peterson", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 3, 2]}, {"name": "Timothy Mcdonald", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 3, 1]}, {"name": "Charles Mccullough", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 2, 7]}, {"name": "Emily Welch", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 5, 0]}, {"name": "Colleen Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 3, 8]}, {"name": "Jamie Nelson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 2, 5]}, {"name": "Stacy Jimenez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 1, 3, 9]}, {"name": "Deborah Lin", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 8, 0]}, {"name": "Melvin Moses", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 0, 1]}, {"name": "Edward King", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 4, 6]}, {"name": "Colleen Perez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 8, 2, 7]}, {"name": "Susan Raymond", "city": 1, "color": "blue", "empl": 0, "qualifications": [4, 0, 9, 8]}, {"name": "Lisa Benson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 1, 2, 9]}, {"name": "Brad Riggs", "city": 1, "color": "blue", "empl": 0, "qualifications": [6, 3, 8, 2]}, {"name": "Teresa Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 4, 7, 6]}, {"name": "Keith Wong", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 0, 2, 4]}, {"name": "Tyler Todd", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 1, 0, 3]}, {"name": "Susan Hoffman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 3, 6]}, {"name": "Marcus Thomas", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 5, 5, 3]}, {"name": "Bradley Small", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 7, 7]}, {"name": "David Reed", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 3, 9]}, {"name": "Mr. Carl Soto MD", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 3, 1]}, {"name": "Jessica Lam", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 4, 5]}, {"name": "Bryce Evans", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 8, 3, 5]}, {"name": "Robert Wagner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 8, 5]}, {"name": "Matthew Lawrence", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 5, 7, 7]}, {"name": "Samantha Blanchard", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 8, 4, 5]}, {"name": "Frank Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 5, 0]}, {"name": "Christina Roth", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 7, 3]}, {"name": "Carla King", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 0, 5]}, {"name": "Alexis Davis", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 2, 7]}, {"name": "Eric Cardenas", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 7, 3]}, {"name": "Joseph Cole", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 0, 0]}, {"name": "Michele Knight", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 3, 0, 2]}, {"name": "Lindsay Ward", "city": 0, "color": "blue", "empl": 1, "qualifications": [9, 4, 7, 7]}, {"name": "Cody Manning", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 1, 9]}, {"name": "Elizabeth Floyd", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 5, 5]}, {"name": "Jennifer Chaney", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 7, 8]}, {"name": "Elizabeth Fleming", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 4, 5]}, {"name": "Nancy Ball", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 5, 4, 2]}, {"name": "Mark Wise", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 4, 7, 7]}, {"name": "Kimberly Lopez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 0, 7]}, {"name": "James Miller", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 4, 6]}, {"name": "James Harrison", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 0, 9]}, {"name": "Michael Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 7, 8, 9]}, {"name": "Krystal Gonzalez", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 3, 5]}, {"name": "Glenn Mckay", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 7, 9]}, {"name": "Katie Rodriguez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 1, 7]}, {"name": "Bruce Roberts", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 3, 7]}, {"name": "Mark Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 7, 4, 1]}, {"name": "Sharon Davila", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 1, 6]}, {"name": "Michael Chandler", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 3, 7]}, {"name": "Pam Russell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 3, 3]}, {"name": "Edward Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 4, 8]}, {"name": "Beth Silva", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 2, 0]}, {"name": "Terry Harrison", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 4, 3, 5]}, {"name": "Melissa Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 1, 6]}, {"name": "Richard Kaiser", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 6, 9]}, {"name": "Oscar Sanchez", "city": 0, "color": "yellow", "empl": 0, "qualifications": [4, 3, 2, 4]}, {"name": "Kenneth Owens", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 0, 7, 2]}, {"name": "Dustin Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 6, 4]}, {"name": "Marissa Chavez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 2, 5]}, {"name": "Leah Burke", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 4, 5]}, {"name": "Meghan Olson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 3, 0, 0]}, {"name": "Brian Novak", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 2, 5, 2]}, {"name": "Elizabeth Mckenzie", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 5, 3]}, {"name": "Paula Webb", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 6, 6, 9]}, {"name": "Jeremy Pittman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 7, 4]}, {"name": "Barbara Sanders", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 7, 9, 1]}, {"name": "Michael Hernandez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 3, 3]}, {"name": "Sara Miller", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 4, 4]}, {"name": "David Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 9, 1]}, {"name": "Craig White", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 4, 2, 2]}, {"name": "Tammy Bell", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 8, 0, 2]}, {"name": "Manuel Shepard", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 0, 0]}, {"name": "Betty Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 7, 0]}, {"name": "David Melendez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 8, 5]}, {"name": "John Wright", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 3, 5]}, {"name": "Cynthia Maxwell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 0, 7]}, {"name": "Theresa Banks", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 9, 8]}, {"name": "Tiffany Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 7, 4]}, {"name": "Monica Morris", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 3, 6, 7]}, {"name": "Alexis Lawrence", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 9, 6]}, {"name": "Brandon Ford", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 7, 6, 0]}, {"name": "Dustin Page", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 0, 0]}, {"name": "Mrs. Erica Cruz", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 1, 7, 1]}, {"name": "Russell Morales", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 3, 3]}, {"name": "Allen Rivera", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 6, 0]}, {"name": "Robert Barker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 7, 1]}, {"name": "Marie Edwards", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 1, 4]}, {"name": "Jennifer Wallace", "city": 0, "color": "yellow", "empl": 0, "qualifications": [4, 1, 8, 0]}, {"name": "Michael Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 0, 5]}, {"name": "David Barry", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 6, 1]}, {"name": "Mark Krueger", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 6, 4, 1]}, {"name": "Matthew Green", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 7, 8]}, {"name": "Ellen Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 8, 2]}, {"name": "Richard Baker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 7, 4]}, {"name": "Tim Ortiz", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 5, 1, 4]}, {"name": "Jeremiah Armstrong", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 7, 0, 1]}, {"name": "Elizabeth Stewart", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 7, 5, 0]}, {"name": "Aimee Barker", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 0, 4, 0]}, {"name": "Jordan Knight", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 3, 7]}, {"name": "Martha Humphrey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 1, 4, 5]}, {"name": "Rachel Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 6, 9]}, {"name": "Darryl Martinez", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 5, 2]}, {"name": "Dwayne Sims", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 5, 7]}, {"name": "Christopher Juarez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 8, 4, 0]}, {"name": "Joy George", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 6, 1]}, {"name": "Melissa Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 3, 7]}, {"name": "Michael Allen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 0, 9, 7]}, {"name": "Brenda Durham", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 0, 4]}, {"name": "Lindsay Watson", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 8, 7, 5]}, {"name": "Tracy Olson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 9, 9]}, {"name": "Deborah Trujillo", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 4, 1, 2]}, {"name": "David Yoder", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 8, 0, 4]}, {"name": "James Collins", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 0, 1]}, {"name": "Robert Hayden", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 5, 5]}, {"name": "Vanessa Marshall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 5, 8]}, {"name": "Angela Flores", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 8, 1]}, {"name": "Nancy Lewis", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 4, 6]}, {"name": "Denise Cannon", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 8, 0]}, {"name": "Andrew Reed", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 8, 2]}, {"name": "John Holmes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 6, 2, 9]}, {"name": "Cody Rodriguez", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 4, 0, 8]}, {"name": "Maurice Cohen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 1, 6]}, {"name": "Tracy Perry", "city": 0, "color": "blue", "empl": 0, "qualifications": [9, 4, 0, 3]}, {"name": "Marvin Boyer", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 3, 0, 5]}, {"name": "Robert Reyes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 7, 1]}, {"name": "Ian Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 0, 5]}, {"name": "Nicole Cameron", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 1, 5]}, {"name": "Tanya Fuller", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 3, 4, 8]}, {"name": "Lisa Mora", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 8, 1, 1]}, {"name": "Carrie Bates", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 2, 7, 8]}, {"name": "Ernest Mason", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 4, 0]}, {"name": "Laura Wilson", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 5, 1, 4]}, {"name": "Samuel Graham", "city": 0, "color": "yellow", "empl": 0, "qualifications": [3, 1, 0, 9]}, {"name": "Timothy Downs", "city": 1, "color": "blue", "empl": 0, "qualifications": [9, 1, 0, 6]}, {"name": "Susan Ross", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 3, 0]}, {"name": "Tristan Evans", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 3, 5]}, {"name": "Dustin Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 4, 1, 1]}, {"name": "Michael Young", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 1, 0, 0]}, {"name": "Theodore Chambers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 3, 8]}, {"name": "Bradley Owens", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 2, 4]}, {"name": "Kevin Barnes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 8, 9]}, {"name": "Gerald Humphrey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 2, 3, 9]}, {"name": "April Schneider", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 0, 6]}, {"name": "Timothy Lynch", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 2, 6]}, {"name": "Shelly Carlson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 5, 3]}, {"name": "Jennifer Stephens", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 4, 1]}, {"name": "William Stuart", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 4, 6]}, {"name": "Andrew Jordan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 3, 2]}, {"name": "Robert Shepherd", "city": 0, "color": "blue", "empl": 1, "qualifications": [3, 8, 6, 9]}, {"name": "Sharon Trevino", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 6, 2, 4]}, {"name": "Linda Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 7, 7]}, {"name": "Donald Bowman", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 7, 9, 2]}, {"name": "Jennifer Graham", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 0, 7]}, {"name": "John Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 9, 9]}, {"name": "Christopher Lewis", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 2, 4, 2]}, {"name": "Danielle Stokes", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 4, 0]}, {"name": "Elizabeth Baxter", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 4, 0, 7]}, {"name": "William Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 5, 4, 1]}, {"name": "Lisa Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 3, 7]}, {"name": "Justin Gallagher", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 5, 2]}, {"name": "Sierra Ross MD", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 4, 8]}, {"name": "Paul Fowler", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 4, 4]}, {"name": "Jennifer Ward", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 3, 9]}, {"name": "Katie Clayton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 8, 7]}, {"name": "Matthew Mitchell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 3, 6, 8]}, {"name": "Jennifer Humphrey", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 9, 3]}, {"name": "Nicholas Castillo", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 5, 8]}, {"name": "Virginia Villa", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 0, 9, 3]}, {"name": "Nathaniel Gutierrez", "city": 0, "color": "yellow", "empl": 0, "qualifications": [6, 1, 1, 5]}, {"name": "Dr. Daniel Fleming", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 5, 5, 6]}, {"name": "Mary Willis", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 4, 5]}, {"name": "Robin Malone", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 7, 7, 3]}, {"name": "Justin Koch", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 0, 3]}, {"name": "Christopher Shannon", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 0, 5]}, {"name": "Whitney Mcdaniel", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 9, 7]}, {"name": "Eric Molina MD", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 7, 3]}, {"name": "Terry Carroll", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 5, 4]}, {"name": "Gina Hicks", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 1, 6]}, {"name": "Stacy Golden", "city": 0, "color": "yellow", "empl": 0, "qualifications": [8, 2, 2, 2]}, {"name": "Brian Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 8, 0]}, {"name": "Adam Costa", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 5, 8, 1]}, {"name": "George Brown", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 6, 6, 2]}, {"name": "Rebecca Mayo", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 6, 0]}, {"name": "Meghan Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 9, 3]}, {"name": "Mr. John Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 3, 2, 0]}, {"name": "Jose Hansen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 8, 9]}, {"name": "Richard Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 3, 2]}, {"name": "Dr. Christian Evans", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 0, 7, 9]}, {"name": "Melissa Wright", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 3, 4, 2]}, {"name": "Morgan Morgan", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 8, 2]}, {"name": "Casey Salazar", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 5, 1]}, {"name": "Morgan Barton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 7, 8]}, {"name": "Veronica Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 7, 0, 8]}, {"name": "Sabrina Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 7, 1]}, {"name": "Michael Mathews", "city": 0, "color": "yellow", "empl": 0, "qualifications": [4, 4, 1, 4]}, {"name": "Jose Martinez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 6, 7, 0]}, {"name": "Alison Kelly", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 5, 1]}, {"name": "Laura Gomez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 4, 6]}, {"name": "Jasmine Knight", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 2, 8, 8]}, {"name": "Crystal Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 5, 7]}, {"name": "Martha Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 5, 1]}, {"name": "Bradley Taylor", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 9, 3]}, {"name": "Paul Garrett", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 0, 1]}, {"name": "Veronica Madden", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 3, 1, 4]}, {"name": "James Smith", "city": 0, "color": "blue", "empl": 1, "qualifications": [6, 9, 6, 8]}, {"name": "Thomas Jordan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 1, 9, 7]}, {"name": "Joseph Wagner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 1, 4]}, {"name": "Christy West", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 2, 7]}, {"name": "Crystal Jimenez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 1, 8]}, {"name": "Stephanie Ponce", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 6, 3, 2]}, {"name": "Scott Wang", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 0, 2]}, {"name": "Sharon Martin", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 4, 5, 3]}, {"name": "Michelle Conway MD", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 3, 5, 2]}, {"name": "Tanya King", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 4, 1]}, {"name": "Michael Lee", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 2, 2]}, {"name": "Marc Santos", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 7, 4]}, {"name": "Wendy Weber", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 7, 1, 0]}, {"name": "Alexander Foster", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 5, 1]}, {"name": "Tina Moore", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 3, 8, 0]}, {"name": "Kendra Mcclure", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 4, 9]}, {"name": "Nicole Mcdonald", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 1, 4, 5]}, {"name": "Jasmine Harris", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 1, 0, 0]}, {"name": "Denise Jordan", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 9, 5, 4]}, {"name": "Kimberly Castillo", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 5, 2]}, {"name": "Pamela Norris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 4, 9]}, {"name": "Allison Logan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 5, 6, 7]}, {"name": "James Clark", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 5, 5, 1]}, {"name": "Marie Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 0, 0]}, {"name": "Timothy Tanner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 5, 4]}, {"name": "David Bird", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 6, 2, 1]}, {"name": "Sherry Figueroa", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 2, 7, 1]}, {"name": "Debra Scott", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 1, 6]}, {"name": "Yolanda Baldwin", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 4, 1]}, {"name": "Michael Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 2, 8, 3]}, {"name": "Ian Torres", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 8, 6]}, {"name": "Crystal Tucker", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 1, 0, 0]}, {"name": "Barbara Castillo", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 8, 0]}, {"name": "Mr. Mark Spears III", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 2, 1]}, {"name": "Jeffrey Randall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 9, 4]}, {"name": "Kimberly Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 2, 3, 1]}, {"name": "Diana Li", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 1, 8, 1]}, {"name": "Carrie Jacobs", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 5, 9]}, {"name": "Tanya Moore", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 5, 2, 0]}, {"name": "Donald Boyd", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 0, 6]}, {"name": "Sarah Barrett", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 6, 2, 9]}, {"name": "Mary Freeman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 3, 9, 5]}, {"name": "Rita Rogers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 4, 7]}, {"name": "Mariah James", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 3, 7, 1]}, {"name": "Brenda Bradley", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 4, 6, 0]}, {"name": "Michelle Dyer", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 7, 4]}, {"name": "Tina Chambers", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 1, 5, 2]}, {"name": "Debbie Medina", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 9, 0]}, {"name": "Joseph Wiley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 7, 9]}, {"name": "Alexis Anderson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 0, 4]}, {"name": "Marilyn Stark", "city": 1, "color": "blue", "empl": 0, "qualifications": [5, 6, 2, 4]}, {"name": "Anthony Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 6, 1, 5]}, {"name": "Brett Robinson", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 6, 2]}, {"name": "Johnny Martinez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 9, 1]}, {"name": "Timothy Ryan", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 4, 8]}, {"name": "Susan Goodman", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 8, 6, 9]}, {"name": "Daniel Aguilar", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 5, 0, 2]}, {"name": "Kathryn Lopez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 7, 5]}, {"name": "Christina Cox", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 7, 8]}, {"name": "Nicole Pitts", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 3, 9]}, {"name": "Angela Wright", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 8, 5, 0]}, {"name": "Heather Barker", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 6, 2, 8]}, {"name": "Mary Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 3, 7]}, {"name": "Rebecca Rosales", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 3, 9, 1]}, {"name": "Jessica Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 0, 2]}, {"name": "Cheryl Coleman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 1, 3, 8]}, {"name": "Patricia Pacheco", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 1, 9]}, {"name": "Molly Frye", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 2, 8]}, {"name": "Hannah Heath", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 0, 4, 9]}, {"name": "Jessica White", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 6, 5]}, {"name": "Kevin Salas", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 3, 3, 9]}, {"name": "Gina Joseph", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 9, 7]}, {"name": "Ryan Marsh", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 1, 5]}, {"name": "Monica Patel", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 6, 7, 1]}, {"name": "Andrew Hurst", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 4, 1, 9]}, {"name": "Matthew Morgan", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 9, 5, 3]}, {"name": "William Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 6, 1]}, {"name": "Christopher Stewart", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 3, 4, 7]}, {"name": "Richard Ross", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 7, 3]}, {"name": "Paul Guzman", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 4, 6]}, {"name": "April Jackson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 0, 5, 5]}, {"name": "Jordan Conner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 6, 7]}, {"name": "Thomas Harris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 9, 6]}, {"name": "Taylor Lynn", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 3, 9, 5]}, {"name": "Julie Nguyen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 7, 7, 1]}, {"name": "Natalie Romero", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 5, 4, 7]}, {"name": "Jay Ashley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 9, 6]}, {"name": "Hannah Burton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 5, 2]}, {"name": "Scott Mills", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 4, 9, 4]}, {"name": "Luis Wade", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 8, 2]}, {"name": "Megan Carr", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 3, 6]}, {"name": "Kimberly Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 2, 8]}, {"name": "Danielle Parker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 0, 9]}, {"name": "Denise Wolfe", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 2, 5]}, {"name": "Tara Lang", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 4, 6]}, {"name": "Michael Beard", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 9, 0]}, {"name": "Candace Ortiz", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 6, 0]}, {"name": "Bobby Payne", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 0, 9, 7]}, {"name": "Robert Shields", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 5, 5, 1]}, {"name": "Joel Maynard", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 9, 0]}, {"name": "Andrew Taylor", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 4, 4, 0]}, {"name": "James Medina", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 0, 5]}, {"name": "Shannon Schwartz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 8, 8]}, {"name": "Terri Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 5, 2]}, {"name": "Ronald Palmer", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 4, 5, 5]}, {"name": "Jennifer Anderson", "city": 1, "color": "blue", "empl": 0, "qualifications": [4, 2, 8, 3]}, {"name": "Savannah Adams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 4, 9, 2]}, {"name": "Kenneth Davis", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 6, 4, 2]}, {"name": "Dr. Samuel Harris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 7, 8, 2]}, {"name": "Amanda Blackburn", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 2, 3, 6]}, {"name": "Olivia Mccoy MD", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 0, 0]}, {"name": "Anthony Byrd", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 8, 8, 9]}, {"name": "Rachel Gray", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 4, 6]}, {"name": "Sarah Nichols", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 9, 7, 8]}, {"name": "Andre Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 0, 5]}, {"name": "Marissa Stanley", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 6, 1]}, {"name": "David Rhodes", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 1, 1, 2]}, {"name": "Michael Lopez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 2, 0, 3]}, {"name": "Jennifer Allen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 4, 7, 6]}, {"name": "Tristan Rogers", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 3, 2]}, {"name": "Justin Sullivan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 2, 4]}, {"name": "Mario Knapp", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 7, 7, 3]}, {"name": "Derek Cabrera", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 2, 5]}, {"name": "Mrs. Karen Bush DVM", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 7, 9]}, {"name": "Michael Robbins", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 7, 8, 0]}, {"name": "Joseph Werner", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 0, 0, 0]}, {"name": "Jeffrey Mckee", "city": 1, "color": "blue", "empl": 0, "qualifications": [7, 2, 5, 0]}, {"name": "Nicole Salazar", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 4, 0]}, {"name": "Juan Rodriguez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 5, 0, 3]}, {"name": "Denise Lane", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 0, 7]}, {"name": "David Myers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 4, 6]}, {"name": "Linda Blackwell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 8, 9]}, {"name": "Courtney Kennedy", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 8, 3]}, {"name": "Erica Mccoy", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 6, 1, 2]}, {"name": "Jessica Welch", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 2, 8, 7]}, {"name": "Diana Swanson", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 0, 3]}, {"name": "Jeremy Calderon", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 7, 5]}, {"name": "Donald Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 4, 8]}, {"name": "Courtney Garcia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 2, 8]}, {"name": "Anna Lopez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 1, 9, 6]}, {"name": "Michael Thompson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 5, 0, 1]}, {"name": "Jennifer Robinson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 6, 2]}, {"name": "Kurt Jensen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 3, 3]}, {"name": "Jeffrey Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 3, 6, 9]}, {"name": "Karen Meyers", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 2, 0, 1]}, {"name": "Elizabeth Stevens", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 7, 3]}, {"name": "Randy George", "city": 0, "color": "blue", "empl": 0, "qualifications": [9, 7, 1, 4]}, {"name": "Luis Ramirez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 4, 3]}, {"name": "Justin Allen", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 3, 1]}, {"name": "Michael Hill", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 0, 4]}, {"name": "Julie Velasquez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 4, 5, 4]}, {"name": "Brittney Oliver", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 9, 2]}, {"name": "Jennifer Foster", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 1, 2, 5]}, {"name": "Devin Thompson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 6, 0]}, {"name": "Patricia Kelly", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 7, 9]}, {"name": "Linda Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 0, 1, 9]}, {"name": "Brian Daniels", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 9, 8]}, {"name": "Samantha Fernandez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 9, 1, 4]}, {"name": "Olivia Coffey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 7, 1, 4]}, {"name": "Keith Aguilar", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 6, 3]}, {"name": "Sarah Norris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 5, 8]}, {"name": "Michael Hutchinson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 2, 2]}, {"name": "Sean Bowen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 2, 4]}, {"name": "Kenneth Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 3, 1]}, {"name": "Suzanne Cherry", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 8, 7, 9]}, {"name": "Frances Hoffman", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 3, 3, 2]}, {"name": "Chad Ramos", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 6, 1, 1]}, {"name": "Donald Rosales", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 6, 7]}, {"name": "Jeffrey James", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 9, 7]}, {"name": "Bonnie Wagner", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 1, 2]}, {"name": "Daniel Washington", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 8, 2, 6]}, {"name": "Pamela Horn", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 0, 5]}, {"name": "Jodi Rodriguez", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 6, 0, 1]}, {"name": "Michael King", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 5, 2]}, {"name": "Jordan Gibson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 2, 3]}, {"name": "Kristen Cummings", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 2, 2, 7]}, {"name": "Robert Charles", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 3, 4, 0]}, {"name": "David Parker", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 7, 3, 0]}, {"name": "Samantha Nash", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 2, 5, 6]}, {"name": "Elizabeth Bass", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 3, 7]}, {"name": "Makayla Gomez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 1, 8]}, {"name": "Jeremy Hall", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 5, 3, 3]}, {"name": "Carlos Mendez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 0, 5]}, {"name": "Michelle Jordan", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 8, 1]}, {"name": "John Guzman", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 0, 3]}, {"name": "Jose Aguirre", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 9, 1, 5]}, {"name": "James Powell", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 3, 0, 1]}, {"name": "Laura Medina", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 5, 0, 4]}, {"name": "Barbara Cortez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 9, 1, 0]}, {"name": "Rebekah Jones", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 8, 3, 6]}, {"name": "Jeffrey Cook", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 3, 6, 2]}, {"name": "Sherri Bailey", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 0, 3]}, {"name": "Ashley Johnston", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 4, 9]}, {"name": "Kyle Little", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 5, 6]}, {"name": "Sheila Garcia", "city": 1, "color": "blue", "empl": 0, "qualifications": [4, 6, 6, 2]}, {"name": "Ricky Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 8, 3, 8]}, {"name": "Molly Mclaughlin", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 9, 1, 0]}, {"name": "Kevin Bauer", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 8, 4]}, {"name": "Donald Wilson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [5, 4, 9, 6]}, {"name": "Heidi Herrera", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 5, 3, 5]}, {"name": "Hunter Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 6, 0]}, {"name": "Jodi Hartman", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 4, 1]}, {"name": "Paul Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 1, 5]}, {"name": "Joshua Hampton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 3, 8]}, {"name": "Mrs. Amanda Holmes", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 5, 0, 1]}, {"name": "Beverly Kim", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 9, 2]}, {"name": "Pam Collins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 8, 4, 9]}, {"name": "Cody Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 1, 2]}, {"name": "Alan Campbell", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 4, 2, 1]}, {"name": "Justin Clark", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 3, 3]}, {"name": "John Martinez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 2, 3, 0]}, {"name": "Caitlin Ruiz", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 3, 5, 2]}, {"name": "Holly Randolph", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 8, 4, 9]}, {"name": "David Holmes", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 9, 6, 3]}, {"name": "Carol Rios", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 3, 0, 2]}, {"name": "Danielle Guerrero", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 0, 2]}, {"name": "William Gallagher", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 4, 3, 6]}, {"name": "Mark Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 7, 3]}, {"name": "Brian Smith", "city": 1, "color": "blue", "empl": 0, "qualifications": [6, 6, 2, 6]}, {"name": "Alicia Meyer", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 3, 6, 7]}, {"name": "Ryan Webb", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 3, 1, 3]}, {"name": "Dennis Rollins", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 1, 1, 1]}, {"name": "Abigail Powell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 4, 4, 9]}, {"name": "Krystal Osborn", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 8, 6]}, {"name": "Karen King", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 3, 9]}, {"name": "Kevin Randolph", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 2, 8, 1]}, {"name": "Carl Wilson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 8, 6]}, {"name": "David Roberts", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 1, 7, 6]}, {"name": "Christina Leonard", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 9, 1]}, {"name": "Bryan Fisher", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 0, 1, 2]}, {"name": "John Watson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 9, 1, 1]}, {"name": "Kelli Pollard", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 6, 2]}, {"name": "Cindy Beck", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 7, 0]}, {"name": "Jose Greer", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 7, 1, 3]}, {"name": "Brian Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 7, 1]}, {"name": "Scott Walker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 6, 7]}, {"name": "Jason Christian", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 2, 3, 2]}, {"name": "Andrew Decker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 4, 2]}, {"name": "Zachary Barr", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 6, 5]}, {"name": "Kathryn Farley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 4, 5]}, {"name": "Adam Medina", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 8, 9, 5]}, {"name": "Tara Cruz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 3, 3, 9]}, {"name": "Michael Whitehead II", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 4, 7]}, {"name": "William Lucas", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 1, 5]}, {"name": "Erin Powell", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 3, 1, 3]}, {"name": "Jeffrey Torres", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 7, 2]}, {"name": "Cory Yoder", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 8, 3, 2]}, {"name": "Ryan Reynolds", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 2, 9]}, {"name": "Abigail Gray", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 7, 4]}, {"name": "Angela Bray", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 2, 1, 1]}, {"name": "Tyrone Kline", "city": 1, "color": "blue", "empl": 0, "qualifications": [4, 1, 2, 7]}, {"name": "Stephanie Silva", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 6, 6]}, {"name": "Cindy Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 0, 2]}, {"name": "Sylvia Ayers MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 3, 0]}, {"name": "Andrea Jackson", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 5, 4, 2]}, {"name": "Johnny Byrd", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 2, 7]}, {"name": "Daniel Heath", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 1, 2, 6]}, {"name": "Connie Walsh", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 6, 9]}, {"name": "Emily Moore", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 7, 6, 5]}, {"name": "Derek Norris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 4, 0]}, {"name": "Christy Bush", "city": 0, "color": "blue", "empl": 1, "qualifications": [6, 7, 8, 9]}, {"name": "Daniel Hughes", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 3, 1]}, {"name": "Jorge Jenkins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 6, 9]}, {"name": "Nancy Dawson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 1, 5, 5]}, {"name": "Courtney Wilson", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 3, 0, 0]}, {"name": "Hannah Carpenter", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 4, 4]}, {"name": "Becky Fritz", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 3, 5, 0]}, {"name": "Stephen Miranda", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 8, 5]}, {"name": "Mary Williamson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 3, 5]}, {"name": "Amanda Watts", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 2, 1]}, {"name": "Carol Jones", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 8, 0, 6]}, {"name": "Danielle Rogers", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 2, 2]}, {"name": "Makayla Harris", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 8, 4, 6]}, {"name": "Cynthia Burton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 5, 7]}, {"name": "Paula Chavez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 3, 3]}, {"name": "Amanda Young", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 1, 6, 3]}, {"name": "Katelyn King", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 0, 1, 5]}, {"name": "Stephanie Gardner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 3, 2, 2]}, {"name": "Jeffrey Garcia", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 5, 8]}, {"name": "Ellen Graham", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 7, 6]}, {"name": "Mrs. Stephanie Rivers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 0, 5, 8]}, {"name": "Isabel Hayes", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 2, 1, 3]}, {"name": "Timothy Lee", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 6, 8]}, {"name": "Rebecca Cline", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 4, 4, 3]}, {"name": "Rebecca Garcia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 6, 9]}, {"name": "Brandy Stafford", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 3, 4, 9]}, {"name": "Sonya Clarke", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 3, 3, 6]}, {"name": "Julie Cruz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 7, 8]}, {"name": "Brooke Charles", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 1, 9, 3]}, {"name": "Chloe Valdez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 0, 7]}, {"name": "Sarah Garza", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 1, 9]}, {"name": "Elizabeth Robinson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 3, 0, 8]}, {"name": "Paul Welch", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 4, 1]}, {"name": "Tiffany Matthews", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 7, 0]}, {"name": "Stephanie Randall", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 1, 6]}, {"name": "Charles Carr", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 7, 0, 2]}, {"name": "Robert Glenn", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 7, 7, 3]}, {"name": "Kaitlyn Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 7, 0]}, {"name": "Michele Wilson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 4, 1, 1]}, {"name": "Jacqueline Hughes", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 3, 0]}, {"name": "Mike Kelly", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 1, 6]}, {"name": "Andrew Robinson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 0, 2]}, {"name": "Donna Hall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 7, 7]}, {"name": "Adam Stephenson", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 4, 0, 0]}, {"name": "Gary Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 1, 8]}, {"name": "Douglas Washington", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 1, 7]}, {"name": "David Wilson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 4, 9]}, {"name": "Victoria Davis", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 7, 0, 3]}, {"name": "Sandra Walter PhD", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 1, 6]}, {"name": "Nancy Bailey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 7, 1]}, {"name": "Jennifer Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 9, 1]}, {"name": "Cathy Gutierrez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 4, 6]}, {"name": "Tiffany Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 5, 2]}, {"name": "David Lewis", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 1, 5, 5]}, {"name": "Wayne Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 3, 7, 3]}, {"name": "Sarah Phelps", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 2, 2]}, {"name": "Brian Murray", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 6, 5]}, {"name": "Mr. William Adams", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 0, 4]}, {"name": "Adam Jones", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 1, 6]}, {"name": "Laura Terrell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 2, 6]}, {"name": "Emily Tucker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 2, 8, 9]}, {"name": "Frank Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 6, 7, 7]}, {"name": "Joseph Reese", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 0, 6]}, {"name": "Jonathan Carney", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 8, 6]}, {"name": "Miguel Simpson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 6, 3]}, {"name": "Joanna Morrow", "city": 0, "color": "yellow", "empl": 1, "qualifications": [1, 2, 8, 6]}, {"name": "Tracy Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 8, 9]}, {"name": "Jennifer Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 2, 2]}, {"name": "Amanda Young", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 5, 1]}, {"name": "Amy Garza", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 9, 6]}, {"name": "Wendy Chen", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 4, 7, 8]}, {"name": "Zachary Archer", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 3, 6, 3]}, {"name": "Dana Butler", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 0, 8]}, {"name": "Mr. Brandon Brown", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 6, 0, 1]}, {"name": "Veronica Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 8, 7, 0]}, {"name": "David Guzman", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 5, 2, 2]}, {"name": "Craig Costa", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 7, 9]}, {"name": "Christopher Rogers", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 2, 0]}, {"name": "Dr. Dalton Burnett", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 4, 3]}, {"name": "Michael Daniels", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 5, 3]}, {"name": "Christina Wright", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 5, 4, 2]}, {"name": "Michael Warren", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 6, 5]}, {"name": "Lindsey Branch", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 3, 4]}, {"name": "Anthony Pittman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 4, 6, 9]}, {"name": "Gina Hill", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 2, 7, 8]}, {"name": "Steven Lopez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 5, 4]}, {"name": "Mary Nguyen", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 5, 7]}, {"name": "Jacqueline Wright", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 9, 6]}, {"name": "Zachary Schultz", "city": 1, "color": "blue", "empl": 0, "qualifications": [5, 4, 4, 0]}, {"name": "Taylor Price", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 7, 2, 1]}, {"name": "Brendan Terry", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 0, 9]}, {"name": "Travis Smith", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 8, 4, 3]}, {"name": "Dennis Schmidt", "city": 0, "color": "yellow", "empl": 1, "qualifications": [2, 7, 7, 1]}, {"name": "David Callahan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 6, 1, 6]}, {"name": "Terry Hodge", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 4, 7, 4]}, {"name": "Tammy Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 0, 6]}, {"name": "Erika Weeks", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 3, 7]}, {"name": "John Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 6, 8, 1]}, {"name": "Michelle Harris", "city": 0, "color": "yellow", "empl": 1, "qualifications": [1, 5, 8, 7]}, {"name": "Rebecca Weber DVM", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 3, 8, 5]}, {"name": "John Miles", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 5, 6]}, {"name": "Katie Diaz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 8, 1, 9]}, {"name": "Stephanie Martin", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 8, 4]}, {"name": "Lisa Scott", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 7, 6]}, {"name": "Patricia Pace", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 3, 5]}, {"name": "Susan Nelson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 4, 6, 7]}, {"name": "Kari Lara", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 3, 5]}, {"name": "Daniel Calderon", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 3, 8, 4]}, {"name": "Paul Gilmore", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 7, 0]}, {"name": "Robert Martin", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 6, 6, 2]}, {"name": "Jonathan Mcconnell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 7, 7, 6]}, {"name": "Jennifer Freeman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 0, 2, 7]}, {"name": "Sheila Garner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 2, 7, 7]}, {"name": "Crystal Ayala", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 3, 7]}, {"name": "Dwayne Johnson", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 4, 2, 5]}, {"name": "William Avila", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 1, 9, 3]}, {"name": "Heather Sutton", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 2, 0]}, {"name": "Lauren Schaefer", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 4, 1, 1]}, {"name": "Nathan Copeland", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 0, 1]}, {"name": "Brad Gray", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 5, 1, 3]}, {"name": "Arthur Berry", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 4, 5]}, {"name": "Mary Bennett", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 5, 1]}, {"name": "Gregory Evans", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 0, 9, 1]}, {"name": "Rachael Hawkins", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 0, 4]}, {"name": "Debbie Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 4, 4]}, {"name": "Thomas Costa", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 0, 6]}, {"name": "Steven Wilcox", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 8, 7]}, {"name": "Shannon Ali", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 8, 8]}, {"name": "Brian Duarte", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 9, 7]}, {"name": "Amy Lopez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 8, 5, 1]}, {"name": "Daniel Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 6, 4]}, {"name": "Tina Crawford", "city": 0, "color": "blue", "empl": 0, "qualifications": [9, 4, 1, 2]}, {"name": "Joseph Oliver", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 3, 2, 7]}, {"name": "Jared Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 5, 2, 9]}, {"name": "Victor Rodriguez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 6, 9]}, {"name": "Julia Moody", "city": 0, "color": "yellow", "empl": 1, "qualifications": [2, 8, 5, 5]}, {"name": "David Castaneda", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 5, 6]}, {"name": "Jennifer Salazar", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 8, 7]}, {"name": "Harry Morton", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 0, 5]}, {"name": "Garrett Ramos", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 2, 6]}, {"name": "Elizabeth Rogers", "city": 1, "color": "blue", "empl": 0, "qualifications": [4, 7, 1, 6]}, {"name": "Sarah Hodge", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 3, 6, 9]}, {"name": "Christina Cooper", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 6, 6, 1]}, {"name": "Jennifer Rogers", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 3, 8]}, {"name": "Julie Perez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 4, 0]}, {"name": "Matthew Sullivan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 1, 9]}, {"name": "Jennifer Rodriguez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 5, 3]}, {"name": "Melissa Snyder", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 8, 2, 1]}, {"name": "Thomas Rojas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 1, 4, 3]}, {"name": "Christina Lam", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 3, 6, 4]}, {"name": "Erin Ramirez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 4, 0, 7]}, {"name": "Devin Rice", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 4, 1, 2]}, {"name": "Kathryn Martin", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 0, 6, 4]}, {"name": "Brenda Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 8, 7]}, {"name": "David Solomon", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 2, 6]}, {"name": "Samantha Rodriguez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 8, 2, 0]}, {"name": "Kristin Cooper", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 5, 4]}, {"name": "Sarah Turner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 2, 6]}, {"name": "Jeffrey Campbell", "city": 1, "color": "blue", "empl": 1, "qualifications": [3, 8, 5, 8]}, {"name": "Wendy Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 2, 7]}, {"name": "Kenneth Mckinney", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 3, 1, 5]}, {"name": "Michael Martinez", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 3, 4, 1]}, {"name": "Amanda Hall", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 0, 2]}, {"name": "Victor Diaz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 3, 6]}, {"name": "Sydney Howell", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 3, 2]}, {"name": "Tracy Mccullough", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 4, 1]}, {"name": "Brittney Fox", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 1, 0, 5]}, {"name": "Melissa Morgan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 0, 9]}, {"name": "Karen Vargas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 3, 4, 7]}, {"name": "Lori Burke", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 7, 0, 2]}, {"name": "Robert Carter", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 8, 0, 0]}, {"name": "Vincent Davenport", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 0, 1]}, {"name": "Amber Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 6, 1]}, {"name": "Austin Martinez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 8, 4]}, {"name": "Thomas Ayala", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 5, 1]}, {"name": "Stephanie Goodman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 2, 4]}, {"name": "Brenda Taylor", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 9, 3]}, {"name": "Gina Chavez", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 3, 2]}, {"name": "David Rogers", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 4, 4, 5]}, {"name": "Ian Jackson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 4, 4]}, {"name": "Stephanie Collins", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 4, 0]}, {"name": "Kevin Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 0, 9]}, {"name": "Harold Brown", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 0, 8]}, {"name": "Carolyn Sweeney", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 1, 1]}, {"name": "John Rodriguez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 3, 4]}, {"name": "Brian Washington", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 7, 2, 3]}, {"name": "Betty Morris", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 1, 1, 4]}, {"name": "Leslie Robinson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 3, 3, 0]}, {"name": "Sean George", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 6, 3, 0]}, {"name": "Christine Taylor", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 2, 2, 4]}, {"name": "Carl Garner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 3, 3, 9]}, {"name": "Diana Benson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 6, 4, 3]}, {"name": "George Wyatt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 4, 7]}, {"name": "Keith Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 3, 2]}, {"name": "Christopher Gutierrez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 2, 4, 5]}, {"name": "Brett Beck", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 5, 8]}, {"name": "Angela Wright", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 5, 7]}, {"name": "Juan Sherman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 9, 4]}, {"name": "Amanda Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 0, 0]}, {"name": "Denise Munoz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 9, 5]}, {"name": "Tonya Perez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 2, 8]}, {"name": "William Ryan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 6, 5]}, {"name": "Jesus Scott", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 4, 1, 5]}, {"name": "Patrick Jacobson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 2, 2, 7]}, {"name": "Jake Rodriguez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 0, 2, 0]}, {"name": "Fernando Simmons", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 3, 0, 5]}, {"name": "Jeremy Wall", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 6, 4, 5]}, {"name": "Jacob Bishop", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 7, 1, 6]}, {"name": "Melissa Chapman", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 5, 3, 4]}, {"name": "Mark Rivera", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 4, 7, 2]}, {"name": "Michael Morgan", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 2, 4]}, {"name": "Mike Valencia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 5, 6, 6]}, {"name": "Tammy Benson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 9, 3]}, {"name": "Paula Walker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 6, 6]}, {"name": "Eric Bishop", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 1, 3]}, {"name": "Candice Mitchell", "city": 0, "color": "yellow", "empl": 1, "qualifications": [2, 5, 3, 7]}, {"name": "Samuel Roberson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 3, 9, 7]}, {"name": "Christopher Livingston", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 5, 2]}, {"name": "Rebecca Bennett", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 1, 6]}, {"name": "Gary Torres", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 4, 3]}, {"name": "Michael Schneider", "city": 0, "color": "blue", "empl": 1, "qualifications": [9, 8, 7, 1]}, {"name": "Kenneth Morgan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 3, 6]}, {"name": "Wesley Lang", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 6, 1, 3]}, {"name": "Rebecca Owen", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 9, 1, 2]}, {"name": "Brianna Schmidt", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 7, 3, 0]}, {"name": "Taylor Cobb", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 4, 7]}, {"name": "Sarah Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 3, 0]}, {"name": "Jose Howell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 1, 9, 9]}, {"name": "Christian Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 7, 1, 1]}, {"name": "Stephen Anderson", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 1, 0, 1]}, {"name": "Angela Mitchell", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 9, 3, 8]}, {"name": "Timothy Romero", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 0, 8, 1]}, {"name": "Mark Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 2, 1]}, {"name": "Jaime Mahoney", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 2, 2, 4]}, {"name": "Alejandro Wallace", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 7, 7]}, {"name": "Angela Fuller", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 3, 6]}, {"name": "Jay Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 1, 0]}, {"name": "Daniel Spencer", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 4, 4, 0]}, {"name": "Christina Evans", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 3, 1, 5]}, {"name": "Virginia Schmidt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 8, 0]}, {"name": "Logan Leonard", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 1, 1, 4]}, {"name": "Kimberly Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 2, 2, 5]}, {"name": "Adam Lloyd", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 4, 5]}, {"name": "Brendan Fitzgerald", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 2, 0, 5]}, {"name": "Lisa Fleming", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 0, 1]}, {"name": "Janice Chen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 0, 7]}, {"name": "Peter Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 0, 4, 6]}, {"name": "Amanda Bell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 9, 3]}, {"name": "Michele Ruiz", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 3, 0, 0]}, {"name": "Megan Donaldson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 7, 7, 4]}, {"name": "Michael Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 8, 2]}, {"name": "Martin Bates", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 2, 8]}, {"name": "Lee Powell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 4, 5]}, {"name": "David Arnold", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 0, 8]}, {"name": "Robert Durham", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 1, 3]}, {"name": "Janet Diaz", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 3, 5, 2]}, {"name": "Marc Bailey", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 1, 5]}, {"name": "Mrs. Emily Chavez", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 1, 8]}, {"name": "Jean Barton", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 4, 2]}, {"name": "Brianna Ortiz", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 5, 1]}, {"name": "Carrie Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 7, 2]}, {"name": "Christine Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 0, 5]}, {"name": "Alexis Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 4, 8, 3]}, {"name": "Christopher Sullivan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 2, 6, 4]}, {"name": "Kevin Chambers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 4, 4]}, {"name": "Jeffrey Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 7, 5]}, {"name": "James Stevenson", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 3, 0]}, {"name": "Mr. Willie Harper DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 6, 9]}, {"name": "Marc Taylor", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 3, 7, 6]}, {"name": "Tina Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 2, 2]}, {"name": "Collin Wilson", "city": 0, "color": "yellow", "empl": 0, "qualifications": [9, 4, 0, 0]}, {"name": "David Smith", "city": 0, "color": "yellow", "empl": 1, "qualifications": [5, 5, 3, 8]}, {"name": "Melanie Hudson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 4, 2, 3]}, {"name": "Amber Conner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 9, 0]}, {"name": "Nicole Petty", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 6, 2, 7]}, {"name": "Sarah Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 2, 3]}, {"name": "Charles David", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 2, 3, 7]}, {"name": "Hailey Mcgrath", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 7, 4]}, {"name": "Francisco Wolf", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 9, 4]}, {"name": "Stephanie Adams", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 5, 1, 2]}, {"name": "Timothy Bailey", "city": 0, "color": "yellow", "empl": 1, "qualifications": [2, 4, 4, 6]}, {"name": "Natasha Benson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 8, 6, 8]}, {"name": "Peggy Wright", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 5, 2, 5]}, {"name": "Daniel Lewis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 7, 7]}, {"name": "Brooke Krause", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 4, 2, 2]}, {"name": "Christian Gomez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 2, 7]}, {"name": "Sara Hansen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 5, 8]}, {"name": "Mark Pruitt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 1, 9]}, {"name": "Tammy Mason", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 5, 9]}, {"name": "Steven Bryant", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 4, 7]}, {"name": "Tanya Ward", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 8, 0, 5]}, {"name": "Willie Perry", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 6, 1]}, {"name": "Mary Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 6, 0, 5]}, {"name": "Shannon Wells MD", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 1, 1]}, {"name": "Charles Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 6, 1]}, {"name": "Randy Johns", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 3, 9, 5]}, {"name": "Joshua Gray", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 3, 4, 0]}, {"name": "William Parker", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 5, 3, 6]}, {"name": "Spencer Richardson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 5, 8]}, {"name": "Thomas Horn", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 3, 3, 3]}, {"name": "Stephanie Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 9, 2]}, {"name": "Oscar Robertson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 4, 0]}, {"name": "Catherine Mendoza", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 6, 7, 8]}, {"name": "Roy Thornton", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 4, 1, 0]}, {"name": "Daniel Greene", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 1, 2]}, {"name": "Harry Boyer", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 4, 4]}, {"name": "Chad Woods", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 9, 3]}, {"name": "Jeffrey Salinas", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 1, 0, 3]}, {"name": "James Davis", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 0, 5]}, {"name": "Brenda Dominguez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 3, 6]}, {"name": "Kimberly Gray", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 6, 5]}, {"name": "Michelle Miller", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 2, 4, 4]}, {"name": "Brett Garcia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 0, 7]}, {"name": "Ryan Richardson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 9, 1]}, {"name": "Walter Myers", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 2, 0, 4]}, {"name": "Jon Robertson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 0, 2, 8]}, {"name": "James Bowman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 0, 4]}, {"name": "Alex Malone", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 6, 2]}, {"name": "Eric Sullivan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 2, 2]}, {"name": "Sonya Crawford", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 8, 6]}, {"name": "James Clark", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 1, 8]}, {"name": "Mrs. Jennifer Sims", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 1, 2]}, {"name": "Deborah Parsons", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 6, 4]}, {"name": "Jessica Huber", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 8, 9]}, {"name": "Gabriel Jacobs", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 2, 1, 9]}, {"name": "Anthony Randall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 2, 9]}, {"name": "Cynthia Ruiz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 9, 2]}, {"name": "Martha Henry", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 5, 1]}, {"name": "Matthew Perkins", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 1, 6, 0]}, {"name": "Kyle Bell", "city": 1, "color": "blue", "empl": 0, "qualifications": [0, 3, 4, 7]}, {"name": "Andrea Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 9, 7]}, {"name": "Amy Williams", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 3, 3, 7]}, {"name": "Tonya Valdez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 2, 7, 6]}, {"name": "Michael Carlson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 2, 1, 5]}, {"name": "Nicole Mckinney", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 1, 7]}, {"name": "Kelly Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 8, 2, 1]}, {"name": "Jessica Mendoza", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 2, 8]}, {"name": "Jacob Gonzalez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 6, 0]}, {"name": "Timothy Medina", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 0, 0, 7]}, {"name": "Jasmine Webster", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 5, 4, 3]}, {"name": "Robin Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 4, 6, 6]}, {"name": "Dakota Morton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 8, 3]}, {"name": "Emily Wells", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 6, 8, 1]}, {"name": "Benjamin Rodriguez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 0, 2]}, {"name": "Melissa Oconnor", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 1, 0, 1]}, {"name": "David Wade", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 7, 1]}, {"name": "James Vang", "city": 1, "color": "blue", "empl": 0, "qualifications": [5, 4, 5, 1]}, {"name": "Katherine French", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 2, 2]}, {"name": "Angela Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 3, 2, 0]}, {"name": "Adam Hill", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 8, 4, 7]}, {"name": "Elizabeth Lynn", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 1, 2]}, {"name": "Mrs. Stephanie Mccarthy", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 4, 5]}, {"name": "Zachary Clarke", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 5, 1]}, {"name": "Evan Ross", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 3, 0]}, {"name": "Leonard Gonzalez", "city": 0, "color": "yellow", "empl": 0, "qualifications": [4, 0, 0, 3]}, {"name": "Laurie Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 1, 3, 3]}, {"name": "James Ross", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 6, 1, 5]}, {"name": "Ryan Richard", "city": 0, "color": "yellow", "empl": 1, "qualifications": [1, 8, 8, 4]}, {"name": "Melissa Cox", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 2, 4]}, {"name": "Gerald Chapman", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 7, 5, 2]}, {"name": "Brendan Ramirez PhD", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 6, 7]}, {"name": "Travis Ford", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 3, 7, 3]}, {"name": "Mark Brown", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 9, 1, 1]}, {"name": "Brian Steele", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 9, 5, 1]}, {"name": "Nancy Hill", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 2, 0]}, {"name": "Stephanie Collier", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 9, 9, 3]}, {"name": "Joshua Gonzales", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 1, 0, 3]}, {"name": "Daniel Barrera", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 6, 1]}, {"name": "Dean Blair", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 4, 0, 9]}, {"name": "Vincent Mosley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 8, 6, 7]}, {"name": "Shane Vargas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 2, 6]}, {"name": "Joseph Benson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 8, 3, 1]}, {"name": "Victor Bowman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 3, 9]}, {"name": "Derrick Palmer", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 1, 6]}, {"name": "Seth Murphy", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 8, 0, 6]}, {"name": "Ashley Lucas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 9, 2]}, {"name": "David Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 9, 2]}, {"name": "Caitlin Houston", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 7, 1]}, {"name": "Tristan Pratt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 5, 8]}, {"name": "Jeffrey Bender", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 2, 8]}, {"name": "Carrie Quinn", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 4, 2]}, {"name": "Michelle Russell", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 7, 5]}, {"name": "Brooke Phillips", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 0, 7]}, {"name": "Micheal Hines", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 2, 1]}, {"name": "Michelle Mitchell", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 9, 8, 3]}, {"name": "Samantha Norris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 2, 7]}, {"name": "Scott Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 0, 3, 3]}, {"name": "Jorge Diaz", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 4, 1, 0]}, {"name": "Mrs. Brandy Lee DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 5, 3]}, {"name": "Marco Vargas", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 4, 4]}, {"name": "Samantha Ayala", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 3, 0, 8]}, {"name": "Keith Hampton", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 1, 3]}, {"name": "Calvin Short", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 7, 2]}, {"name": "Lauren Garner", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 6, 7, 2]}, {"name": "Eric Gillespie", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 5, 2]}, {"name": "Zachary Walker", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 1, 3, 1]}, {"name": "Julie Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 1, 9, 5]}, {"name": "April Neal", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 3, 6]}, {"name": "Charles Chapman", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 8, 1]}, {"name": "Claire Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 4, 6]}, {"name": "Keith Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 7, 2, 1]}, {"name": "Andrea Reed", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 6, 0]}, {"name": "Keith Hawkins MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 6, 3]}, {"name": "Alexandra Lowe", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 7, 9]}, {"name": "Olivia Quinn", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 9, 2, 2]}, {"name": "Emily Mcneil", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 7, 3, 4]}, {"name": "Matthew Collins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 7, 5]}, {"name": "John Dixon", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 0, 6]}, {"name": "Kristina Williamson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 6, 0]}, {"name": "Alex Hunter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 5, 7]}, {"name": "Manuel Levy", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 7, 7]}, {"name": "Jonathan Miller", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 4, 4]}, {"name": "Larry Patel", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 1, 3]}, {"name": "Gabriel Barnes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 7, 6]}, {"name": "Michael Stanton DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 5, 8]}, {"name": "Jennifer Burton", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 2, 6]}, {"name": "Timothy Baker", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 7, 2, 3]}, {"name": "David Haynes", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 5, 6, 5]}, {"name": "Dylan Espinoza", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 4, 7]}, {"name": "Sierra Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 1, 2, 5]}, {"name": "Maria Stone", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 9, 6, 1]}, {"name": "Cindy Holloway", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 4, 6]}, {"name": "Martha Young", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 1, 5]}, {"name": "Denise Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 6, 8]}, {"name": "Veronica Davis", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 3, 7, 6]}, {"name": "Jacob Delgado", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 2, 6]}, {"name": "Elizabeth Yoder", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 4, 4, 0]}, {"name": "Cheryl Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [9, 1, 5, 1]}, {"name": "Kelly Turner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 7, 7]}, {"name": "Andrea Franco", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 1, 0]}, {"name": "Kristen Olson", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 6, 1, 4]}, {"name": "Brandon Gardner", "city": 1, "color": "blue", "empl": 0, "qualifications": [7, 6, 1, 6]}, {"name": "Lance Choi", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 6, 6]}, {"name": "David Lee", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 9, 4, 2]}, {"name": "Timothy Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 2, 7]}, {"name": "Anna Hall", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 1, 5, 2]}, {"name": "Daniel Cruz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 9, 4]}, {"name": "Jonathan Morgan", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 8, 3]}, {"name": "Jason Compton", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 8, 5]}, {"name": "Dr. Denise Jones", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 3, 2]}, {"name": "Lisa Evans", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 5, 6]}, {"name": "Chad Simpson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 3, 8]}, {"name": "Angela Silva", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 2, 5]}, {"name": "Terrence Larson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 1, 3]}, {"name": "Shaun Washington", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 8, 1]}, {"name": "Eric Ortiz", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 1, 5]}, {"name": "Jimmy Weber", "city": 0, "color": "yellow", "empl": 0, "qualifications": [5, 0, 7, 2]}, {"name": "Brenda Harris DDS", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 4, 2]}, {"name": "Ryan Watson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 6, 7]}, {"name": "Brian Dougherty", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 5, 8]}, {"name": "Jennifer Miller", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 6, 7]}, {"name": "James Sims", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 6, 1]}, {"name": "Tina Mendoza", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 9, 6, 6]}, {"name": "Sara Villarreal", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 7, 1, 8]}, {"name": "Raymond Wagner", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 5, 3, 4]}, {"name": "Pamela Jones DDS", "city": 1, "color": "blue", "empl": 0, "qualifications": [3, 2, 6, 4]}, {"name": "Neil Walker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 0, 6, 8]}, {"name": "Julie Andrade", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 3, 2, 7]}, {"name": "Mark Porter", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 6, 8]}, {"name": "Frances Kaufman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 4, 1]}, {"name": "Matthew Underwood", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 6, 7]}, {"name": "Timothy Santana", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 7, 4, 2]}, {"name": "Michael Case", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 0, 0]}, {"name": "Sandra Larson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 7, 6]}, {"name": "Marcus Massey", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 5, 0, 4]}, {"name": "Linda Johnson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 1, 7]}, {"name": "Jessica Carson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 9, 3, 5]}, {"name": "Kelly Howard", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 4, 0, 7]}, {"name": "Mr. Peter Morris DVM", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 8, 4, 9]}, {"name": "James Padilla", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 4, 0]}, {"name": "Sara Mack", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 2, 0, 8]}, {"name": "Amy Bishop", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 3, 8, 9]}, {"name": "Teresa Walker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 1, 9, 4]}, {"name": "Teresa Walker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 3, 6, 9]}, {"name": "Lori Rogers", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 2, 2]}, {"name": "James Lynn", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 3, 5]}, {"name": "Travis Russell", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 0, 5]}, {"name": "Lori Smith", "city": 0, "color": "blue", "empl": 1, "qualifications": [9, 7, 4, 8]}, {"name": "Calvin Schwartz", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 1, 2]}, {"name": "Allison Carter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 2, 9, 9]}, {"name": "Barbara Bowen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 8, 0, 2]}, {"name": "Cheryl Richards", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 3, 8]}, {"name": "Amanda Walsh", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 1, 8]}, {"name": "Katherine Sanders", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 1, 8]}, {"name": "Steven Michael", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 8, 6, 2]}, {"name": "Lisa Parker", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 3, 4, 0]}, {"name": "Eric Torres", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 3, 7]}, {"name": "Catherine Hawkins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 0, 5]}, {"name": "Dennis Harris", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 6, 8, 2]}, {"name": "Eduardo Reed", "city": 0, "color": "blue", "empl": 1, "qualifications": [5, 8, 9, 3]}, {"name": "Rachel Patel", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 6, 4]}, {"name": "Lori Sullivan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 8, 9]}, {"name": "Joshua Stephenson", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 2, 4, 3]}, {"name": "Kristopher Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 2, 7]}, {"name": "Krista Mccullough", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 4, 5, 8]}, {"name": "Jeffrey Wilson", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 8, 0]}, {"name": "Chad Riddle", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 4, 3]}, {"name": "Christy Green", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 4, 0]}, {"name": "Christine Russell", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 2, 5]}, {"name": "Jennifer Johnston", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 2, 2]}, {"name": "Kent Jones", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 0, 4]}, {"name": "Matthew Garcia", "city": 0, "color": "blue", "empl": 1, "qualifications": [8, 7, 6, 7]}, {"name": "Samuel Horton", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 3, 5]}, {"name": "Scott Mayer", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 5, 1]}, {"name": "Evan King", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 1, 3]}, {"name": "Brittany Henry", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 0, 8, 8]}, {"name": "Bryan Castillo", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 2, 3]}, {"name": "Patricia Green", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 8, 5, 1]}, {"name": "Ashley Meyer", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 8, 5, 5]}, {"name": "Elizabeth Garcia", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 0, 1]}, {"name": "David Wolf", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 6, 8, 9]}, {"name": "Krista Kim", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 8, 8]}, {"name": "Dr. Jenna Cooper MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 4, 9]}, {"name": "Lori Shaffer", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 0, 4]}, {"name": "Daryl Hill", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 2, 9]}, {"name": "Margaret Sherman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 5, 9]}, {"name": "Daniel Carey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 5, 2]}, {"name": "Angela Scott DVM", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 4, 1, 5]}, {"name": "Jacob White", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 4, 4]}, {"name": "Mark Kelley", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 1, 4, 9]}, {"name": "Ashley Gomez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 4, 0, 3]}, {"name": "Wanda Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 9, 2]}, {"name": "Timothy Sanchez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 4, 1]}, {"name": "Christine Jackson", "city": 1, "color": "blue", "empl": 0, "qualifications": [1, 2, 4, 2]}, {"name": "Steven Ramos", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 1, 2, 7]}, {"name": "Joshua Juarez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 4, 1, 2]}, {"name": "Roger White", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 1, 4, 1]}, {"name": "Kenneth Mathis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 3, 8]}, {"name": "Joshua Nielsen", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 3, 8, 2]}, {"name": "Matthew Pierce", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 5, 5, 2]}, {"name": "Pamela Garcia", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 3, 0]}, {"name": "Pamela Copeland", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 6, 8]}, {"name": "Steven Newton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 1, 6, 4]}, {"name": "Dustin Rasmussen", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 0, 1]}, {"name": "Michael Garza", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 5, 9]}, {"name": "Pamela Cooper", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 2, 9]}, {"name": "Mario Ramos", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 1, 6]}, {"name": "Terri Fitzpatrick MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 4, 6]}, {"name": "Diana Duke", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 5, 5]}, {"name": "Lydia Harrington", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 2, 8]}, {"name": "Margaret Carter", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 4, 3]}, {"name": "Michael Douglas", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 3, 0]}, {"name": "Zachary Porter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 5, 9]}, {"name": "Brandon Martin MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 9, 7, 6]}, {"name": "Matthew Clark", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 2, 2, 0]}, {"name": "Dr. Daniel Foster DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 0, 8, 5]}, {"name": "Dawn Herman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 8, 2]}, {"name": "Elizabeth Cruz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 9, 0]}, {"name": "Cindy Wang", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 0, 5, 1]}, {"name": "Donald Mcintosh", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 0, 1]}, {"name": "David Gomez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 2, 7]}, {"name": "Brian Cooper", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 7, 1, 3]}, {"name": "Jessica Santiago", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 5, 5]}, {"name": "Ashley Rodriguez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 4, 7]}, {"name": "Francis Hughes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 8, 1]}, {"name": "Michelle Edwards", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 6, 4]}, {"name": "Antonio Jackson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 3, 6, 8]}, {"name": "Derek Carroll", "city": 0, "color": "yellow", "empl": 1, "qualifications": [9, 0, 8, 0]}, {"name": "David Swanson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 8, 7]}, {"name": "Louis Randall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 0, 9]}, {"name": "Douglas Davies", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 1, 1]}, {"name": "Michael Miranda", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 4, 6, 1]}, {"name": "Samuel Taylor", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 8, 8]}, {"name": "Jennifer Soto", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 4, 7]}, {"name": "Bonnie Wilson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 5, 2, 9]}, {"name": "Michael Camacho", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 6, 4]}, {"name": "Isaac Skinner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 0, 1, 4]}, {"name": "Dr. Allison Lawson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 0, 5, 7]}, {"name": "Courtney Morales", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 1, 5, 2]}, {"name": "Denise Perez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 3, 1, 1]}, {"name": "Judith Koch", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 1, 4]}, {"name": "Kelsey Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 6, 5, 1]}, {"name": "David Bradley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 3, 9, 5]}, {"name": "Benjamin Liu", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 2, 0, 5]}, {"name": "Randy Hunt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 2, 5, 8]}, {"name": "Daniel Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 2, 5]}, {"name": "Ryan Howell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 2, 9]}, {"name": "Sandra Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 7, 4]}, {"name": "Matthew Clark", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 4, 2]}, {"name": "Rhonda Lamb", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 4, 8, 4]}, {"name": "Amanda Griffith", "city": 1, "color": "blue", "empl": 1, "qualifications": [7, 6, 4, 6]}, {"name": "Kimberly White", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 6, 5]}, {"name": "Jennifer Boyd", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 6, 7, 6]}, {"name": "Melissa Goodman", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 3, 1, 3]}, {"name": "Sarah Kennedy", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 9, 1, 7]}, {"name": "Mary Alexander", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 5, 0, 1]}, {"name": "Mary Rowe", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 4, 2, 1]}, {"name": "Wendy Mclean DDS", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 3, 0, 7]}, {"name": "Jennifer Sandoval", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 0, 6, 5]}, {"name": "Julie Gill", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 5, 1]}, {"name": "Roberto Allen", "city": 1, "color": "blue", "empl": 1, "qualifications": [7, 4, 7, 5]}, {"name": "Jonathan Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 2, 2, 3]}, {"name": "Thomas Patel", "city": 1, "color": "blue", "empl": 0, "qualifications": [2, 0, 3, 0]}, {"name": "Bianca Smith", "city": 0, "color": "yellow", "empl": 0, "qualifications": [4, 1, 8, 2]}, {"name": "Andrew Hill", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 3, 1]}, {"name": "Mark Greene", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 8, 2]}, {"name": "Nicole Mosley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 3, 8]}, {"name": "Julie Lee", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 1, 5, 9]}, {"name": "Dr. Jason Harvey DVM", "city": 0, "color": "yellow", "empl": 1, "qualifications": [2, 3, 7, 4]}, {"name": "Michael Jacobson", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 7, 7, 0]}, {"name": "Marvin Mccullough", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 8, 0]}, {"name": "Courtney Baker", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 8, 2, 0]}, {"name": "Jared Perez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 1, 8]}, {"name": "Amy Lynch", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 4, 1, 1]}, {"name": "Jason Grant", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 6, 0]}, {"name": "Daniel Schmitt", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 1, 7, 2]}, {"name": "Jeffrey Jones", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 1, 4]}, {"name": "Tara Boyle", "city": 0, "color": "blue", "empl": 1, "qualifications": [9, 5, 6, 3]}, {"name": "Melissa Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 2, 3]}, {"name": "Katie Horne", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 7, 4]}, {"name": "Brandi Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 6, 7]}, {"name": "Tracy Tucker", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 5, 5]}, {"name": "Ronnie Shannon", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 0, 5, 8]}, {"name": "Emily Wallace", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 4, 4]}, {"name": "Jamie Mendez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 2, 9, 0]}, {"name": "Joseph Nguyen", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 7, 5, 1]}, {"name": "Jeremy Martin", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 3, 5, 9]}, {"name": "Christine Edwards", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 5, 2, 0]}, {"name": "Kelly Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 8, 4]}, {"name": "Zachary Hansen", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 7, 3, 3]}, {"name": "Joseph Hunt", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 0, 2, 8]}, {"name": "Molly Collins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 5, 5]}, {"name": "Erin Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 9, 5, 0]}, {"name": "Dalton Murphy", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 3, 0]}, {"name": "Jordan Ortega MD", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 1, 2, 9]}, {"name": "Ronnie Ballard", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 2, 0]}, {"name": "John Vasquez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 5, 3]}, {"name": "Dana Whitehead", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 7, 0]}, {"name": "Jessica Singh", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 8, 2, 2]}, {"name": "Madison Parrish", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 1, 7]}, {"name": "Ashley Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 4, 2]}, {"name": "Dylan Romero", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 9, 8]}, {"name": "Riley Phillips", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 3, 5]}, {"name": "Jorge Fields", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 6, 6]}, {"name": "Mary Alvarez", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 4, 6]}, {"name": "Jackie Grant", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 2, 8]}, {"name": "Christopher Wright", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 4, 0, 1]}, {"name": "James Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 3, 5, 4]}, {"name": "Kyle Casey", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 0, 3]}, {"name": "Christina Stokes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 2, 5]}, {"name": "Kenneth Newton", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 7, 6, 3]}, {"name": "Judith Rosario", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 5, 1, 7]}, {"name": "Caroline Figueroa", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 9, 9, 9]}, {"name": "Blake Knapp", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 3, 0, 1]}, {"name": "James Cohen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 6, 1]}, {"name": "Marcus Williams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 5, 6]}, {"name": "Samantha Moss", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 1, 4, 3]}, {"name": "Jeffrey Clark", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 0, 6]}, {"name": "Eric Sanchez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 2, 5]}, {"name": "Michelle Barnes", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 6, 4, 1]}, {"name": "Brandon Moody", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 7, 6]}, {"name": "Shelley Robles", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 0, 4]}, {"name": "Thomas Moran", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 5, 9, 6]}, {"name": "Carolyn Martin", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 7, 5, 1]}, {"name": "Andrea Carter", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 1, 7, 5]}, {"name": "Briana Gay", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 7, 9, 2]}, {"name": "Danielle Brown", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 8, 9]}, {"name": "Mrs. Angela Houston DDS", "city": 0, "color": "yellow", "empl": 1, "qualifications": [3, 6, 9, 1]}, {"name": "Tracy Berry DVM", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 1, 8]}, {"name": "Amber Martin", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 8, 6, 2]}, {"name": "Sharon Ibarra", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 6, 1, 9]}, {"name": "Darrell Mayer", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 1, 2, 3]}, {"name": "Catherine Sanchez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 9, 9]}, {"name": "Eugene Cox", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 2, 4]}, {"name": "Ryan Molina", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 2, 5, 3]}, {"name": "April Hancock", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 8, 4]}, {"name": "David Turner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 5, 9, 4]}, {"name": "Xavier Martinez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 1, 4]}, {"name": "Martin Rodriguez", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 0, 0]}, {"name": "Christopher Kim", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 6, 7]}, {"name": "Richard Rich", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 7, 0]}, {"name": "Anthony Morton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 2, 8, 7]}, {"name": "Margaret Dickerson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 1, 0, 4]}, {"name": "William Martinez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 9, 1]}, {"name": "Brian Hanna", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 2, 2, 1]}, {"name": "Ashley Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 6, 3, 0]}, {"name": "Anna Harmon", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 1, 5, 8]}, {"name": "Keith Wolfe", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 8, 0, 6]}, {"name": "Brenda Marshall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 2, 5, 7]}, {"name": "Melissa Ochoa", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 5, 8, 3]}, {"name": "Katherine Anderson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 6, 8]}, {"name": "Lacey Salinas", "city": 0, "color": "yellow", "empl": 1, "qualifications": [0, 8, 1, 9]}, {"name": "Brian Jones", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 2, 4]}, {"name": "John Hull", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 5, 5]}, {"name": "Jason Brooks", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 8, 2]}, {"name": "Ms. Karen Larsen", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 6, 8, 1]}, {"name": "Brian Rodriguez", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 3, 1]}, {"name": "Troy Bonilla DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 5, 8]}, {"name": "Joseph Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 8, 3, 3]}, {"name": "Jasmine Stephens", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 0, 4, 9]}, {"name": "Kevin Rush", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 1, 2, 3]}, {"name": "Tonya Craig", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 3, 3, 4]}, {"name": "Patricia Dyer", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 7, 1]}, {"name": "William White", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 4, 4]}, {"name": "Cynthia Moore", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 4, 7, 7]}, {"name": "Christy Anderson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 7, 2]}, {"name": "Chad Barnett", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 5, 9, 3]}, {"name": "Ryan Perry", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 0, 5]}, {"name": "Roger Ross", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 0, 1]}, {"name": "Daniel King", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 6, 6, 7]}, {"name": "Haley Winters", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 8, 4, 4]}, {"name": "Tiffany Mccarthy", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 8, 0]}, {"name": "Nicole Becker", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 0, 4]}, {"name": "Thomas Price", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 0, 1, 0]}, {"name": "Andrea Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 1, 9]}, {"name": "Russell Bowman", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 1, 2]}, {"name": "Jeffrey Browning", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 8, 2]}, {"name": "Denise York", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 2, 4]}, {"name": "Lisa Carpenter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 4, 5, 8]}, {"name": "Anthony Sanford", "city": 0, "color": "blue", "empl": 0, "qualifications": [9, 5, 3, 2]}, {"name": "Tina Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 9, 3]}, {"name": "Nancy Brown", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 3, 0]}, {"name": "Kenneth Brock", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 5, 2, 1]}, {"name": "Todd Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 0, 4, 4]}, {"name": "Kimberly Hughes", "city": 0, "color": "yellow", "empl": 0, "qualifications": [0, 7, 7, 1]}, {"name": "Donald Woodard", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 0, 1, 0]}, {"name": "Miguel Grant", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 8, 6]}, {"name": "Dr. Kimberly Brandt", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 1, 6, 2]}, {"name": "Daniel Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 8, 3]}, {"name": "John Curtis Jr.", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 9, 1, 8]}, {"name": "Jesus Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 8, 4, 6]}, {"name": "Francisco Castro", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 9, 2, 6]}, {"name": "Felicia Clark", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 1, 5, 5]}, {"name": "Brandon Harvey", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 3, 0]}, {"name": "Sarah Baxter", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 5, 1]}, {"name": "Stephanie Casey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 7, 5]}, {"name": "James Robles", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 3, 9]}, {"name": "William Glenn", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 6, 4, 2]}, {"name": "Jordan Davila", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 8, 3, 1]}, {"name": "Amanda Allison", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 3, 5]}, {"name": "Shane Martin", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 1, 4, 9]}, {"name": "Ryan Davis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 9, 9]}, {"name": "Richard Bradley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 0, 9]}, {"name": "Mrs. Christie Wu", "city": 1, "color": "blue", "empl": 0, "qualifications": [6, 2, 4, 1]}, {"name": "Lori Galvan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 6, 3]}, {"name": "Karen James", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 2, 8]}, {"name": "Alyssa Sanchez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 0, 5, 3]}, {"name": "Stephen Hernandez", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 8, 4]}, {"name": "Brenda Ward", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 0, 9, 9]}, {"name": "Laura Castillo", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 6, 6]}, {"name": "Zachary Taylor", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 9, 6, 7]}, {"name": "Paige Ortiz", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 6, 3]}, {"name": "Margaret Doyle", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 0, 1, 1]}, {"name": "Angela Hale", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 3, 2, 0]}, {"name": "Joshua Bradley", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 9, 3, 9]}, {"name": "Margaret Martinez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 5, 2]}, {"name": "Jennifer Morgan", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 6, 0, 6]}, {"name": "Brenda Fernandez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 5, 3]}, {"name": "Julia Mclean", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 1, 6]}, {"name": "Robert Buck", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 3, 3, 5]}, {"name": "Amanda Walker", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 8, 1, 1]}, {"name": "Shane Thomas", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 8, 2]}, {"name": "Pamela Silva PhD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 7, 2, 7]}, {"name": "David Garrison", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 5, 9]}, {"name": "Sylvia Chen", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 5, 3]}, {"name": "Calvin Hamilton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 3, 9]}, {"name": "Melanie Travis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 6, 7, 5]}, {"name": "Heidi Hudson", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 3, 0, 0]}, {"name": "Amanda Gonzalez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 7, 7, 4]}, {"name": "Miguel Webb", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 3, 5, 1]}, {"name": "Valerie Cole", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 6, 5]}, {"name": "Corey Gomez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 2, 2, 1]}, {"name": "Nicole Smith", "city": 0, "color": "yellow", "empl": 0, "qualifications": [2, 5, 3, 4]}, {"name": "Connor Rosario", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 9, 3, 6]}, {"name": "Laura Hernandez", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 1, 8, 1]}, {"name": "Stephen Boone", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 1, 5, 0]}, {"name": "Miranda Patton", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 0, 2]}, {"name": "Tracy Skinner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 1, 1, 0]}, {"name": "Dominique Allen", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 4, 0, 9]}, {"name": "Jennifer Torres", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 7, 0, 6]}, {"name": "Darren Green", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 6, 2, 7]}, {"name": "Gail Roman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 7, 7]}, {"name": "Alison Campbell", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 0, 3]}, {"name": "Todd Perez", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 3, 1, 4]}, {"name": "Lauren Oliver", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 7, 3]}, {"name": "Paul Turner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [1, 4, 8, 0]}, {"name": "Anne Serrano", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 1, 9, 9]}, {"name": "Kristen Waters", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 9, 0, 4]}, {"name": "Mr. Thomas Johnson MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 2, 9]}, {"name": "Jesus Walton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 3, 1, 8]}, {"name": "Kaitlyn Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 3, 1]}, {"name": "Caitlin Holder", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 7, 6]}, {"name": "Jeffrey Santana", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 8, 5, 5]}, {"name": "Justin Simon", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 3, 3, 0]}, {"name": "Tammy Marsh", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 0, 1, 4]}, {"name": "Robert Garcia", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 1, 1, 2]}, {"name": "Angela Ramirez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 0, 8]}, {"name": "April Cline", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 4, 9, 9]}, {"name": "Robert Rush", "city": 0, "color": "blue", "empl": 0, "qualifications": [7, 5, 5, 4]}, {"name": "Caitlin Hansen MD", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 4, 0, 7]}, {"name": "Cameron Watts", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 6, 8]}, {"name": "Martin Wilcox", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 2, 8, 6]}, {"name": "Amy Vasquez", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 4, 3, 0]}, {"name": "Ryan Spencer", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 2, 2, 2]}, {"name": "Michael Reese", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 2, 3]}, {"name": "Sandra Rogers", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 8, 9, 0]}, {"name": "Stephanie Lane", "city": 0, "color": "yellow", "empl": 0, "qualifications": [0, 0, 5, 8]}, {"name": "Gregory Taylor", "city": 1, "color": "yellow", "empl": 0, "qualifications": [8, 1, 4, 2]}, {"name": "Carl Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 0, 4, 9]}, {"name": "Marissa Meyer", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 0, 3]}, {"name": "Erik Rowe", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 6, 0]}, {"name": "Craig Smith", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 1, 4, 0]}, {"name": "Edward Hudson DVM", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 5, 6, 7]}, {"name": "Lauren Hernandez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 1, 7, 8]}, {"name": "Jeffrey Rivera", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 4, 7]}, {"name": "William Shaw", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 4, 6, 5]}, {"name": "Nancy Warren", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 6, 1, 5]}, {"name": "Paul Gregory", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 4, 1]}, {"name": "Perry Davis", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 3, 4]}, {"name": "Kevin Palmer", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 8, 0, 0]}, {"name": "Mrs. Jessica Green", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 0, 4, 5]}, {"name": "John Sanchez MD", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 3, 4, 2]}, {"name": "Michael Adams", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 1, 6, 8]}, {"name": "Tanya Smith", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 4, 8]}, {"name": "Joan Edwards", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 5, 4, 3]}, {"name": "Benjamin Smith", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 0, 6]}, {"name": "Kyle Tate", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 5, 8, 0]}, {"name": "Jason Duncan", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 0, 1]}, {"name": "Caleb Mcintosh", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 6, 0, 4]}, {"name": "Travis Armstrong", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 2, 2, 9]}, {"name": "Karla Jenkins", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 3, 7, 1]}, {"name": "Joseph Duffy", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 1, 8, 4]}, {"name": "John Barker", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 6, 4]}, {"name": "Donna Sloan", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 7, 3, 1]}, {"name": "Tricia Espinoza", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 5, 5, 2]}, {"name": "John Robinson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 1, 1, 6]}, {"name": "Joshua West", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 8, 9]}, {"name": "Henry Flores DDS", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 3, 9, 4]}, {"name": "Anthony Rice", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 4, 4]}, {"name": "Jake Richards", "city": 0, "color": "blue", "empl": 1, "qualifications": [7, 9, 6, 6]}, {"name": "Shane Richardson", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 3, 2]}, {"name": "David Mayer", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 0, 1, 8]}, {"name": "Jason Cline", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 0, 3, 9]}, {"name": "Joshua Torres", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 2, 9]}, {"name": "Erika Pearson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 0, 6, 8]}, {"name": "Brandi Walter", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 4, 5, 0]}, {"name": "Arthur Caldwell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 5, 4, 6]}, {"name": "Andre Lewis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 7, 9, 3]}, {"name": "Donald Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 1, 8]}, {"name": "Brittney Bell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 2, 5, 8]}, {"name": "Kenneth Rivera", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 6, 4, 3]}, {"name": "Zachary Barber", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 7, 1]}, {"name": "Diana Newton", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 3, 3, 0]}, {"name": "April Jackson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 9, 6, 2]}, {"name": "Manuel Wilson", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 4, 8, 0]}, {"name": "Jason Turner", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 4, 0, 6]}, {"name": "Jacob Chavez", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 7, 3]}, {"name": "Tammy Robinson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 2, 6]}, {"name": "Christopher Ortiz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 6, 6, 3]}, {"name": "Emily Bailey", "city": 1, "color": "yellow", "empl": 1, "qualifications": [3, 6, 2, 7]}, {"name": "Christopher Castro", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 6, 6, 6]}, {"name": "Allison White", "city": 1, "color": "yellow", "empl": 0, "qualifications": [9, 0, 0, 4]}, {"name": "Olivia Cooley", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 0, 0, 5]}, {"name": "Jason Andrade", "city": 0, "color": "yellow", "empl": 0, "qualifications": [0, 2, 7, 2]}, {"name": "Richard Padilla", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 0, 5, 0]}, {"name": "Suzanne Mccarty", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 1, 1, 1]}, {"name": "Renee Lynn", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 7, 0, 5]}, {"name": "Shirley Flores", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 4, 0, 5]}, {"name": "Matthew Robinson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 8, 0]}, {"name": "James Werner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [7, 0, 9, 8]}, {"name": "Jon Ayala", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 5, 1, 2]}, {"name": "Janet Hughes", "city": 1, "color": "blue", "empl": 0, "qualifications": [5, 0, 8, 3]}, {"name": "Mark James", "city": 1, "color": "blue", "empl": 0, "qualifications": [7, 8, 3, 1]}, {"name": "Bruce Nichols", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 3, 3]}, {"name": "Lindsey Dixon", "city": 0, "color": "blue", "empl": 0, "qualifications": [3, 5, 6, 1]}, {"name": "Joseph Lam", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 9, 3]}, {"name": "Lance Tucker", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 6, 9, 9]}, {"name": "Mark Neal", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 7, 0, 0]}, {"name": "Jessica Pittman", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 6, 0, 6]}, {"name": "Michael Yates", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 5, 8, 4]}, {"name": "Lauren Taylor", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 1, 7, 7]}, {"name": "Jessica Davis", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 0, 3, 4]}, {"name": "David Keller", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 9, 0, 6]}, {"name": "Mr. Charles Miranda", "city": 1, "color": "yellow", "empl": 0, "qualifications": [4, 5, 4, 2]}, {"name": "Shelly Blair", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 4, 0, 8]}, {"name": "Ashley Graham", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 0, 0, 6]}, {"name": "Lisa Fox", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 3, 0]}, {"name": "Nicholas Hall", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 4, 5, 1]}, {"name": "Edward Gardner", "city": 1, "color": "yellow", "empl": 1, "qualifications": [9, 0, 9, 5]}, {"name": "Joanna Melton", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 4, 1, 8]}, {"name": "Christina Newman", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 4, 5, 2]}, {"name": "Ian Kelly", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 9, 3, 8]}, {"name": "Meghan Armstrong", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 5, 7, 5]}, {"name": "Jacob Foster", "city": 1, "color": "yellow", "empl": 0, "qualifications": [5, 1, 3, 0]}, {"name": "Jamie Hawkins", "city": 0, "color": "yellow", "empl": 1, "qualifications": [7, 8, 3, 8]}, {"name": "Lisa Sullivan", "city": 1, "color": "yellow", "empl": 0, "qualifications": [0, 6, 4, 3]}, {"name": "Julian Kline", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 1, 0, 7]}, {"name": "Tracy Schmitt", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 2, 6, 8]}, {"name": "Kevin Moreno", "city": 0, "color": "yellow", "empl": 1, "qualifications": [6, 4, 5, 8]}, {"name": "Danielle Vasquez", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 7, 4, 3]}, {"name": "Sara Johnson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [7, 0, 5, 0]}, {"name": "Ariana Padilla", "city": 1, "color": "yellow", "empl": 0, "qualifications": [2, 2, 7, 1]}, {"name": "Ana Williams", "city": 0, "color": "blue", "empl": 0, "qualifications": [6, 7, 0, 1]}, {"name": "Elizabeth Stewart", "city": 1, "color": "yellow", "empl": 1, "qualifications": [0, 5, 9, 3]}, {"name": "Ronald Burke", "city": 0, "color": "blue", "empl": 0, "qualifications": [2, 7, 5, 5]}, {"name": "Emma Kennedy", "city": 1, "color": "yellow", "empl": 1, "qualifications": [5, 8, 8, 8]}, {"name": "Natalie Jensen", "city": 0, "color": "yellow", "empl": 1, "qualifications": [8, 7, 5, 3]}, {"name": "Maria Flowers", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 3, 4]}, {"name": "Amy Sullivan", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 6, 1, 3]}, {"name": "Amanda Clark", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 3, 9, 6]}, {"name": "Karen Montoya", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 6, 1, 8]}, {"name": "Russell Hanson", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 4, 1, 8]}, {"name": "Melissa Dunlap", "city": 0, "color": "yellow", "empl": 0, "qualifications": [1, 7, 1, 2]}, {"name": "Patrick Peterson", "city": 0, "color": "blue", "empl": 0, "qualifications": [1, 7, 5, 4]}, {"name": "Jennifer Schmidt", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 4, 0, 8]}, {"name": "Stephen Hall", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 4, 7]}, {"name": "Steven Munoz", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 9, 5, 0]}, {"name": "Patrick English", "city": 1, "color": "blue", "empl": 0, "qualifications": [5, 0, 4, 0]}, {"name": "Patrick Mejia", "city": 0, "color": "blue", "empl": 0, "qualifications": [8, 3, 2, 5]}, {"name": "Valerie Weeks", "city": 1, "color": "yellow", "empl": 1, "qualifications": [6, 9, 5, 4]}, {"name": "Louis Garcia", "city": 1, "color": "yellow", "empl": 1, "qualifications": [4, 9, 2, 2]}, {"name": "Christopher Young", "city": 0, "color": "blue", "empl": 0, "qualifications": [4, 6, 2, 4]}, {"name": "Paige Smith", "city": 0, "color": "yellow", "empl": 1, "qualifications": [4, 9, 5, 1]}, {"name": "David Perry", "city": 1, "color": "blue", "empl": 0, "qualifications": [6, 3, 2, 3]}, {"name": "Wesley Rojas", "city": 0, "color": "blue", "empl": 0, "qualifications": [0, 3, 6, 7]}, {"name": "Kenneth Rodriguez", "city": 1, "color": "yellow", "empl": 0, "qualifications": [6, 2, 3, 1]}, {"name": "Emily Mclaughlin", "city": 1, "color": "yellow", "empl": 1, "qualifications": [8, 3, 4, 3]}, {"name": "Tracy Johnson", "city": 0, "color": "blue", "empl": 0, "qualifications": [5, 2, 3, 6]}, {"name": "Daniel Willis", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 5, 2, 7]}, {"name": "Jennifer Gray", "city": 1, "color": "yellow", "empl": 1, "qualifications": [2, 8, 8, 8]}, {"name": "Cynthia Powell", "city": 1, "color": "yellow", "empl": 1, "qualifications": [1, 7, 3, 7]}, {"name": "Gabriel Richardson", "city": 1, "color": "yellow", "empl": 0, "qualifications": [3, 6, 1, 3]}]}
-},{}],535:[function(require,module,exports){
-module.exports={"candidates": [{"city": 1, "empl": 1, "qualifications": [0, 7, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 7, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 6, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 1, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 1, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 2, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 8, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 7, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 6, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 4, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 3, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 6, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 2, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 6, 5]}, {"city": 0, "empl": 1, "qualifications": [9, 4, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 6, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 6, 2]}, {"city": 1, "empl": 0, "qualifications": [9, 0, 2, 4]}, {"city": 0, "empl": 1, "qualifications": [9, 6, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 5, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 5, 1]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 6, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 2, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 9, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 3, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 6, 1]}, {"city": 1, "empl": 0, "qualifications": [6, 3, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 4, 3]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 1, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 6, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 2, 6]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 8, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 5, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 3, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 9, 9]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 5, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 6, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 8, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 6, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 8, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 9, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 6, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 4, 8, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [0, 8, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 8, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 8, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 9, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 7, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 6, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 9, 6]}, {"city": 1, "empl": 0, "qualifications": [7, 0, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 6, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [7, 5, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 5, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 6, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 8]}, {"city": 1, "empl": 0, "qualifications": [9, 1, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 9, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 8, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 0, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 1, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 4, 7]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [7, 9, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 5, 8, 4]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 9, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 9, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 6, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 2, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 7]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [6, 2, 2, 1]}, {"city": 0, "empl": 1, "qualifications": [5, 8, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 4, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [6, 2, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 9, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 5, 8, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [9, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [1, 5, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 4, 6, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 6, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 6, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 6, 9]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 6, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 2, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 6, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 0, 0]}, {"city": 0, "empl": 1, "qualifications": [3, 6, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 0, 8]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 8, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 7, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 4, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 6, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 5, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 1, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 6, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 1, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 9, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 6, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 5]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 8, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 3, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 1, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 9, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 6, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 4, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 0, 9]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 7, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 6, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 8, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 6, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 6, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 4, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 6, 5]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 6, 0]}, {"city": 1, "empl": 0, "qualifications": [8, 4, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [2, 0, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 7, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 3, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 0, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 7, 7]}, {"city": 1, "empl": 0, "qualifications": [3, 8, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [0, 8, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 8, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 3, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 9, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [7, 5, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 0, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 2, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 5, 6]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 8]}, {"city": 1, "empl": 0, "qualifications": [8, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 4, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 6]}, {"city": 1, "empl": 0, "qualifications": [1, 6, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 5, 6, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 5, 8, 1]}, {"city": 0, "empl": 1, "qualifications": [5, 9, 6, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 4, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 3, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 9, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 0, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 3, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 6, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [2, 1, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [6, 6, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [4, 7, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 2, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 6, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [9, 4, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 8, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [6, 4, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 3, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 8, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 6, 8]}, {"city": 0, "empl": 1, "qualifications": [4, 8, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 7, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 7, 3]}, {"city": 0, "empl": 1, "qualifications": [7, 3, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [6, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 6, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 1, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 8, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 9, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [6, 6, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 6, 6]}, {"city": 1, "empl": 0, "qualifications": [6, 5, 2, 3]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 8, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 3, 3]}, {"city": 0, "empl": 1, "qualifications": [5, 9, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [3, 4, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 7, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 1, 0, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 0, 8]}, {"city": 1, "empl": 1, "qualifications": [0, 7, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [4, 9, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 9, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 8, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 1, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 7, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 5, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 3, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 7]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 6, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 9, 2, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 4, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 7, 5]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 6, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [9, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 2, 3]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 3, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 7, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 9, 8]}, {"city": 1, "empl": 0, "qualifications": [6, 1, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 4, 4]}, {"city": 0, "empl": 1, "qualifications": [3, 4, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [4, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 7, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 4, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 8, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 4, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 1, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 4, 8]}, {"city": 0, "empl": 1, "qualifications": [4, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 8, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 7, 2]}, {"city": 0, "empl": 1, "qualifications": [3, 9, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 9, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 9, 3]}, {"city": 0, "empl": 1, "qualifications": [0, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 9, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 5, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 9, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 9, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [2, 2, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 7, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 6, 8]}, {"city": 1, "empl": 0, "qualifications": [6, 5, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 4, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 8, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 6, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 5, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 8, 1]}, {"city": 0, "empl": 1, "qualifications": [3, 5, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 6, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 0, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 2]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 5, 6]}, {"city": 0, "empl": 1, "qualifications": [2, 8, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 5, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 3, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 9]}]}
 },{}],536:[function(require,module,exports){
-module.exports={"candidates": [{"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 9]}]}
+module.exports={"candidates": [{"city": 1, "empl": 1, "qualifications": [0, 7, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 7, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 6, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 1, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 1, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 2, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 8, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 7, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 6, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 4, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 3, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 6, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 2, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 5, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 6, 5]}, {"city": 0, "empl": 1, "qualifications": [9, 4, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 6, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 6, 2]}, {"city": 1, "empl": 0, "qualifications": [9, 0, 2, 4]}, {"city": 0, "empl": 1, "qualifications": [9, 6, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 5, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 5, 1]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 6, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 2, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 9, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 3, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 6, 1]}, {"city": 1, "empl": 0, "qualifications": [6, 3, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 4, 3]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 1, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 6, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 5, 0]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 2, 6]}, {"city": 1, "empl": 0, "qualifications": [0, 5, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 8, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 5, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 3, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 9, 9]}, {"city": 1, "empl": 0, "qualifications": [3, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [4, 3, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 3, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 0, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 5, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 6, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 8, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 6, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 8, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 9, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 4, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 6, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 4, 8, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [4, 1, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [0, 8, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 8, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 5, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 4, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 8, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 9, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 7, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 0, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 6, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 9, 6]}, {"city": 1, "empl": 0, "qualifications": [7, 0, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 1, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 4, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 6, 1]}, {"city": 1, "empl": 0, "qualifications": [0, 3, 0, 0]}, {"city": 1, "empl": 0, "qualifications": [7, 5, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 5, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 4, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 0, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 6, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 8]}, {"city": 1, "empl": 0, "qualifications": [9, 1, 0, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 3, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 9, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 8, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 0, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 1, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 4, 7]}, {"city": 1, "empl": 0, "qualifications": [2, 1, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [7, 9, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 5, 8, 4]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 9, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 9, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 0, 5]}, {"city": 1, "empl": 0, "qualifications": [4, 6, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 2, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 7]}, {"city": 1, "empl": 0, "qualifications": [3, 2, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [6, 2, 2, 1]}, {"city": 0, "empl": 1, "qualifications": [5, 8, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 4, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [6, 2, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 0, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 9, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 5, 8, 4]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [9, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [1, 5, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 4, 6, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 6, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 5, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 6, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 6, 9]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 6, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 2, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 2, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 3, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 4, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 6, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 0, 0]}, {"city": 0, "empl": 1, "qualifications": [3, 6, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 2, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 0, 8]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 3, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 8, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 7, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 0, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 0, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 4, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 6, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 5, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 1, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 4, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 8, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [2, 9, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 4]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 5, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 6, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 4, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 1, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 9, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 6, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 5]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 5, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 2, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 8, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 3, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 1, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 5, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 9, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 7, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 6, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 3, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 4, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 4, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 6, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 0, 9]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 7, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 6, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 8, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 4, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 0, 6]}, {"city": 1, "empl": 0, "qualifications": [4, 3, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 6, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [5, 6, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 7, 4, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 8, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 6, 5]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [1, 7, 6, 0]}, {"city": 1, "empl": 0, "qualifications": [8, 4, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 3, 6]}, {"city": 1, "empl": 1, "qualifications": [2, 0, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 4, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 7, 0, 3]}, {"city": 1, "empl": 1, "qualifications": [1, 3, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 8, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 2, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 0, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 7, 7]}, {"city": 1, "empl": 0, "qualifications": [3, 8, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 8, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 6, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 7, 7]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [0, 8, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 1, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 4, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 5, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 4, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 8, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 3, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [9, 2, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 9, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [8, 0, 9, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 3, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 6, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 3, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 0, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 3, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 5, 1]}, {"city": 1, "empl": 0, "qualifications": [2, 9, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [7, 5, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 0, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 6, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 4, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 2, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 5, 6]}, {"city": 1, "empl": 0, "qualifications": [5, 3, 0, 8]}, {"city": 1, "empl": 0, "qualifications": [8, 4, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 2, 4, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 7, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 2, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [0, 1, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 6]}, {"city": 1, "empl": 0, "qualifications": [1, 6, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 5, 6, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 5, 8, 1]}, {"city": 0, "empl": 1, "qualifications": [5, 9, 6, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 4, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 5, 1, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 9, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 1, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 2, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 9, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 3, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 9, 1]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 8, 0, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 3, 3, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 6, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [2, 1, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 5, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [6, 6, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [5, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 2, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [4, 7, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [0, 2, 4, 7]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 6, 5]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 0, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 5, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 1, 2]}, {"city": 1, "empl": 0, "qualifications": [1, 3, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 5, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 0, 7]}, {"city": 0, "empl": 0, "qualifications": [9, 4, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 3, 8]}, {"city": 1, "empl": 1, "qualifications": [1, 8, 6, 2]}, {"city": 0, "empl": 0, "qualifications": [0, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 2, 9]}, {"city": 1, "empl": 0, "qualifications": [6, 4, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 9, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 3, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 7, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 0, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 1, 0]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 6, 9]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 8, 0]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 5, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 7, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 9, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 2, 6]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [3, 9, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 6, 8]}, {"city": 0, "empl": 1, "qualifications": [4, 8, 8, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 7, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 0, 8, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 7, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [4, 8, 7, 3]}, {"city": 0, "empl": 1, "qualifications": [7, 3, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 3, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [2, 1, 5, 5]}, {"city": 1, "empl": 0, "qualifications": [6, 0, 1, 4]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 6, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 4, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 2, 0]}, {"city": 0, "empl": 0, "qualifications": [5, 8, 1, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 0, 7]}, {"city": 1, "empl": 1, "qualifications": [5, 2, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 8, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 4, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [1, 9, 8, 6]}, {"city": 1, "empl": 0, "qualifications": [3, 0, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [6, 6, 1, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [1, 0, 9, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 5, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 6, 6]}, {"city": 1, "empl": 0, "qualifications": [6, 5, 2, 3]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 8, 5]}, {"city": 0, "empl": 1, "qualifications": [6, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 3, 3]}, {"city": 0, "empl": 1, "qualifications": [5, 9, 9, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 9, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [0, 6, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [3, 4, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 5]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 5, 0]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 4, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 6, 5, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 2, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 7, 4]}, {"city": 1, "empl": 0, "qualifications": [6, 1, 0, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 0, 8]}, {"city": 1, "empl": 1, "qualifications": [0, 7, 8, 2]}, {"city": 0, "empl": 1, "qualifications": [4, 9, 3, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 6, 6, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 1, 2, 5]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 9, 0]}, {"city": 1, "empl": 0, "qualifications": [5, 0, 3, 5]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 6, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 0, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 7, 7, 4]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 8, 3, 1]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 7, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 1, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 6, 9, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 5, 3, 4]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 5, 7]}, {"city": 1, "empl": 0, "qualifications": [6, 7, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 7, 6]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 5, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 0, "qualifications": [3, 9, 2, 0]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [0, 3, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [6, 9, 2, 4]}, {"city": 1, "empl": 0, "qualifications": [3, 4, 2, 1]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 2, 1]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 2, 7]}, {"city": 1, "empl": 0, "qualifications": [8, 2, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 9, 2, 1]}, {"city": 1, "empl": 1, "qualifications": [4, 1, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 6, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 9, 2, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 0, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [2, 4, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 5, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 1, 5, 2]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 7, 5]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 1, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 3, 5]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 6, 4, 4]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 6, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [6, 2, 5, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 2, 2]}, {"city": 1, "empl": 0, "qualifications": [9, 3, 2, 4]}, {"city": 0, "empl": 0, "qualifications": [7, 6, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 3, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 8, 2, 3]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 3, 7]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 7, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 6, 2, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 0, 1]}, {"city": 1, "empl": 0, "qualifications": [1, 2, 4, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 0, 9, 4]}, {"city": 0, "empl": 0, "qualifications": [9, 7, 1, 4]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 5, 4]}, {"city": 1, "empl": 0, "qualifications": [1, 5, 4, 0]}, {"city": 1, "empl": 1, "qualifications": [1, 4, 7, 3]}, {"city": 1, "empl": 1, "qualifications": [8, 1, 9, 8]}, {"city": 1, "empl": 0, "qualifications": [6, 1, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [8, 5, 5, 3]}, {"city": 1, "empl": 0, "qualifications": [0, 1, 6, 5]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 1, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 2, 4, 4]}, {"city": 0, "empl": 1, "qualifications": [3, 4, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [4, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [7, 4, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 5, 1, 3]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [3, 7, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [0, 0, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 0, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 0, 4, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 8, 0, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 4, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 9, 1, 7]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 0, 0]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 3, 5, 3]}, {"city": 0, "empl": 0, "qualifications": [4, 6, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 6, 5, 3]}, {"city": 1, "empl": 1, "qualifications": [2, 4, 7, 2]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 2, 2]}, {"city": 0, "empl": 0, "qualifications": [1, 1, 3, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [6, 4, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 8, 1, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 4, 8]}, {"city": 0, "empl": 1, "qualifications": [4, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [3, 1, 8, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 7, 2]}, {"city": 0, "empl": 1, "qualifications": [3, 9, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [1, 1, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 8, 3]}, {"city": 1, "empl": 0, "qualifications": [4, 0, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 4, 9, 0]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 5, 2]}, {"city": 1, "empl": 0, "qualifications": [0, 2, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 8, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 1, 7, 2]}, {"city": 1, "empl": 0, "qualifications": [5, 4, 2, 2]}, {"city": 1, "empl": 1, "qualifications": [3, 8, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 5, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 9, 3]}, {"city": 0, "empl": 1, "qualifications": [0, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 3, 1, 6]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 9, 6]}, {"city": 1, "empl": 0, "qualifications": [2, 0, 0, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 8, 8, 5]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 6, 5]}, {"city": 0, "empl": 0, "qualifications": [7, 7, 1, 0]}, {"city": 1, "empl": 1, "qualifications": [5, 7, 6, 3]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 6, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 2, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 5, 7, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 0, 2]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 4, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 5, 3, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 7, 3, 2]}, {"city": 0, "empl": 0, "qualifications": [7, 3, 5, 6]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [9, 3, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 9, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 4, 2, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 1, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 6, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 0, 9]}, {"city": 1, "empl": 1, "qualifications": [1, 6, 8, 3]}, {"city": 0, "empl": 0, "qualifications": [2, 7, 5, 8]}, {"city": 1, "empl": 1, "qualifications": [2, 9, 0, 9]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 5, 0]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 9, 3]}, {"city": 0, "empl": 0, "qualifications": [5, 4, 8, 6]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 4, 0, 2]}, {"city": 1, "empl": 1, "qualifications": [2, 2, 8, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 6, 4, 9]}, {"city": 0, "empl": 0, "qualifications": [5, 2, 4, 8]}, {"city": 0, "empl": 0, "qualifications": [3, 4, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [5, 6, 7, 1]}, {"city": 0, "empl": 0, "qualifications": [1, 2, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 3, 8, 5]}, {"city": 1, "empl": 1, "qualifications": [3, 5, 6, 8]}, {"city": 1, "empl": 0, "qualifications": [6, 5, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [7, 4, 0, 8]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 3, 2]}, {"city": 1, "empl": 0, "qualifications": [4, 8, 1, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 0, 4, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 3, 8, 0]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 5, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 3, 1, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 1, 8]}, {"city": 1, "empl": 1, "qualifications": [6, 8, 3, 9]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 3, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 5, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 7, 5]}, {"city": 1, "empl": 1, "qualifications": [4, 9, 4, 5]}, {"city": 1, "empl": 1, "qualifications": [9, 4, 0, 6]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 5, 5]}, {"city": 0, "empl": 0, "qualifications": [4, 2, 4, 3]}, {"city": 1, "empl": 1, "qualifications": [9, 2, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 1, 2, 7]}, {"city": 0, "empl": 0, "qualifications": [7, 0, 8, 4]}, {"city": 0, "empl": 0, "qualifications": [1, 3, 1, 0]}, {"city": 0, "empl": 0, "qualifications": [8, 3, 4, 6]}, {"city": 0, "empl": 0, "qualifications": [3, 6, 9, 3]}, {"city": 1, "empl": 1, "qualifications": [6, 1, 6, 4]}, {"city": 1, "empl": 1, "qualifications": [4, 2, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 0, 7, 6]}, {"city": 0, "empl": 0, "qualifications": [7, 2, 5, 9]}, {"city": 1, "empl": 0, "qualifications": [2, 3, 1, 2]}, {"city": 0, "empl": 0, "qualifications": [6, 3, 1, 3]}, {"city": 1, "empl": 0, "qualifications": [2, 2, 8, 1]}, {"city": 0, "empl": 1, "qualifications": [3, 5, 9, 7]}, {"city": 0, "empl": 0, "qualifications": [2, 5, 9, 5]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 8, 6]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 1]}, {"city": 0, "empl": 0, "qualifications": [7, 1, 2, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 5, 7]}, {"city": 0, "empl": 0, "qualifications": [6, 6, 8, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 3, 8, 3]}, {"city": 1, "empl": 1, "qualifications": [4, 0, 7, 3]}, {"city": 0, "empl": 0, "qualifications": [8, 2, 9, 2]}, {"city": 0, "empl": 0, "qualifications": [3, 0, 3, 2]}, {"city": 1, "empl": 1, "qualifications": [5, 6, 3, 6]}, {"city": 0, "empl": 0, "qualifications": [9, 0, 2, 3]}, {"city": 1, "empl": 0, "qualifications": [1, 4, 1, 3]}, {"city": 1, "empl": 1, "qualifications": [6, 4, 2, 6]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 1, 9]}, {"city": 0, "empl": 0, "qualifications": [0, 7, 6, 1]}, {"city": 1, "empl": 1, "qualifications": [3, 0, 3, 8]}, {"city": 0, "empl": 0, "qualifications": [2, 0, 1, 2]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 0]}, {"city": 1, "empl": 1, "qualifications": [2, 6, 6, 8]}, {"city": 0, "empl": 0, "qualifications": [0, 2, 4, 8]}, {"city": 1, "empl": 0, "qualifications": [5, 1, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [5, 7, 0, 1]}, {"city": 0, "empl": 0, "qualifications": [8, 0, 5, 6]}, {"city": 0, "empl": 1, "qualifications": [2, 8, 6, 9]}, {"city": 1, "empl": 0, "qualifications": [5, 2, 4, 1]}, {"city": 1, "empl": 1, "qualifications": [6, 9, 5, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 3, 9, 4]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [3, 7, 2, 9]}, {"city": 0, "empl": 0, "qualifications": [4, 5, 4, 9]}]}
 },{}],537:[function(require,module,exports){
+module.exports={"candidates": [{"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 9, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [7, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 8, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 8, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 7, 9, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 7, 9]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 9, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 9, 7, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 7, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [7, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [9, 7, 8, 9]}, {"city": 1, "empl": 1, "qualifications": [8, 7, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [8, 9, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 9, 7]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 7, 8]}, {"city": 0, "empl": 1, "qualifications": [7, 8, 8, 9]}, {"city": 0, "empl": 1, "qualifications": [8, 7, 7, 7]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 9, 9]}, {"city": 1, "empl": 1, "qualifications": [9, 9, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 8, 7, 8]}, {"city": 1, "empl": 1, "qualifications": [8, 9, 8, 9]}]}
+},{}],538:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -94816,6 +97978,10 @@ var _screenfull = _interopRequireDefault(require("screenfull"));
 var _componentLoaderJs = require("component-loader-js");
 
 var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -94853,6 +98019,7 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(Footer).call(this));
     _this.$fullscreenIcon = (0, _jquery["default"])('#js-fullscreen');
+    _this.$soundIcon = (0, _jquery["default"])('#js-volume');
 
     _this._addEventListeners();
 
@@ -94867,20 +98034,27 @@ function (_Component) {
     key: "_addEventListeners",
     value: function _addEventListeners() {
       this.$fullscreenIcon.click(this._handleFullscreenRequest.bind(this));
+      this.$soundIcon.click(this._toggleVolume.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
       // event listeners need to be removed explicitly because they are managed globally Jquery
       this.$fullscreenIcon.off();
+      this.$soundIcon.off();
     }
   }, {
     key: "_handleFullscreenRequest",
     value: function _handleFullscreenRequest() {
-      console.log('fullscreen icon has been clicked!');
       this.$fullscreenIcon.toggleClass(_classes["default"].FULLSCREEN_ICON_EXPANDED);
 
       _screenfull["default"].toggle();
+    }
+  }, {
+    key: "_toggleVolume",
+    value: function _toggleVolume() {
+      this.$soundIcon.toggleClass(_classes["default"].VOLUME_ICON_OFF);
+      sound.toggleVolume();
     }
   }, {
     key: "destroy",
@@ -94896,7 +98070,7 @@ function (_Component) {
 
 exports["default"] = Footer;
 
-},{"../../../controllers/constants/classes":574,"component-loader-js":14,"jquery":335,"screenfull":529}],538:[function(require,module,exports){
+},{"../../../controllers/constants/classes":576,"../../../controllers/game/sound":590,"component-loader-js":14,"jquery":336,"screenfull":530}],539:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -94972,7 +98146,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../assets/text/cvCollection.js":533,"../../../../controllers/constants/classes":574,"jquery":335}],539:[function(require,module,exports){
+},{"../../../../assets/text/cvCollection.js":534,"../../../../controllers/constants/classes":576,"jquery":336}],540:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95180,7 +98354,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":538,"../person-card/person-card":544,"gsap/TweenMax":331,"jquery":335}],540:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95256,7 +98430,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"gsap/TweenMax":331,"jquery":335}],541:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"gsap/TweenMax":331,"jquery":336}],542:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95412,7 +98586,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup":582,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"jquery":335}],542:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup":587,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"jquery":336}],543:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95596,7 +98770,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],543:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95725,7 +98899,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/events":575,"../../../../controllers/constants/pixi-containers.js":579,"../../../../controllers/game/gameSetup.js":582,"../person-tooltip/person-tooltip":545}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/events":577,"../../../../controllers/constants/pixi-containers.js":583,"../../../../controllers/game/gameSetup.js":587,"../person-tooltip/person-tooltip":546}],545:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95807,7 +98981,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":574,"jquery":335}],545:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"jquery":336}],546:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -95980,7 +99154,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],546:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],547:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96090,7 +99264,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../ui-base/ui-base":551,"jquery":335}],547:[function(require,module,exports){
+},{"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/game/gameSetup.js":587,"../ui-base/ui-base":552,"jquery":336}],548:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96112,7 +99286,11 @@ var _stateManager = require("../../../../controllers/game/stateManager.js");
 
 var _utils = require("../../../../controllers/common/utils");
 
+var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -96159,7 +99337,7 @@ function (_UIBase) {
     _this.stageDuration = 12;
     _this.elapsedTime = 0;
     _this.timePerUpdate = null;
-    _this.progressMessages = ['Loading CVs...', 'Loading Google dataset...', 'Processing data...', 'Optimizing algorithm...', 'Finished!'];
+    _this.progressMessages = ['Loading CVs...', 'Loading %company% dataset...', 'Processing data...', 'Optimizing algorithm...', 'Finished!'];
 
     _this.init();
 
@@ -96171,6 +99349,13 @@ function (_UIBase) {
     value: function init() {
       var _this2 = this;
 
+      this.progressMessages = this.progressMessages.map(function (text) {
+        if (text.includes('%company%')) {
+          return text.replace('%company%', state.get('big-tech-company'));
+        } else {
+          return text;
+        }
+      });
       (0, _utils.waitForSeconds)(1).then(function () {
         _this2.show(); // this.showEndUI(); // debugging only
 
@@ -96297,7 +99482,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],548:[function(require,module,exports){
+},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"../../../pixi/training-stage/circle-grid":571,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96438,7 +99623,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"component-loader-js":14}],549:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"component-loader-js":14}],550:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96453,6 +99638,10 @@ var _componentLoaderJs = require("component-loader-js");
 var _utils = require("../../../../controllers/common/utils");
 
 var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+
+var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -96575,11 +99764,10 @@ function (_Component) {
     value: function _addChoiceListener() {
       var _this4 = this;
 
-      console.log('we added a choice listener!');
+      // console.log('we added a choice listener!');
       (0, _jquery["default"])('.data-list__choice').on('click', function (e) {
-        console.log(e);
         var $choice = (0, _jquery["default"])("#".concat(e.target.id));
-        console.log(_toConsumableArray((0, _jquery["default"])('.data-list__choice')));
+        state.set('big-tech-company', $choice.text());
 
         _toConsumableArray((0, _jquery["default"])('.data-list__choice')).map(function (choice) {
           return (0, _jquery["default"])(choice).addClass(_classes["default"].IS_INACTIVE);
@@ -96603,7 +99791,7 @@ function (_Component) {
 
 exports["default"] = Replica;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"component-loader-js":14,"jquery":335}],550:[function(require,module,exports){
+},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"component-loader-js":14,"jquery":336}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96740,7 +99928,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":572,"../../../../controllers/constants/classes":574,"../../../../controllers/constants/events":575,"../../../../controllers/game/gameSetup.js":582,"../../../../controllers/game/stateManager.js":585,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],551:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],552:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96797,7 +99985,7 @@ function (_PIXI$utils$EventEmit) {
 
 exports["default"] = _default;
 
-},{"jquery":335,"pixi.js":481}],552:[function(require,module,exports){
+},{"jquery":336,"pixi.js":482}],553:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -96862,6 +100050,7 @@ function (_UIBase) {
     _this.$textbox = _this.$el.find('.Instruction');
     _this.$textEl = _this.$el.find('.Instruction__content');
     _this.state = null;
+    _this.enabled = true;
 
     _this._addEventListeners();
 
@@ -96910,6 +100099,8 @@ function (_UIBase) {
         case 'manual-eval-show':
           this.hide();
           (0, _utils.waitForSeconds)(1).then(function () {
+            if (!_this2.enabled) return;
+
             _this2.setContent(txt.instructions.manual.eval);
 
             _this2.$el.css({
@@ -96933,12 +100124,9 @@ function (_UIBase) {
   }, {
     key: "disableInstructions",
     value: function disableInstructions() {
-      console.log('candidate returned!');
-
       if (this.state && this.state === 'manual-eval-show') {
-        this.reveal({
-          type: 'manual-eval-hide'
-        });
+        this.hide();
+        this.enabled = false;
       }
     }
   }, {
@@ -96947,6 +100135,8 @@ function (_UIBase) {
       _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
 
       _gameSetup.eventEmitter.on(_events["default"].UPDATE_INSTRUCTIONS, this.reveal.bind(this));
+
+      _gameSetup.eventEmitter.on(_events["default"].HIDE_MANUAL_INSTRUCTIONS, this.disableInstructions.bind(this));
     }
   }, {
     key: "_removeEventListeners",
@@ -96954,6 +100144,8 @@ function (_UIBase) {
       _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, this.disableInstructions.bind(this));
 
       _gameSetup.eventEmitter.off(_events["default"].UPDATE_INSTRUCTIONS, this.show.bind(this));
+
+      _gameSetup.eventEmitter.off(_events["default"].HIDE_MANUAL_INSTRUCTIONS, this.disableInstructions.bind(this));
     }
   }, {
     key: "show",
@@ -97000,7 +100192,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],553:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],554:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97073,6 +100265,8 @@ function (_UIBase) {
       _this.$el.addClass(_classes["default"].ML_RESUME);
 
       _this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
+    } else {
+      _this.$el.addClass(_classes["default"].ANIMATE_RESUME_ATTRIBUTES);
     }
 
     if (_this._resumes === undefined || _this._resumeFeatures === undefined) {
@@ -97204,7 +100398,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/constants/classes":574,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],554:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants/classes":576,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97262,6 +100456,7 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-task-timer');
     _this.$hireGoalEl = _this.$el.find('.js-hiring-goal');
     _this.$timer = _this.$el.find('.js-timer');
+    _this.$feedbackEl = _this.$el.find('.js-feedback');
     _this._duration = options.duration || undefined;
     _this._elapsedTime = 0;
     _this._runningMS = 0;
@@ -97303,6 +100498,7 @@ function (_UIBase) {
   _createClass(_default, [{
     key: "setContent",
     value: function setContent() {
+      this.resetStyles();
       this.updateCounter();
       this.writeTime();
     }
@@ -97323,6 +100519,9 @@ function (_UIBase) {
       var peopleToHire = this.hiresQuota - this.hiresNum;
       var hireText = peopleToHire === 1 ? "".concat(peopleToHire, " person") : "".concat(peopleToHire, " people");
       this.$hireGoalEl.find('.TaskTimer-value').text(hireText);
+      if (peopleToHire === 0) this.showTaskFeedback({
+        stageCompleted: true
+      });
     }
   }, {
     key: "writeTime",
@@ -97346,10 +100545,32 @@ function (_UIBase) {
         this._elapsedTime = this._duration;
         this.writeTime();
         this.timer.stop();
-        console.log("am i called why?");
 
         _gameSetup.eventEmitter.emit(_events["default"].STAGE_INCOMPLETE, {});
+
+        this.showTaskFeedback({
+          stageCompleted: false
+        });
       }
+    }
+  }, {
+    key: "showTaskFeedback",
+    value: function showTaskFeedback(_ref) {
+      var stageCompleted = _ref.stageCompleted;
+      var feedbackText = stageCompleted ? 'Task completed' : 'Task failed';
+      [this.$timer, this.$hireGoalEl].map(function (el) {
+        return el.addClass(_classes["default"].IS_INACTIVE);
+      });
+      this.$feedbackEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.find('.TaskTimer-value').text(feedbackText);
+      this.$el.addClass(_classes["default"].HIRING_TASK_DONE);
+    }
+  }, {
+    key: "resetStyles",
+    value: function resetStyles() {
+      this.$feedbackEl.addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_classes["default"].HIRING_TASK_DONE);
+      this.$hireGoalEl.removeClass(_classes["default"].IS_INACTIVE);
     }
   }, {
     key: "startTimer",
@@ -97409,7 +100630,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":335}],555:[function(require,module,exports){
+},{"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97467,8 +100688,10 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-textbox-overlay'); // This should be a single element
 
     _this.$textEl = _this.$el.find('.Textbox__content');
+    _this.$subjectEl = _this.$el.find('.Textbox__subject');
     _this.$buttons = _this.$el.find('.TextboxButton');
     _this.setContent = _this.setContent.bind(_assertThisInitialized(_this));
+    _this.subject = options.subject ? "RE: ".concat(options.subject) : 'RE: Bestfit investment';
     _this._mainContent = options.content || 'dummy text'; // TODO: change this to null
 
     _this._responseContent = options.responses || ['Okay'];
@@ -97498,18 +100721,11 @@ function (_UIBase) {
       var _this2 = this;
 
       if (!this.overlay) this.$el.addClass(_classes["default"].IS_TRANSPARENT);
-      this.$textEl.html(this._mainContent);
+      var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
-      if (this.displayScore) {
-        this.$el.find('.Score').removeClass(_classes["default"].IS_INACTIVE);
-        ;
-        this.$el.find('.Score_content').html(_dataModule.dataModule._calculateScore());
-        this.$el.find('.Score_content').css('padding-bottom', '1em');
-      } else {
-        this.$el.find('.Score').addClass(_classes["default"].IS_INACTIVE);
-        ;
-      }
-
+      var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
+      this.$textEl.html(emailText);
+      this.$subjectEl.html(this.subject);
       this.$buttons.addClass(_classes["default"].IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
@@ -97587,7 +100803,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../ui-base/ui-base":551,"jquery":335}],556:[function(require,module,exports){
+},{"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/game/gameSetup.js":587,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":552,"jquery":336}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97597,7 +100813,7 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
@@ -97671,7 +100887,7 @@ function (_UIBase) {
 
       this._responseContent.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this2.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_constants.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
       });
     }
@@ -97685,25 +100901,18 @@ function (_UIBase) {
       this.$textEl.html(options.content);
       options.responses.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this3.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_constants.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
       });
     }
   }, {
     key: "_buttonIsClicked",
     value: function _buttonIsClicked(e) {
-      //TODO how to handle start button clicked vs share
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
 
-      if (!this.isAtSecondStage) {
-        _gameSetup.eventEmitter.emit('first-start-button-clicked', {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
-        this.isAtSecondStage = true; //this.hide();
-      } else {
-        _gameSetup.eventEmitter.emit('second-start-button-clicked', {});
-
-        this.destroy();
-      }
+      this.destroy();
     }
   }, {
     key: "_addEventListeners",
@@ -97713,18 +100922,17 @@ function (_UIBase) {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      // event listeners need to be removed explicitly because they are managed globally Jquery
       this.$buttons.off();
     }
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE).removeClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE); // TODO you might need a delayed call for this
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -97733,7 +100941,8 @@ function (_UIBase) {
 
       _get(_getPrototypeOf(_default.prototype), "dispose", this).call(this);
 
-      this.hide(); // this.$el.destroy();
+      this.hide();
+      this.$el.remove();
     }
   }]);
 
@@ -97742,7 +100951,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":574,"../../../controllers/game/gameSetup.js":582,"../ui-base/ui-base":551,"jquery":335}],557:[function(require,module,exports){
+},{"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97827,9 +101036,7 @@ function (_UIBase) {
       });
 
       if (!this.hasBeenClicked) {
-        _gameSetup.eventEmitter.emit(_events["default"].UPDATE_INSTRUCTIONS, {
-          type: 'manual-eval-hide'
-        });
+        _gameSetup.eventEmitter.emit(_events["default"].HIDE_MANUAL_INSTRUCTIONS, {});
 
         this.hasBeenClicked = true;
       }
@@ -97907,6 +101114,8 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
+      var _this3 = this;
+
       this.$el.css({
         'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
         // get person height
@@ -97926,11 +101135,15 @@ function (_UIBase) {
         opacity: 1,
         ease: Power1.easeInOut
       });
+
+      _TweenMax.TweenLite.delayedCall(0.4, function () {
+        _this3.$el.removeClass(_classes["default"].IS_INACTIVE);
+      });
     }
   }, {
     key: "hide",
     value: function hide() {
-      var _this3 = this;
+      var _this4 = this;
 
       _TweenMax.TweenLite.to(this.$id, 0.3, {
         y: 5,
@@ -97939,7 +101152,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this3.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
       });
     }
   }, {
@@ -97958,7 +101171,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":335}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],559:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -97970,17 +101183,11 @@ var _gameSetup = require("../../../controllers/game/gameSetup");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98003,9 +101210,9 @@ function () {
     this.floorParent = floorParent;
     this.xAnchorUV = xAnchorUV;
     this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
-    this.yAnchorUV = floor === 'first_floor' ? _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y : _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y;
+    this.yAnchorUV = floor === 'first_floor' ? _constants.ANCHORS.FLOORS.FIRST_FLOOR.y : _constants.ANCHORS.FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
-    this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+    this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
     this.animSpeed = 0.35;
     this.sprite = null;
   }
@@ -98015,6 +101222,7 @@ function () {
     value: function addToPixi() {
       var parentContainer = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _gameSetup.mlLabStageContainer;
       this.sprite = _textures.SPRITES[this.doorType];
+      console.log(this.sprite);
       this.sprite.name = this.doorType;
       this.sprite.loop = false;
 
@@ -98058,7 +101266,7 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].DOOR[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
       this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
@@ -98072,16 +101280,16 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.on(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.on(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
 
-      _gameSetup2.eventEmitter.off(_events["default"].PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.PLAY_DOOR_ANIMATION, this.playAnimation.bind(this));
     }
   }, {
     key: "destroy",
@@ -98101,7 +101309,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582}],559:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587}],560:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98113,17 +101321,9 @@ var PIXI = _interopRequireWildcard(require("pixi.js"));
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98141,11 +101341,11 @@ function () {
 
     _classCallCheck(this, _default);
 
-    this.heightMain = _pixiScales["default"].FLOOR[(0, _utils.screenSizeDetector)()];
-    this.heightShadow = _pixiScales["default"].FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
+    this.heightMain = _constants.SCALES.FLOOR[(0, _utils.screenSizeDetector)()];
+    this.heightShadow = _constants.SCALES.FLOOR_SHADOW[(0, _utils.screenSizeDetector)()]; // this.heightMain = clamp(uv2px(0.1, 'w'), 40, 50);
     // this.heightShadow = clamp(this.heightMain/5, 20, 30);
 
-    this.yAnchorUV = type === 'ground_floor' ? _pixiAnchors["default"].FLOORS.GROUND_FLOOR.y : _pixiAnchors["default"].FLOORS.FIRST_FLOOR.y;
+    this.yAnchorUV = type === 'ground_floor' ? _constants.ANCHORS.FLOORS.GROUND_FLOOR.y : _constants.ANCHORS.FLOORS.FIRST_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
     this.surface = null;
     this.side = null;
@@ -98170,12 +101370,12 @@ function () {
     value: function _initParams() {
       // main floor
       this.surface = new PIXI.Graphics();
-      this.surface.beginFill(_pixiColors["default"].ROSE_MAIN);
+      this.surface.beginFill(_constants.COLORS.ROSE_MAIN);
       this.surface.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightMain);
       this.surface.endFill(); // dark pink shadow
 
       this.side = new PIXI.Graphics();
-      this.side.beginFill(_pixiColors["default"].ROSE_SHADOW);
+      this.side.beginFill(_constants.COLORS.ROSE_SHADOW);
       this.side.drawRect(0, 0, (0, _utils.uv2px)(1, 'w'), this.heightShadow);
       this.side.endFill();
     }
@@ -98207,13 +101407,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "getHeight",
@@ -98227,7 +101427,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":578,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],560:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98240,8 +101440,6 @@ var PIXI = _interopRequireWildcard(require("pixi.js"));
 var _jquery = _interopRequireDefault(require("jquery"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-var _textures = require("../../../controllers/common/textures.js");
 
 var _stateManager = require("../../../controllers/game/stateManager.js");
 
@@ -98263,11 +101461,7 @@ var _yesNo = _interopRequireDefault(require("../../interface/yes-no/yes-no"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
+var _constants = require("../../../controllers/constants");
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
@@ -98277,9 +101471,19 @@ var _uiTextbox = _interopRequireDefault(require("../../interface/ui-textbox/ui-t
 
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -98297,17 +101501,20 @@ var officeCoordinates = {
   exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
   personStartX: 0.2,
   peoplePaddingX: 0.1,
-  personStartY: 0.87,
-  // should be dependent on the floot size
-  xOffset: 0.06 // should be dependent 
-
+  // personStartY: 0.87, // should be dependent on the floot size
+  personStartY: computePersonY(),
+  xOffset: 0.06
 };
 
 function computeSpotlight() {
   return {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
-    y: (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
+}
+
+function computePersonY() {
+  return 1 - (0, _utils.px2uv)((0, _utils.isMobile)() ? 15 : 25, 'h');
 }
 
 var spotlight = computeSpotlight();
@@ -98385,7 +101592,7 @@ function () {
           break;
       }
 
-      this.draw(stageNum);
+      this.draw(stageNum); // sound.play(SOUNDS.MANUAL_AMBIENT);
     }
   }, {
     key: "draw",
@@ -98446,44 +101653,39 @@ function () {
       });
     }
   }, {
-    key: "moveTweenHorizontally",
-    value: function moveTweenHorizontally(tween, newX) {
-      tween.stop().clear();
-      tween.to({
-        x: newX
-      });
-      tween.easing = PIXI.tween.Easing.inOutSine();
-      tween.time = 1200;
-      tween.start();
-    }
-  }, {
     key: "listenerSetup",
     value: function listenerSetup() {
       var _this2 = this;
 
-      _gameSetup.eventEmitter.on(_events["default"].DISPLAY_THIS_CV, function () {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.DISPLAY_THIS_CV, function () {
         _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
       this.stageResetHandler = function () {
-        new _uiTextbox["default"]({
-          isRetry: true,
-          stageNumber: _this2.currentStage,
-          content: _this2.stageText.retryMessage,
-          responses: _this2.stageText.retryResponses,
-          show: true,
-          overlay: true
-        });
+        (0, _utils.waitForSeconds)(0.5).then(function () {
+          sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
+          new _uiTextbox["default"]({
+            isRetry: true,
+            stageNumber: _this2.currentStage,
+            subject: _this2.stageText.subject,
+            content: _this2.stageText.retryMessage,
+            responses: _this2.stageText.retryResponses,
+            show: true,
+            overlay: true
+          });
 
-        if (_this2.task) {
-          _this2.task.reset();
-        }
+          if (_this2.task) {
+            _this2.task.reset();
+          }
+        });
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
       this.acceptedHandler = function () {
         // console.log('record accepted!');
+        sound.play(_constants.SOUNDS.PERSON_ACCEPTED);
+
         _dataModule.dataModule.recordAccept(candidateInSpot);
 
         _this2.takenDesks += 1;
@@ -98495,8 +101697,7 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        _this2.moveTweenHorizontally(hiredPerson.tween, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
-
+        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[0].playAnimation({
@@ -98515,7 +101716,9 @@ function () {
           // console.log('stage complete!');
           (0, _utils.waitForSeconds)(1).then(function () {
             // console.log('next stage!');
-            _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_COMPLETE, {
+            sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
+
+            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
               stageNumber: _this2.currentStage
             });
 
@@ -98532,8 +101735,8 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        _this2.moveTweenHorizontally(rejectedPerson.tween, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
-
+        rejectedPerson.scale.x *= -1;
+        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[1].playAnimation({
@@ -98549,22 +101752,22 @@ function () {
         });
       };
 
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].RETURN_CANDIDATE, function () {
-        (0, _person.animateThisCandidate)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
+        (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
         _this2.allPeople[candidateInSpot].inSpotlight = false;
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
 
-      _gameSetup.eventEmitter.on(_events["default"].RETRY_INSTRUCTION_ACKED, function (data) {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function (data) {
         _this2.start(data.stageNumber);
       });
     }
@@ -98572,8 +101775,7 @@ function () {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
       var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
-      var texture = color === 'yellow' ? _textures.yellowPersonTexture : _textures.bluePersonTexture;
-      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, texture);
+      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
       this.uniqueCandidateIndex++;
@@ -98611,10 +101813,13 @@ function () {
 
       for (var i = 0; i < candidates; i++) {
         var x = startX + xClampedOffset * i;
-        var y = officeCoordinates.personStartY;
+        var y = computePersonY();
         var person = this.personContainer.getChildAt(i);
         if (person) (0, _person.repositionPerson)(person, x, y);
-      }
+      } // reposition html elements
+
+
+      var h = document.body.clientHeight;
     }
   }, {
     key: "getCandidatePoolSize",
@@ -98646,28 +101851,24 @@ function () {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.acceptedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this.acceptedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].REJECTED, this.rejectedHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].RETURN_CANDIDATE, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETURN_CANDIDATE, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].STAGE_INCOMPLETE, this.stageResetHandler);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
 
-      _gameSetup.eventEmitter.off(_events["default"].DISPLAY_THIS_CV, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.DISPLAY_THIS_CV, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].RETRY_INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function () {});
 
-      _gameSetup.eventEmitter.off(_events["default"].INSTRUCTION_ACKED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.INSTRUCTION_ACKED, function () {});
     }
   }, {
     key: "delete",
     value: function _delete() {
-      this.doors.forEach(function (door) {
-        door.destroy();
-      });
-      this.resumeUI.destroy();
-      this.instructions.destroy();
+      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task].concat(_toConsumableArray(this.doors));
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
 
@@ -98675,8 +101876,11 @@ function () {
 
       this._removeEventListeners();
 
-      this.peopleTalkManager.destroy();
-      this.task.destroy();
+      componentsToDestroy.filter(function (component) {
+        return component;
+      }).map(function (component) {
+        return component.destroy();
+      });
     }
   }]);
 
@@ -98685,14 +101889,15 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"../../../controllers/game/stateManager.js":585,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":335,"pixi.js":481}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/game/stateManager.js":591,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/ui-textbox/ui-textbox":556,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.createPerson = createPerson;
-exports.animateThisCandidate = animateThisCandidate;
+exports.moveToFromSpotlight = moveToFromSpotlight;
+exports.moveToDoor = moveToDoor;
 exports.repositionPerson = repositionPerson;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
@@ -98701,11 +101906,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _office = require("./office");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 var showedInstructions = false;
 
@@ -98713,7 +101914,8 @@ function onPersonHover(event) {// PLACEHOLDER FUNCTION FOR HOVER EVENT
   // eventEmitter.emit(EVENTS.PERSON_HOVERED, {});
 }
 
-function animateThisCandidate(person, newX, newY) {
+function moveToFromSpotlight(person, newX, newY) {
+  playSpriteAnimation.call(person, _constants.ANIM.DANGLE);
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
@@ -98722,11 +101924,52 @@ function animateThisCandidate(person, newX, newY) {
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
   person.tween.start();
+  person.tween.on('end', function () {
+    stopSpriteAnimation.call(person);
+  });
+}
+
+function moveToDoor(person, newX) {
+  playSpriteAnimation.call(person, _constants.ANIM.WALK_NEUTRAL);
+  person.tween.stop().clear();
+  person.tween.to({
+    x: newX
+  });
+  person.tween.easing = PIXI.tween.Easing.inOutSine();
+  person.tween.time = 1200;
+  person.tween.start();
+  person.tween.on('end', function () {
+    stopSpriteAnimation.call(person);
+  });
+}
+
+function playSpriteAnimation(anim) {
+  var personSprite = this;
+  if (personSprite.animationState !== anim) updateAnimationState.call(personSprite, anim);
+  personSprite.play();
+}
+
+function updateAnimationState() {
+  var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _constants.ANIM.IDLE;
+  var personSprite = this;
+  var newAnim = (0, _utils.getAnimationByName)({
+    color: personSprite.color,
+    animName: anim
+  });
+  personSprite.stop();
+  personSprite.textures = newAnim;
+  personSprite.animationState = anim;
+}
+
+function stopSpriteAnimation() {
+  var personSprite = this;
+  updateAnimationState.call(personSprite);
+  personSprite.gotoAndStop(0);
 }
 
 function moveCandidate() {
   if (!showedInstructions) {
-    _gameSetup.eventEmitter.emit(_events["default"].UPDATE_INSTRUCTIONS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.UPDATE_INSTRUCTIONS, {
       type: 'manual-eval-show'
     });
 
@@ -98736,14 +101979,14 @@ function moveCandidate() {
 
   candidateClicked = this.id;
 
-  _gameSetup.eventEmitter.emit(_events["default"].DISPLAY_THIS_CV, {}); // empty spotlight
+  _gameSetup.eventEmitter.emit(_constants.EVENTS.DISPLAY_THIS_CV, {}); // empty spotlight
 
 
   if (!this.inSpotlight && candidateInSpot == null) {
     // move candidate to spotlight
-    animateThisCandidate(this, _office.spotlight.x, _office.spotlight.y);
+    moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: false,
       spotlightFill: true
     });
@@ -98753,11 +101996,11 @@ function moveCandidate() {
   } // candidate in spotlight clicked
   else if (this.inSpotlight) {
       // move candidate back to line
-      _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-      animateThisCandidate(this, this.originalX, this.originalY);
+      moveToFromSpotlight(this, this.originalX, this.originalY);
 
-      _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
         spotlightOccupied: true,
         spotlightFill: false
       });
@@ -98766,11 +102009,11 @@ function moveCandidate() {
       candidateInSpot = null;
     } // candidate in line clicked and spotlight is filled
     else if (!this.inSpotlight && candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-        animateThisCandidate(this, _office.spotlight.x, _office.spotlight.y);
+        moveToFromSpotlight(this, _office.spotlight.x, _office.spotlight.y);
 
-        _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
           spotlightOccupied: true,
           spotlightFill: true
         });
@@ -98780,37 +102023,41 @@ function moveCandidate() {
       }
 }
 
-function createPerson(x, y, id, texture) {
-  var person = new PIXI.Sprite(texture);
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+function createPerson(x, y, id, color) {
+  var person = (0, _utils.createPersonSprite)(color);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.interactive = true;
   person.buttonMode = true;
   person.inSpotlight = false;
   person.id = id;
+  person.color = color;
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
-  person.y = (0, _utils.uv2px)(y, 'h');
+  person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
   person.originalX = person.x;
   person.originalY = person.y;
   person.type = 'person';
   person.anchor.set(0.5);
   person.tween = PIXI.tweenManager.createTween(person);
+  person.loop = true;
+  person.animationSpeed = 0.6;
+  person.animationState = _constants.ANIM.IDLE;
   person.on('mouseover', onPersonHover).on('pointerdown', moveCandidate);
   return person;
 }
 
 function repositionPerson(person, x, y) {
-  person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
-  person.y = (0, _utils.uv2px)(y, 'h');
+  person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
   person.originalX = person.x;
   person.originalY = person.y;
 
   if (person.id === candidateInSpot) {
-    _gameSetup.eventEmitter.emit(_events["default"].RETURN_CANDIDATE, {});
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.RETURN_CANDIDATE, {});
 
-    _gameSetup.eventEmitter.emit(_events["default"].CHANGE_SPOTLIGHT_STATUS, {
+    _gameSetup.eventEmitter.emit(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, {
       spotlightOccupied: true,
       spotlightFill: false
     });
@@ -98820,7 +102067,7 @@ function repositionPerson(person, x, y) {
   }
 }
 
-},{"../../../controllers/common/utils.js":572,"../../../controllers/constants/events":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"./office":560}],562:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"./office":561}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98838,13 +102085,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -98860,7 +102101,7 @@ function () {
   function _default() {
     _classCallCheck(this, _default);
 
-    _gameSetup2.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup2.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     this.beltContainer = new PIXI.Container();
 
@@ -98892,16 +102133,16 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _pixiScales["default"].BELT[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.BELT[(0, _utils.screenSizeDetector)()];
       this.numOfPieces = Math.floor((0, _utils.uv2px)(1, 'w') / (_textures.beltTexture.width * this.scale)) + 1; // position belt on the first floor
 
-      this.beltContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
+      this.beltContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.2;
     } // it is dangerous to not remove the event listener when destroying sprites
 
   }, {
     key: "destroy",
     value: function destroy() {
-      _gameSetup2.eventEmitter.off(_events["default"].RESIZE, this.draw.bind(this));
+      _gameSetup2.eventEmitter.off(_constants.EVENTS.RESIZE, this.draw.bind(this));
 
       for (var i = this.beltContainer.children.length - 1; i >= 0; i--) {
         if (this.beltContainer.children[i].type && this.beltContainer.children[i].type === 'belt') {
@@ -98917,7 +102158,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],563:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98933,9 +102174,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _textures = require("../../../controllers/common/textures.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98955,7 +102194,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.sprite = type === 'rejected' ? _textures.SPRITES.dataServerRejected : _textures.SPRITES.dataServerAccepted;
-    this.dataServerScale = _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+    this.dataServerScale = _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
     this.directionVector = type === 'rejected' ? -1 : 1;
     this.machine = machine;
     this.$counterTemplate = (0, _jquery["default"])(document).find('#js-server-counter-template');
@@ -98974,7 +102213,7 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.sprite.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
+      this.sprite.scale.set(_constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()]);
       this.machineDim = this.machine.getMachineDimensions();
       this.centerX = _utils.spacingUtils.getCenteredChildX(this.machineDim.x, this.machineDim.width, this.sprite.width);
       this.sprite.x = this.centerX + this.directionVector * 1.6 * this.sprite.width;
@@ -98994,7 +102233,7 @@ function () {
   }, {
     key: "createCounterElement",
     value: function createCounterElement() {
-      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_classes["default"].IS_INACTIVE).text(this.counter).appendTo('body');
+      this.$counterEl = this.$counterTemplate.clone().removeAttr('id').attr('data-id', this.counterId).removeClass(_constants.CLASSES.IS_INACTIVE).text(this.counter).appendTo('body');
     }
   }, {
     key: "updateServerCounter",
@@ -99029,7 +102268,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/classes":574,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"jquery":335}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"jquery":336}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99043,15 +102282,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _gameSetup2 = require("../../../controllers/game/gameSetup.js");
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99081,13 +102312,13 @@ function () {
   _createClass(_default, [{
     key: "draw",
     value: function draw() {
-      this.scale = _pixiScales["default"].MACHINE[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.MACHINE[(0, _utils.screenSizeDetector)()];
       this.machine.scale.set(this.scale);
       this.machine.x = _utils.spacingUtils.screenCenterX(this.machine.width) - (0, _utils.uv2px)(0.175, 'h');
 
-      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()];
+      var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
 
-      this.machine.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
+      this.machine.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
       this.inspectButton.scale.set(this.scale);
       this.inspectButton.x = _utils.spacingUtils.getCenteredChildX(this.machine.x, this.machine.width, this.inspectButton.width);
       this.inspectButton.y = _utils.spacingUtils.getCenteredChildY(this.machine.y, this.machine.height, this.inspectButton.height); // this.machine.tint = 0xe8ffff;
@@ -99109,7 +102340,7 @@ function () {
   }, {
     key: "_inspectButtonClickHandler",
     value: function _inspectButtonClickHandler() {
-      _gameSetup2.eventEmitter.emit(_events["default"].DATASET_VIEW_INSPECT, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.DATASET_VIEW_INSPECT, {});
     } // util function to pass machine dimensions to data server/scan ray
 
   }, {
@@ -99130,7 +102361,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"../../../controllers/game/gameSetup.js":582}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99144,15 +102375,13 @@ var _cvCollection = require("../../../assets/text/cvCollection.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _constants = require("../../../controllers/constants");
 
 var _person = _interopRequireDefault(require("./person"));
 
 var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/people-talk-manager/people-talk-manager"));
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
-
-var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99169,7 +102398,7 @@ function () {
     _classCallCheck(this, _default);
 
     this.container = new PIXI.Container();
-    this.container.name = _pixiContainers.ML_PEOPLE_CONTAINER;
+    this.container.name = _constants.ML_PEOPLE_CONTAINER;
     this.numOfPeople = Math.floor((0, _utils.uv2px)(0.85, 'w') / 70) * 2;
     this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
@@ -99182,7 +102411,7 @@ function () {
 
     this._createPeople();
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._draw.bind(this));
 
     _gameSetup.mlLabStageContainer.addChild(this.container);
 
@@ -99274,7 +102503,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":533,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-containers.js":579,"../../../controllers/game/gameSetup.js":582,"../../../controllers/machine-learning/dataModule.js":586,"../../interface/ml/people-talk-manager/people-talk-manager":543,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99284,17 +102513,9 @@ exports["default"] = void 0;
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _textures = require("../../../controllers/common/textures.js");
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
+var _index = require("../../../controllers/constants/index.js");
 
 var _utils = require("../../../controllers/common/utils.js");
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -99314,19 +102535,21 @@ function () {
     _classCallCheck(this, _default);
 
     this.personData = personData;
-    this.person = this.personData.color === 'yellow' ? new PIXI.Sprite(_textures.yellowPersonTexture) : new PIXI.Sprite(_textures.bluePersonTexture);
+    this.person = (0, _utils.createPersonSprite)(this.personData.color);
     this.x = x;
     this.parentContainer = parent;
     this.id = id;
     this.personData.id = this.id;
 
-    _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._draw.bind(this));
+    _gameSetup.eventEmitter.on(_index.EVENTS.RESIZE, this._draw.bind(this));
   }
 
   _createClass(_default, [{
     key: "addToPixi",
     value: function addToPixi() {
       this.person.id = this.id;
+      this.person.animationState = _index.ANIM.IDLE;
+      this.person.animationSpeed = 0.6;
       this.person.anchor.set(0.5);
       this.parentContainer.addChild(this.person);
 
@@ -99335,7 +102558,7 @@ function () {
   }, {
     key: "_draw",
     value: function _draw() {
-      this.person.scale.set(_pixiScales["default"].PEOPLE[(0, _utils.screenSizeDetector)()]);
+      this.person.scale.set(_index.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
       this.person.x = this.x;
       this.person.y = -this.person.height / 2;
     }
@@ -99343,6 +102566,24 @@ function () {
     key: "getData",
     value: function getData() {
       return this.personData;
+    }
+  }, {
+    key: "playSpriteAnimation",
+    value: function playSpriteAnimation(anim) {
+      if (this.person.animationState !== anim) this.updateAnimationState(anim);
+      this.person.play();
+    }
+  }, {
+    key: "updateAnimationState",
+    value: function updateAnimationState() {
+      var anim = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : _index.ANIM.IDLE;
+      var newAnim = (0, _utils.getAnimationByName)({
+        color: this.personData.color,
+        animName: anim
+      });
+      this.person.stop();
+      this.person.textures = newAnim;
+      this.person.animationState = anim;
     }
   }, {
     key: "removeFromLine",
@@ -99374,7 +102615,7 @@ function () {
         destination = -10;
         tween.to({
           x: destination,
-          y: (0, _utils2.uv2px)(1.1, 'h')
+          y: (0, _utils.uv2px)(1.1, 'h')
         });
       }
 
@@ -99384,13 +102625,14 @@ function () {
       tween.time = duration;
       tween.on('end', this.removeFromScreen.bind(this));
       tween.start();
+      this.playSpriteAnimation(_index.ANIM.WALK_NEUTRAL);
     }
   }, {
     key: "removeFromScreen",
     value: function removeFromScreen() {
       _gameSetup.mlLabStageContainer.removeChild(this.person);
 
-      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_events["default"].PLAY_DOOR_ANIMATION, {
+      if (this.decision === 'accepted') _gameSetup.eventEmitter.emit(_index.EVENTS.PLAY_DOOR_ANIMATION, {
         direction: 'reverse'
       });
     }
@@ -99401,7 +102643,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582}],567:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99419,9 +102661,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -99484,14 +102724,14 @@ function () {
     value: function _recomputeParams() {
       var positionOfRay = 0.5;
       var repetition = 1 / positionOfRay;
-      this.scale = _pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()];
       this.resumeWidth = _textures.cvTexture.width * this.scale;
       var halfOfBeltWidth = (0, _utils.uv2px)(positionOfRay, 'w');
       var halfOfNumOfResumes = Math.floor(halfOfBeltWidth / (repetition * this.resumeWidth));
       this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes - 1);
       this.numOfResumes = halfOfNumOfResumes * repetition;
       this.resumeContainer.x = -1 * this.resumeWidth / repetition;
-      this.resumeContainer.y = (0, _utils.uv2px)(_pixiAnchors["default"].FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
+      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
     }
   }, {
     key: "destroy",
@@ -99509,7 +102749,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup":582,"./resume":568,"pixi.js":481}],568:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"./resume":569,"pixi.js":482}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99523,9 +102763,7 @@ var _textures = require("../../../controllers/common/textures.js");
 
 var _utils = require("../../../controllers/common/utils.js");
 
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99550,7 +102788,7 @@ function () {
     key: "draw",
     value: function draw() {
       this.resume = new PIXI.Sprite(_textures.cvTexture);
-      this.resume.scale.set(_pixiScales["default"].RESUME[(0, _utils.screenSizeDetector)()]);
+      this.resume.scale.set(_constants.SCALES.RESUME[(0, _utils.screenSizeDetector)()]);
       this.resume.x = this.xAnchor;
       this.resume.type = 'resume-on-belt';
       this.parent.addChild(this.resume);
@@ -99567,7 +102805,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/constants/pixi-scales.js":580,"pixi.js":481}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"pixi.js":482}],570:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99641,7 +102879,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":571,"../../../controllers/common/utils.js":572,"../../../controllers/game/gameSetup.js":582}],570:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/game/gameSetup.js":587}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99655,17 +102893,7 @@ var _utils = require("../../../controllers/common/utils.js");
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
-var _pixiColors = _interopRequireDefault(require("../../../controllers/constants/pixi-colors.js"));
-
-var _pixiAnchors = _interopRequireDefault(require("../../../controllers/constants/pixi-anchors"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events.js"));
-
-var _pixiScales = _interopRequireDefault(require("../../../controllers/constants/pixi-scales.js"));
-
-var _utils2 = require("../../../controllers/common/utils");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+var _constants = require("../../../controllers/constants");
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99716,7 +102944,7 @@ function () {
       });
 
       this.rowsLitUp++;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         // console.log(`rows lit up: ${this.rowsLitUp} / total rows: ${this.rows}`);
         if (_this.rowsLitUp < _this.rows) {
           console.log('light up another row!');
@@ -99739,7 +102967,7 @@ function () {
       });
 
       this.rowsLitUp--;
-      (0, _utils2.waitForSeconds)(0.1).then(function () {
+      (0, _utils.waitForSeconds)(0.1).then(function () {
         if (_this2.rowsLitUp >= 0) {
           console.log('light down another row!');
 
@@ -99856,13 +103084,13 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     } // remove event listeners
 
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESIZE, this._resizeHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESIZE, this._resizeHandler.bind(this));
     }
   }, {
     key: "destroy",
@@ -99876,14 +103104,46 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":572,"../../../controllers/common/utils.js":572,"../../../controllers/constants/events.js":575,"../../../controllers/constants/pixi-anchors":577,"../../../controllers/constants/pixi-colors.js":578,"../../../controllers/constants/pixi-scales.js":580,"../../../controllers/game/gameSetup.js":582,"pixi.js":481}],571:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],572:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.get = exports.set = void 0;
+var store = {
+  'big-tech-company': 'BIG COMPANY'
+};
+
+var set = function set(prop, value) {
+  if (store.hasOwnProperty(prop)) {
+    console.log("update property ".concat(prop, " with value: ").concat(value));
+    store[prop] = value;
+  } else {
+    console.warn("State property ".concat(prop, " is invalid"));
+  }
+};
+
+exports.set = set;
+
+var get = function get(prop) {
+  if (store.hasOwnProperty(prop)) {
+    return store[prop];
+  } else {
+    console.warn("State property ".concat(prop, " is invalid"));
+  }
+};
+
+exports.get = get;
+
+},{}],573:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.loadAssets = loadAssets;
-exports.beltTexture = exports.xIcon = exports.floorPlanTwo = exports.floorPlanOne = exports.incubator = exports.deskTexture = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.personTexture = exports.doorTexture = exports.cvTexture = void 0;
+exports.beltTexture = exports.xIcon = exports.incubator = exports.bluePersonTexture = exports.yellowPersonTexture = exports.SPRITES = exports.cvTexture = void 0;
 
 var _pixiScales = _interopRequireDefault(require("../constants/pixi-scales.js"));
 
@@ -99898,7 +103158,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var SPRITES = {};
 exports.SPRITES = SPRITES;
 var loader = PIXI.loaders.shared;
-loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json');
+loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json').add('bluePerson', 'assets/spritesheets/characters/blue/blue.json').add('yellowPerson', 'assets/spritesheets/characters/yellow/yellow.json');
 
 function loadAssets() {
   return _loadAssets.apply(this, arguments);
@@ -99912,7 +103172,8 @@ function _loadAssets() {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            _context.next = 2;
+            console.log('load assets!');
+            _context.next = 3;
             return new Promise(function (resolve, reject) {
               loader.load(function (loader, resources) {
                 SPRITES.doorAccepted = new PIXI.extras.AnimatedSprite(resources.officeDoor.spritesheet.animations['door']);
@@ -99923,14 +103184,16 @@ function _loadAssets() {
                 SPRITES.inspectButton = new PIXI.Sprite(resources.inspectButton.texture);
                 SPRITES.rayAnim = new PIXI.extras.AnimatedSprite(resources.rayAnim.spritesheet.animations['ray']);
                 SPRITES.dataServerAccepted = new PIXI.extras.AnimatedSprite(resources.dataServerAccepted.spritesheet.animations['data-server-accepted']);
-                SPRITES.dataServerRejected = new PIXI.extras.AnimatedSprite(resources.dataServerRejected.spritesheet.animations['data-server-rejected']);
+                SPRITES.dataServerRejected = new PIXI.extras.AnimatedSprite(resources.dataServerRejected.spritesheet.animations['data-server-rejected']); // TODO: move data server scales to the data server component
+
                 SPRITES.dataServerAccepted.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
                 SPRITES.dataServerRejected.scale.set(_pixiScales["default"].DATA_SERVER[(0, _utils.screenSizeDetector)()]);
+                console.log('all textures have loaded!');
                 resolve();
               });
             });
 
-          case 2:
+          case 3:
           case "end":
             return _context.stop();
         }
@@ -99940,59 +103203,37 @@ function _loadAssets() {
   return _loadAssets.apply(this, arguments);
 }
 
-; // loader.load((loader, resources) => {
-//     console.log('textures are loaded!');
-//     SPRITES.machine = new PIXI.Sprite(resources.machine.texture);
-// });
-// module to load textures
+; // module to load textures
 
-var personTexture = PIXI.Texture.fromImage('assets/img/character.png');
-exports.personTexture = personTexture;
-personTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var yellowPersonTexture = PIXI.Texture.fromImage('assets/img/person_yellow.png');
 exports.yellowPersonTexture = yellowPersonTexture;
 yellowPersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var bluePersonTexture = PIXI.Texture.fromImage('assets/img/person_blue.png');
 exports.bluePersonTexture = bluePersonTexture;
 bluePersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-var deskTexture = PIXI.Texture.fromImage('assets/img/desk.png');
-exports.deskTexture = deskTexture;
-deskTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var incubator = PIXI.Texture.fromImage('assets/img/incubator-winners.jpeg');
 exports.incubator = incubator;
-var floorPlanOne = PIXI.Texture.fromImage('assets/img/3D-floorplan-small.jpg');
-exports.floorPlanOne = floorPlanOne;
-floorPlanOne.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-var floorPlanTwo = PIXI.Texture.fromImage('assets/img/3D-floorplan-large.jpg');
-exports.floorPlanTwo = floorPlanTwo;
-floorPlanTwo.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var xIcon = PIXI.Texture.fromImage('assets/img/x-icon.png');
 exports.xIcon = xIcon;
-floorPlanTwo.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var beltTexture = PIXI.Texture.fromImage('assets/img/conveyor_belt.png');
 exports.beltTexture = beltTexture;
-beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST; // const machineTexture = PIXI.Texture.fromImage('assets/img/machine.png');
-// machineTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
-
-var doorTexture = PIXI.Texture.fromImage('assets/img/door.png');
-exports.doorTexture = doorTexture;
-doorTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 var cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
 exports.cvTexture = cvTexture;
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-},{"../constants/pixi-scales.js":580,"./utils.js":572}],572:[function(require,module,exports){
+},{"../constants/pixi-scales.js":584,"./utils.js":574}],574:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.animateTo = animateTo;
-exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.isMobile = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
+exports.getAnimationByName = exports.createPersonSprite = exports.setCanvasBackground = exports.waitForSeconds = exports.screenSizeDetector = exports.getDateString = exports.isMobile = exports.lerp = exports.clamp = exports.px2uv = exports.uv2px = exports.spacingUtils = void 0;
 
 var _mq = _interopRequireDefault(require("browsernizr/lib/mq"));
 
-var _breakpoints = _interopRequireDefault(require("../constants/breakpoints.js"));
+var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
@@ -100002,13 +103243,13 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 var screenSizeDetector = function screenSizeDetector() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
 };
 
 exports.screenSizeDetector = screenSizeDetector;
 
 var isMobile = function isMobile() {
-  return (0, _mq["default"])(_breakpoints["default"].PHONE_LANDSCAPE);
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE);
 };
 
 exports.isMobile = isMobile;
@@ -100191,7 +103432,36 @@ var setCanvasBackground = function setCanvasBackground(_ref2) {
 
 exports.setCanvasBackground = setCanvasBackground;
 
-},{"../constants/breakpoints.js":573,"../game/gameSetup.js":582,"browsernizr/lib/mq":10}],573:[function(require,module,exports){
+var createPersonSprite = function createPersonSprite(color) {
+  var person = getPersonByColor(color);
+  return new PIXI.extras.AnimatedSprite(PIXI.loader.resources[person].spritesheet.animations['idle']);
+};
+
+exports.createPersonSprite = createPersonSprite;
+
+var getAnimationByName = function getAnimationByName(_ref3) {
+  var color = _ref3.color,
+      animName = _ref3.animName;
+  var person = getPersonByColor(color);
+  return PIXI.loader.resources[person].spritesheet.animations[animName];
+};
+
+exports.getAnimationByName = getAnimationByName;
+
+var getPersonByColor = function getPersonByColor(color) {
+  switch (color) {
+    case 'yellow':
+      return 'yellowPerson';
+
+    case 'blue':
+      return 'bluePerson';
+
+    default:
+      throw new Error("Invalid spritesheet requested, color '".concat(color, "' is invalid"));
+  }
+};
+
+},{"../constants/index.js":578,"../game/gameSetup.js":587,"browsernizr/lib/mq":10}],575:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100204,7 +103474,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],574:[function(require,module,exports){
+},{}],576:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100231,6 +103501,9 @@ var _default = {
   PERSON_CARD: 'PersonCard',
   DATASET_GRID_ITEM: 'DatasetGrid-item',
   FULLSCREEN_ICON_EXPANDED: 'FullscreenIcon--expanded',
+  VOLUME_ICON_OFF: 'VolumeIcon--off',
+  ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
+  HIRING_TASK_DONE: 'hiring-task-done',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -100238,7 +103511,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],575:[function(require,module,exports){
+},{}],577:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100271,11 +103544,114 @@ var _default = {
   CHANGE_SPOTLIGHT_STATUS: 'change-spotlight-status',
   MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
   UPDATE_INSTRUCTIONS: 'update-instructions',
-  EXIT_TRANSITION_STAGE: 'exit-transition-stage'
+  HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
+  EXIT_TRANSITION_STAGE: 'exit-transition-stage',
+  TITLE_STAGE_COMPLETED: 'title-stage-completed'
 };
 exports["default"] = _default;
 
-},{}],576:[function(require,module,exports){
+},{}],578:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+Object.defineProperty(exports, "BREAKPOINTS", {
+  enumerable: true,
+  get: function get() {
+    return _breakpoints["default"];
+  }
+});
+Object.defineProperty(exports, "CLASSES", {
+  enumerable: true,
+  get: function get() {
+    return _classes["default"];
+  }
+});
+Object.defineProperty(exports, "EVENTS", {
+  enumerable: true,
+  get: function get() {
+    return _events["default"];
+  }
+});
+Object.defineProperty(exports, "ANCHORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnchors["default"];
+  }
+});
+Object.defineProperty(exports, "ANIM", {
+  enumerable: true,
+  get: function get() {
+    return _pixiAnimations["default"];
+  }
+});
+Object.defineProperty(exports, "COLORS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiColors["default"];
+  }
+});
+Object.defineProperty(exports, "CONTAINERS", {
+  enumerable: true,
+  get: function get() {
+    return _pixiContainers["default"];
+  }
+});
+Object.defineProperty(exports, "SCALES", {
+  enumerable: true,
+  get: function get() {
+    return _pixiScales["default"];
+  }
+});
+Object.defineProperty(exports, "SOUNDS", {
+  enumerable: true,
+  get: function get() {
+    return _sounds.SOUNDS;
+  }
+});
+Object.defineProperty(exports, "SOUND_MANIFEST", {
+  enumerable: true,
+  get: function get() {
+    return _sounds.SOUND_MANIFEST;
+  }
+});
+Object.defineProperty(exports, "DEBUG_MODE", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.DEBUG_MODE;
+  }
+});
+Object.defineProperty(exports, "SILENT", {
+  enumerable: true,
+  get: function get() {
+    return _mlConstants.SILENT;
+  }
+});
+
+var _breakpoints = _interopRequireDefault(require("./breakpoints.js"));
+
+var _classes = _interopRequireDefault(require("./classes.js"));
+
+var _events = _interopRequireDefault(require("./events.js"));
+
+var _pixiAnchors = _interopRequireDefault(require("./pixi-anchors.js"));
+
+var _pixiAnimations = _interopRequireDefault(require("./pixi-animations.js"));
+
+var _pixiColors = _interopRequireDefault(require("./pixi-colors.js"));
+
+var _pixiContainers = _interopRequireDefault(require("./pixi-containers.js"));
+
+var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
+
+var _sounds = require("./sounds.js");
+
+var _mlConstants = require("./mlConstants.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+},{"./breakpoints.js":575,"./classes.js":576,"./events.js":577,"./mlConstants.js":579,"./pixi-anchors.js":580,"./pixi-animations.js":581,"./pixi-colors.js":582,"./pixi-containers.js":583,"./pixi-scales.js":584,"./sounds.js":585}],579:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100287,7 +103663,7 @@ exports.DEBUG_MODE = DEBUG_MODE;
 var SILENT = true;
 exports.SILENT = SILENT;
 
-},{}],577:[function(require,module,exports){
+},{}],580:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100312,7 +103688,23 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],578:[function(require,module,exports){
+},{}],581:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+var _default = {
+  BLUE_PERSON: 'blue-person',
+  YELLOW_PERSON: 'yellow-person',
+  DANGLE: 'dangle/dangle',
+  WALK_NEUTRAL: 'walk-neutral/walk-neutral',
+  IDLE: 'idle'
+};
+exports["default"] = _default;
+
+},{}],582:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100325,7 +103717,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],579:[function(require,module,exports){
+},{}],583:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100338,7 +103730,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],580:[function(require,module,exports){
+},{}],584:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100377,13 +103769,43 @@ var _default = {
     desktop: 0.5
   },
   PEOPLE: {
-    mobile: 0.15,
-    desktop: 0.2
+    mobile: 0.2,
+    desktop: 0.28
   }
 };
 exports["default"] = _default;
 
-},{}],581:[function(require,module,exports){
+},{}],585:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.SOUND_MANIFEST = exports.SOUNDS = void 0;
+var SOUNDS_DIR = './assets/sound';
+var SOUNDS = {
+  MANUAL_AMBIENT: 'manual-stage-ambient',
+  PERSON_ACCEPTED: 'person-accepted'
+};
+exports.SOUNDS = SOUNDS;
+var SOUND_MANIFEST = [{
+  name: SOUNDS.MANUAL_AMBIENT,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.MANUAL_AMBIENT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 0.3
+}, {
+  name: SOUNDS.PERSON_ACCEPTED,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.PERSON_ACCEPTED, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}];
+exports.SOUND_MANIFEST = SOUND_MANIFEST;
+
+},{}],586:[function(require,module,exports){
 "use strict";
 
 require("@babel/polyfill");
@@ -100394,13 +103816,17 @@ var _gameSetup = require("./gameSetup.js");
 
 var _stateManager = require("./stateManager.js");
 
-var _textures = require("../common/textures.js");
+var textures = _interopRequireWildcard(require("../common/textures.js"));
+
+var sound = _interopRequireWildcard(require("../game/sound.js"));
 
 var _choiceButton = _interopRequireDefault(require("../../components/interface/transition/choice-button/choice-button"));
 
 var _replica = _interopRequireDefault(require("../../components/interface/transition/replica/replica"));
 
 var _footer = _interopRequireDefault(require("../../components/interface/footer/footer"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100410,16 +103836,19 @@ var componentLoader = new _componentLoaderJs["default"]({
   Footer: _footer["default"]
 });
 document.getElementById('gameCanvas').appendChild(_gameSetup.pixiApp.view);
-(0, _textures.loadAssets)().then(function () {
-  console.log('Start game!!');
+sound.init();
+Promise.all([sound.load(), textures.loadAssets()]).then(function () {
+  console.log('assets have loaded start the game');
 
   _stateManager.gameFSM.startGame();
 
   componentLoader.scan();
   (0, _gameSetup.startTweenManager)();
+})["catch"](function (err) {
+  console.log(err);
 });
 
-},{"../../components/interface/footer/footer":537,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":571,"./gameSetup.js":582,"./stateManager.js":585,"@babel/polyfill":1,"component-loader-js":14}],582:[function(require,module,exports){
+},{"../../components/interface/footer/footer":538,"../../components/interface/transition/choice-button/choice-button":549,"../../components/interface/transition/replica/replica":550,"../common/textures.js":573,"../game/sound.js":590,"./gameSetup.js":587,"./stateManager.js":591,"@babel/polyfill":1,"component-loader-js":14}],587:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100498,7 +103927,7 @@ function resize() {
   eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
 }
 
-},{"../constants/events":575,"debounce":319,"pixi-tween":365,"pixi.js":481}],583:[function(require,module,exports){
+},{"../constants/events":577,"debounce":319,"pixi-tween":366,"pixi.js":482}],588:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100784,7 +104213,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":533,"../../components/interface/ml/dataset-view/dataset-view":539,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":572,"../constants/events.js":575,"../machine-learning/dataModule.js":586,"./gameSetup":582,"./gameSetup.js":582}],584:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":554,"../../components/interface/ui-task/ui-task":555,"../../components/pixi/manual-stage/door":559,"../../components/pixi/manual-stage/floor":560,"../../components/pixi/ml-stage/conveyor-belt":563,"../../components/pixi/ml-stage/data-server.js":564,"../../components/pixi/ml-stage/machine":565,"../../components/pixi/ml-stage/people.js":566,"../../components/pixi/ml-stage/resume-list":568,"../../components/pixi/ml-stage/scan-ray.js":570,"../common/utils.js":574,"../constants/events.js":577,"../machine-learning/dataModule.js":592,"./gameSetup":587,"./gameSetup.js":587}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100956,7 +104385,126 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/ml/info-tooltip/info-tooltip":541,"../../components/interface/ml/news-feed/news-feed.js":542,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":574,"../constants/events":575,"./gameSetup.js":582,"./mlLabAnimator.js":583,"./stateManager.js":585}],585:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":556,"../constants/classes":576,"../constants/events":577,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./stateManager.js":591}],590:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.loadSound = exports.play = exports.fadeOut = exports.stop = exports.toggleVolume = exports.load = exports.init = void 0;
+
+var _howler = require("howler");
+
+var _constants = require("../constants");
+
+var soundMuted = false;
+
+var init = function init() {
+  window.addEventListener('click', resumeAudioContext);
+};
+
+exports.init = init;
+
+var load = function load() {
+  return Promise.all(_constants.SOUND_MANIFEST.map(function (sound) {
+    return loadSound(sound.name);
+  }));
+};
+
+exports.load = load;
+
+var toggleVolume = function toggleVolume() {
+  soundMuted = !soundMuted;
+
+  _howler.Howler.mute(soundMuted);
+};
+
+exports.toggleVolume = toggleVolume;
+
+var resumeAudioContext = function resumeAudioContext() {
+  if (_howler.Howler.ctx !== null) {
+    _howler.Howler.ctx.resume();
+
+    if (_constants.DEBUG_MODE) {
+      console.log('mute sound so you do not go crazy'); // Howler.mute(true);
+    }
+  } else {
+    throw new Error('we did not find an audio context on Howler');
+  }
+
+  window.removeEventListener('click', resumeAudioContext);
+};
+
+var stop = function stop(name) {
+  var _findSoundByName = findSoundByName(name),
+      player = _findSoundByName.player,
+      playerID = _findSoundByName.playerID;
+
+  if (player && player.playing(playerID)) {
+    player.stop(playerID);
+  }
+};
+
+exports.stop = stop;
+
+var fadeOut = function fadeOut(name) {
+  var _findSoundByName2 = findSoundByName(name),
+      player = _findSoundByName2.player,
+      _findSoundByName2$vol = _findSoundByName2.volume,
+      volume = _findSoundByName2$vol === void 0 ? 1.0 : _findSoundByName2$vol,
+      playerID = _findSoundByName2.playerID;
+
+  if (player && player.playing(playerID)) {
+    player.fade(volume, 0.0, 1000, playerID);
+    setTimeout(function () {
+      return player.stop(playerID);
+    }, 1000);
+  }
+};
+
+exports.fadeOut = fadeOut;
+
+var play = function play(name) {
+  var sound = findSoundByName(name);
+  var player = sound.player;
+
+  if (player && !player.playing(sound.playerID)) {
+    sound.playerID = player.play();
+  }
+};
+
+exports.play = play;
+
+var loadSound = function loadSound(name) {
+  return new Promise(function (resolve, reject) {
+    var sound = findSoundByName(name);
+
+    if (sound) {
+      var player = new _howler.Howl({
+        src: [sound.path],
+        loop: sound.loop,
+        volume: sound.volume || 1.0
+      });
+      player.once('load', function () {
+        sound.player = player;
+        resolve();
+      });
+      player.on('loaderror', reject);
+    } else {
+      throw new Error("sound ".concat(name, " is not in the file list!"));
+    }
+  });
+};
+
+exports.loadSound = loadSound;
+
+var findSoundByName = function findSoundByName(name) {
+  return _constants.SOUND_MANIFEST.find(function (sound) {
+    return sound.name === name;
+  });
+};
+
+},{"../constants":578,"howler":333}],591:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101030,31 +104578,8 @@ var gameFSM = new machina.Fsm({
           show: true
         });
 
-        _gameSetup.eventEmitter.on('first-start-button-clicked', function () {
+        _gameSetup.eventEmitter.on(_events["default"].TITLE_STAGE_COMPLETED, function () {
           _this.handle('nextStage');
-        });
-      },
-      nextStage: 'tutorialStage',
-      _onExit: function _onExit() {}
-    },
-
-    /* ///////////////////
-    // Tutorial stage
-    */
-    // /////////////////
-    tutorialStage: {
-      _onEnter: function _onEnter() {
-        var _this2 = this;
-
-        titlePageUI.updateContent({
-          headerText: txt.tutorialStage.header,
-          content: txt.tutorialStage.instruction,
-          responses: txt.tutorialStage.responses,
-          show: true
-        });
-
-        _gameSetup.eventEmitter.on('second-start-button-clicked', function () {
-          _this2.handle('nextStage');
         });
       },
       nextStage: 'smallOfficeStage',
@@ -101069,6 +104594,7 @@ var gameFSM = new machina.Fsm({
       _onEnter: function _onEnter() {
         currentStage = 0;
         new _uiTextbox["default"]({
+          subject: txt.smallOfficeStage.subject,
           content: txt.smallOfficeStage.messageFromVc,
           responses: txt.smallOfficeStage.responses,
           show: true,
@@ -101090,6 +104616,7 @@ var gameFSM = new machina.Fsm({
         currentStage = 1;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.mediumOfficeStage.subject,
           content: txt.mediumOfficeStage.messageFromVc,
           responses: txt.mediumOfficeStage.responses,
           show: true,
@@ -101110,6 +104637,7 @@ var gameFSM = new machina.Fsm({
         currentStage = 2;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.largeOfficeStage.subject,
           content: txt.largeOfficeStage.messageFromVc,
           responses: txt.largeOfficeStage.responses,
           show: true,
@@ -101126,12 +104654,13 @@ var gameFSM = new machina.Fsm({
         currentStage = 3;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
+          subject: txt.mlTransition.subject,
           content: txt.mlTransition.messageFromVc,
           responses: txt.mlTransition.responses,
           show: true,
           overlay: true,
           isTransition: true,
-          displayScore: true
+          displayScore: false
         });
 
         _gameSetup.eventEmitter.on(_events["default"].TRANSITION_INSTRUCTION_ACKED, function () {
@@ -101188,7 +104717,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":540,"../../components/interface/perf-metrics/perf-metrics":546,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":575,"./gameSetup.js":582,"./mlLabNarrator":584,"machina":337}],586:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/perf-metrics/perf-metrics":547,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title":557,"../../components/pixi/manual-stage/office.js":561,"../constants/events":577,"./gameSetup.js":587,"./mlLabNarrator":589,"machina":338}],592:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101284,17 +104813,17 @@ function () {
       });
       var candidateAverage = this.getAverageScore({
         indexRange: [0, this.lastIndex]
-      }); //currently displaying only the skill with max difference from the average i.e. most prioritized feature
+      });
 
       var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
-        return "You hired people with ".concat(maxDiff, "% more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
+        return "You hired people with ".concat(maxDiff > 10 ? "<u>".concat(maxDiff, "%</u>") : '', " more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
       };
 
       var diff = [];
       hiredAverage.forEach(function (score, idx) {
         diff.push(parseFloat(((score - candidateAverage[idx]) * 10).toFixed(1)));
       });
-      var maxDiff = Math.max.apply(Math, diff);
+      var maxDiff = Math.round(Math.max.apply(Math, diff));
 
       var maxDiffFeature = _cvCollection.cvCollection.cvFeatures[diff.indexOf(Math.max.apply(Math, diff))].name;
 
@@ -101433,7 +104962,7 @@ function () {
 var dataModule = new DataModule();
 exports.dataModule = dataModule;
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting":587,"./modelTraining.js":588}],587:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting":593,"./modelTraining.js":594}],593:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101594,7 +105123,7 @@ var round = function round(num) {
   return Math.round(num * 100) / 100;
 };
 
-},{"../../assets/text/badCvTestData.json":532,"../../assets/text/cvCollection.js":533,"../../assets/text/equalCvTestData.json":535,"../../assets/text/goodCvTestData.json":536,"../constants/mlConstants.js":576,"./modelTraining.js":588}],588:[function(require,module,exports){
+},{"../../assets/text/badCvTestData.json":533,"../../assets/text/cvCollection.js":534,"../../assets/text/equalCvTestData.json":536,"../../assets/text/goodCvTestData.json":537,"../constants/mlConstants.js":579,"./modelTraining.js":594}],594:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101821,6 +105350,6 @@ var _shuffle = function _shuffle(b) {
   return a;
 };
 
-},{"../../assets/text/cvCollection.js":533,"../constants/mlConstants.js":576,"./modelTesting.js":587,"ml-cart":343}]},{},[581])
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting.js":593,"ml-cart":344}]},{},[586])
 
 //# sourceMappingURL=bundle-game.js.map

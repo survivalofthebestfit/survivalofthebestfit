@@ -42,13 +42,15 @@ const english = {
     },
 
     smallOfficeStage: {
-        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute. Hiring good talent is a war these days...keep us updated.',
+        subject: 'CONGRATULATIONS!',
+        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute and hire good talent!',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
 
     mediumOfficeStage: {
-        messageFromVc: 'Good progress, but you aren\'t growing quickly enough. Hire more aggressively to meet the new goal if you want more funding.',
+        subject: 'Good start',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire more and faster, so pay attention to the clock!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
@@ -60,23 +62,25 @@ const english = {
     },
 
     largeOfficeStage: {
-        messageFromVc: 'Good job but you need to expand the team faster to meet your targets! Can you pull this off?',
+        subject: 'We have to hire faster!',
+        messageFromVc: 'Good effort, but you need to expand the team even faster to meet your targets! Can you pull this off?',
         responses: [
-            'Of course I can.',
-            'I am a little overwhelmed.',
+            'Of course!',
+            'I\'m a bit overwhelmed.',
         ],
-        hiringGoal: 10,
+        hiringGoal: 8,
         retryMessage: 'You ran out of time. The progress is not good enough. Try again.',
         retryResponses: ['I will grow aggressively this time.'],
-        duration: 60
+        duration: 45
 
     },
 
     mlTransition: {
-        messageFromVc: 'Talk to your engineers. Maybe they have a smart way to hire faster.',
+        subject: 'Switching to a hiring algorithm?',
+        messageFromVc: 'Solid work, but we keep receiving new applications and I don\'t think we can keep up... Talk to your engineers, maybe they can help us hire faster?',
         responses: [
-            'Oh yeah, they are smart.',
-            'Hmm. Would they?',
+            'Sure, perhaps we can automate things',
+            'Hmm. How could they help?',
         ],
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
@@ -100,10 +104,10 @@ const english = {
         },
         {
             dialogue_step: 2,
-            text: 'We’ll first train the algorithm. This means that it will read through past applicants’ CVs and their outcome. It will try to learn what makes a candidate good or bad. Since we train on data created by you, the algorithm is technically just copying your decisions.',
+            text: 'First, the algorithm will read through past applicants\' CVs and their outcomes. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decisions</u>!',
             answer_choice: [
                 {
-                    text: 'The machine thinks?',
+                    text: 'A machine will think like me??',
                     response: 'Thinking is a strong word.',
                 },
                 {
@@ -114,7 +118,7 @@ const english = {
         },
         {
             dialogue_step: 3,
-            text: 'It’s impossible for the program to know good or bad candidates without any human input - we first need to give it a *lot of data* to read and learn from.',
+            text: 'It’s impossible for the program to know good or bad candidates without human input - we first need to give it <u>a lot of data</u> to read and learn from.',
             answer_choice: [
                 {
                     text: 'Where do we get the data?',
@@ -128,13 +132,13 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far, along with the outcome? It should be on your desktop as (‘cv_all.zip’)',
+            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <u><i>cv_all.zip</i></u>',
             file_drag: true,
             answer_choice: [],
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n Choose a company below that you want to hire like and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
