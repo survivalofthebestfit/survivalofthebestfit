@@ -76,8 +76,8 @@ const english = {
     },
 
     mlTransition: {
-        subject: 'Switching to a hiring algorithm',
-        messageFromVc: 'Solid work, but we keep getting flooded with new applications and I don\'t think we can keep up anymore. Talk to your engineers, maybe they can help us hire faster.',
+        subject: 'Switching to a hiring algorithm?',
+        messageFromVc: 'Solid work, but we keep receiving new applications and I don\'t think we can keep up... Talk to your engineers, maybe they can help us hire faster?',
         responses: [
             'Sure, perhaps we can automate things',
             'Hmm. How could they help?',
@@ -104,10 +104,10 @@ const english = {
         },
         {
             dialogue_step: 2,
-            text: 'We’ll first train the algorithm. This means that it will read through past applicants’ CVs and their outcome. It will try to learn what makes a candidate good or bad. Since we train on data created by you, the algorithm is technically just copying your decisions.',
+            text: 'First, the algorithm will read through past applicants\' CVs and their outcomes. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decisions</u>!',
             answer_choice: [
                 {
-                    text: 'The machine thinks?',
+                    text: 'A machine will think like me??',
                     response: 'Thinking is a strong word.',
                 },
                 {
@@ -118,7 +118,7 @@ const english = {
         },
         {
             dialogue_step: 3,
-            text: 'It’s impossible for the program to know good or bad candidates without any human input - we first need to give it a *lot of data* to read and learn from.',
+            text: 'It’s impossible for the program to know good or bad candidates without human input - we first need to give it <u>a lot of data</u> to read and learn from.',
             answer_choice: [
                 {
                     text: 'Where do we get the data?',
@@ -132,13 +132,13 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far, along with the outcome? It should be on your desktop as (<u>cv_all.zip</u>)',
+            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <u><i>cv_all.zip</i></u>',
             file_drag: true,
             answer_choice: [],
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n Choose a company below that you want to hire like and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
             dataset_choice: true,
             answer_choice: [
                 'Google',

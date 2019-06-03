@@ -2,7 +2,7 @@ mixin replica(index, replica, totalSteps)
   div(class=index === 0 ? '' : 'is-inactive', class="replica replica--"+index, data-step=index, data-file_drag=replica.file_drag, data-dataset_choice=replica.dataset_choice,  data-component="Replica")
     div(class="replica__typeIcon is-inactive")
     div(class="replica__content is-inactive")
-      p(class="replica__paragraph") #{replica.text}
+      p(class="replica__paragraph")!=replica.text
       div(class="replica__buttons")
         if replica.file_drag
           p(class="replica__send-instructions") Click cv_all.zip to send data
