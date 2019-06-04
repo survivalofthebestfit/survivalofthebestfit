@@ -1,9 +1,72 @@
 include ../../ui-overlay/ui-overlay.pug
+include ../../../universal/button/button
+script(src='../scripts-website.min.js')
 +overlay()(id="js-endgame-overlay" class="EndgameOverlay")
-  .EndgameOverlay__text
-    h1 So, what went wrong?
-    br
-    p Get a breakdown of the game
-    br
-    include ../../../universal/button/button
-    +button('Understand').EndgameOverlay__button
+		
+	.NewsFeed(style="height: 1.6rem;")#news-feed.js-news-feed.is-active
+		div.NewsFeed__title NewsFeed
+			div.NewsList
+	.conversationBox
+	
+		#part1
+			h3 Taking A Step Back
+			img(src='assets/img/manual-hiring-01.png', style="width: 60%; margin-left: 0%; margin-right: auto; clear: right; margin-top: 3%;")
+
+			p As a recruiter, which of these attributes did you value the most?
+
+			.button-overlay
+				p Education
+
+			.button-overlay(style="margin-left: 1%")
+				p Experience
+
+			.button-overlay(style="margin-left: 1%")
+				p Ambition
+
+			.button-overlay(style="margin-left: 1%; clear: right")
+				p Skills
+
+
+			//+button('Edblaon').EndgameOverlay__button
+			//+button('Experience').EndgameOverlay__button
+			//+button('Ambition').EndgameOverlay__button
+			//+button('Skills').EndgameOverlay__button
+
+		#part2
+
+			p(style="float: left") Our data says you valued [ATTRIBUTE] the most - intentionally or unintentionally. Hiring is subjective, and can also often invoke biases and stereotypes; something many people are aware of. Maybe machines can fix that?
+
+			.button-overlay(onClick="next1()" style="height: 1.2rem; width: 8rem; color: white; background-color: black;")
+				p(style="font-size: 1.2rem") NEXT
+
+			
+		#part3
+				
+			h3 Training the Algorithm
+
+			p Your data alone wasn't enough to train the algorithm. Machine learning only works when the machine is learning from large amounts of data! The probem is, these historical datasets can have all sorts of inequalities built in. 
+
+			img(src='assets/img/processing.png', style="width: 60%; margin-left: 0%; margin-right: auto; clear: right; margin-top: 3%;")
+
+			p In this case, it largely consisted of applicants from Bluetown, where more people historically worked in tech. In the real world, this could mean your data reflects a history of injustice, favoring a certain race, gender, socio-economic background. 
+
+			p What if you ask your algorithm to disregard looking at these differentiators?
+
+			.button(onClick="next2()" style="height: 1.2rem; width: 8rem; color: white; background-color: black;")
+				p(style="font-size: 1.2rem; color: white") NEXT
+
+			
+		#part4
+
+			h3 Behind the Code
+
+			p There is no on-off switch to ask automated decision-making programs to do the right thing. In hiring, for example, the data isn't just categorized by race or gender. It also represents the colleges, societies, and organizations certain demographics were allowed to be a part of.
+
+			img(src='assets/img/automated-hiring-01.png', style="width: 60%; margin-left: 0%; margin-right: auto; clear: right; margin-top: 3%;")
+
+			p When a program learns from years of data, we need to question the data it is learning from. This is a complicated matter, that requires expertise beyond software development, and an awareness that just because a decision is presented as 'automated' doesn't mean it's right or objective.
+
+			p For more information, visit our resources section! 
+
+			.button-overlay(onClick="next2()" style="height: 1.2rem; width: 8rem; color: white; background-color: black;")
+					p GO TO WEBSITE

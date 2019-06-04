@@ -78,6 +78,7 @@ function css() {
         .pipe(browsersync.stream());
 }
 
+
 // JS, browserify, babel, etc...
 function compileJs(done, watchFlag) {
     let bundler = browserify('public/game/controllers/game/gameEntry.js', {debug: true}).transform(babel);
@@ -124,6 +125,7 @@ function watchFiles() {
     gulp.watch('./public/game/assets/**/*', browserSyncReload).on('add', function(path, stats) {
         console.log(`File ${path} was added`);
     });
+
     compileJs(undefined, true);
 }
 
