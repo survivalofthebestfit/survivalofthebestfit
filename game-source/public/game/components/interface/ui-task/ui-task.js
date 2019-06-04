@@ -47,12 +47,10 @@ export default class extends UIBase {
         this.writeTime();
     }
 
-    _addEventListeners() {
-        eventEmitter.on(EVENTS.ACCEPTED, () => {
-            this.hiresNum += 1;
-            this.updateCounter();
-        });
-    };
+    increaseCounter() {
+        this.hiresNum += 1;
+        this.updateCounter();
+    }
 
     updateCounter() {
         const peopleToHire = this.hiresQuota - this.hiresNum;
@@ -116,8 +114,12 @@ export default class extends UIBase {
         this.timer.start();
     }
 
+    _addEventListeners() {
+        eventEmitter.on(EVENTS.ACCEPTED, this.increaseCounter, this);
+    };
+
     _removeEventListeners() {
-        eventEmitter.off(EVENTS.ACCEPTED, () => {});
+        eventEmitter.off(EVENTS.ACCEPTED, this.increaseCounter, this);
     }
 
     show() {
@@ -135,8 +137,8 @@ export default class extends UIBase {
 
     destroy() {
         super.dispose();
-        this.hide();
         this._removeEventListeners();
+        this.hide();
         this.$timer.addClass(CLASSES.IS_INACTIVE);
     }
 }

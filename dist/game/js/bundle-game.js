@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.9' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -100503,15 +100503,10 @@ function (_UIBase) {
       this.writeTime();
     }
   }, {
-    key: "_addEventListeners",
-    value: function _addEventListeners() {
-      var _this2 = this;
-
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, function () {
-        _this2.hiresNum += 1;
-
-        _this2.updateCounter();
-      });
+    key: "increaseCounter",
+    value: function increaseCounter() {
+      this.hiresNum += 1;
+      this.updateCounter();
     }
   }, {
     key: "updateCounter",
@@ -100575,13 +100570,13 @@ function (_UIBase) {
   }, {
     key: "startTimer",
     value: function startTimer() {
-      var _this3 = this;
+      var _this2 = this;
 
       if (this._duration === undefined) {
         throw new Error('the timer does not have a defined duration');
       } else {
         this.timer.add(function () {
-          _this3.updateTimer(_this3.timer.elapsedMS);
+          _this2.updateTimer(_this2.timer.elapsedMS);
         });
       }
     }
@@ -100595,9 +100590,14 @@ function (_UIBase) {
       this.timer.start();
     }
   }, {
+    key: "_addEventListeners",
+    value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.increaseCounter, this);
+    }
+  }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, function () {});
+      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.increaseCounter, this);
     }
   }, {
     key: "show",
@@ -100617,10 +100617,9 @@ function (_UIBase) {
     value: function destroy() {
       _get(_getPrototypeOf(_default.prototype), "dispose", this).call(this);
 
-      this.hide();
-
       this._removeEventListeners();
 
+      this.hide();
       this.$timer.addClass(_classes["default"].IS_INACTIVE);
     }
   }]);
