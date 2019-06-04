@@ -8,6 +8,19 @@
   justify-content: center;
   align-items: center;
 
+  .button {
+    width: 5rem; 
+    height: 1rem; 
+    float: left;
+    margin-bottom: 3%;
+
+    p {
+    font-size: 1.0rem;
+    }
+  }
+
+
+
   &__buttonContainer {
     display: flex;
   }
@@ -53,14 +66,4 @@ h3 {
 
 }
 
- .button-overlay {
-    width: 5rem; 
-    height: 1rem; 
-    float: left;
-    margin-bottom: 3%;
-
-    p {
-    font-size: 1.0rem;
-    }
-  }
-
+ 
