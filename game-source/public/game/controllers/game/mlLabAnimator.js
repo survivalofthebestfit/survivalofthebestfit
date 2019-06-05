@@ -65,6 +65,10 @@ export default class MlLabAnimator {
         this.rejectedCount = 0;
     }
 
+    chooseCandidateToInspect() {
+        return this.people.chooseCandidateToInspect();
+    }
+
     _setupTweens() {
         this.resumeLineTween = this.resumeLine.createTween();
         this.machineRayTween = this.machineRay.getSprite();
@@ -147,6 +151,9 @@ export default class MlLabAnimator {
             this.door.playAnimation({direction: 'forward'});
         } else {
             eventEmitter.emit(EVENTS.REJECTED, this.rejectedCount++);
+            const person = this.people.getFirstPerson();
+            console.log("rejected id: " + person.id);
+            dataModule.recordMLReject(person.id);
             this.dataServers[0].updateServerCounter(this.rejectedCount);
         };
         
