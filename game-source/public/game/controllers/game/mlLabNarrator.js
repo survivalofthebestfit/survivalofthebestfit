@@ -3,12 +3,12 @@ import EVENTS from '~/public/game/controllers/constants/events';
 import CLASSES from '~/public/game/controllers/constants/classes';
 import TextboxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import InfoTooltip from '~/public/game/components/interface/ml/info-tooltip/info-tooltip';
-import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 
 import NewsFeedUI from '~/public/game/components/interface/ml/news-feed/news-feed.js';
 import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
+import { dataModule } from '~/public/game/controllers/machine-learning/dataModule';
 
 export default class MlLabNarrator {
     constructor() {
@@ -52,6 +52,13 @@ export default class MlLabNarrator {
         if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
         let callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
+
+        if (msg.hasOwnProperty('inspect')) {
+
+            let toInspectId = this.animator.chooseCandidateToInspect();
+            let toInspectName = dataModule.getNameForPersonId(toInspectId);
+            msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>"+toInspectName+"</u>");
+        };
         
         this.animator.pauseAnimation();
         this.newsFeed.stop();
