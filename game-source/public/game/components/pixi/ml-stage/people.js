@@ -91,7 +91,8 @@ export default class {
         let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
           
         let result = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" );
-
-        return result || this.mlLabRejected[this.mlLabRejected.length - 1];
+        
+        // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
+        return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
     }
 }

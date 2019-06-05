@@ -57,6 +57,7 @@ export default class MlLabNarrator {
 
             let toInspectId = this.animator.chooseCandidateToInspect();
             let toInspectName = dataModule.getNameForPersonId(toInspectId);
+            
             msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>"+toInspectName+"</u>");
         };
         

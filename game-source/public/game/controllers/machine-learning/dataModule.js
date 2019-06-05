@@ -101,15 +101,6 @@ class DataModule {
         if (DEBUG_MODE) {
             console.log('\n%c SEND SCREENSHOT OF BELOW OUTPUT IF MACHINE DECISIONS ARE WRONG \n IF YOU DON\'T WANT LOGS, SEARCH FOR VARIABLE "DEBUG_MODE" => SET TO 0', 'background: #222; color: #bada55'); 
             testInputData();
-            console.log('\nTraining model - user decisions - all features');
-        }
-        
-        // build user model and test it
-        this.clf = buildUserModel(this.accepted, this.rejected);
-        
-        if (testClf(this.clf)) {
-            gtag('event', 'test-userdecision-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
-            return;
         }
 
         // build fake data model with extracted user feature preferences
