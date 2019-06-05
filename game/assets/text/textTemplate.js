@@ -5,7 +5,7 @@ const english = {
         subtitle: 'How AI hires like humans',
     },
     about: {
-        aboutBody: 'Survival of the Best Fit is a game to demonstrates how careless use of AI in hiring further perpetuates existing human bias. In this simulation, the users will play the role of recruiters at a fast-growth company. To reduce costs and maximize output, they would use a new, obscure AI system to replace human recruiters, only to realize that this creates a snowball of problems.\nThis is a project by Gabor Csapo, Jihyun Kim, Miha Klasinc, and Alia ElKattan',
+        aboutBody: 'Survival of the Best Fit is a game to demonstrate how blind use of AI in hiring can further perpetuate human bias. In this simulation, users will act as recruiters at a fast-growing company. To reduce costs and maximize output, they would use a new, obscure AI system to replace human recruiters, only to realize that this creates a snowball of problems.\nThis is a project by Gabor Csapo, Jihyun Kim, Miha Klasinc, and Alia ElKattan',
     },
 
     //resources page
@@ -19,22 +19,22 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured funding to turn your startup idea into reality. Are you ready to grow your new company, Bestfit Technologies?',
+        instruction: 'Congratulations! You just secured 1 million dollars to turn your startup idea into reality. Are you ready to grow your new company, Bestfit?',
         responses: [
             'Start Game',
         ],
     },
     tutorialStage: {
         header: 'Tutorial',
-        instruction: 'As the CEO, your goal is to hire the best and brightest talent to help your startup grow. You can select a candidate to view their CV, then decide whether to accept or reject them. Try to meet your hiring goals for each stage to make your investors happy!',
+        instruction: 'As the CEO of Bestfit, your goal is to hire the best and brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
         responses: [
             'Got it',
         ],
     },
     instructions: {
         manual: {
-            click: 'Click the candidates to see their CVs',
-            eval: 'Hire or reject candidates based on their profiles',
+            click: 'Click on candidates to see their CVs',
+            eval: 'Click Hire or reject each candidate. Reject to see more new applicants.',
         },
         ml: {
 
@@ -42,37 +42,46 @@ const english = {
     },
 
     smallOfficeStage: {
-        messageFromVc: 'Congrats again on your latest investment. Now\'s time to execute the idea. Hire the best people, as quickly as you can. Hiring good talent is a war these days... keep us updated. ',
+        subject: 'CONGRATULATIONS!',
+        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute and hire good talent!',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
-        taskDescription: 'Task: Hire 3 new employees',
     },
 
     mediumOfficeStage: {
-        messageFromVc: 'Good progress, but you just aren\'t growing quickly enough. You need to hire more aggressively to outgrow your competitors. Try to meet the new hiring goals if you want better funding... ',
+        subject: 'Good start',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire more and faster, so pay attention to the clock!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
         ],
         hiringGoal: 5,
-        taskDescription: 'Task: Hire 5 new employees in 1 minute',
-        retryMessage: 'You ran out of time. There\'s a board meeting next month - try again to meet your targets. You have to hire faster.',
-        retryResponses: ['I will hire faster this time.'],
+        retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a team by then!',
+        retryResponses: ['I will this time.'],
         duration: 30
     },
 
     largeOfficeStage: {
-        messageFromVc: 'Good job on growing to 8 people. But there is still a long way to go and that\'s why you need to expand the team faster so that you don\'t drown in work and competition. Can you pull this off or not?',
+        subject: 'We have to hire faster!',
+        messageFromVc: 'Good effort, but you need to expand the team even faster to meet your targets! Can you pull this off?',
         responses: [
-            'Of course I can.',
-            'I am a little overwhelmed.',
+            'Of course!',
+            'I\'m a bit overwhelmed.',
         ],
-        hiringGoal: 10,
-        taskDescription: 'Task: Hire 10 new employees in 1 minute',
-        retryMessage: 'You ran out of time. The progress is not good enough. Hire faster to outrun your competitors. Try again.',
+        hiringGoal: 8,
+        retryMessage: 'You ran out of time. The progress is not good enough. Try again.',
         retryResponses: ['I will grow aggressively this time.'],
-        duration: 60
+        duration: 45
 
+    },
+
+    mlTransition: {
+        subject: 'Switching to a hiring algorithm?',
+        messageFromVc: 'Solid work, but we keep receiving new applications and I don\'t think we can keep up... Talk to your engineers, maybe they can help us hire faster?',
+        responses: [
+            'Sure, perhaps we can automate things',
+            'Hmm. How could they help?',
+        ],
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
 
@@ -80,7 +89,7 @@ const english = {
     conversation: [
         {
             dialogue_step: 1,
-            text: 'We’re working on a hiring algorithm that uses machine learning. Basically, we will teach a computer program to hire just as you would, but at a faster pace!',
+            text: 'You asked us how we can hire faster. So we built a hiring algorithm using machine learning. Basically, we will teach a computer to hire like you, but way faster!',
             answer_choice: [
                 {
                     text: 'How does that work?',
@@ -89,17 +98,16 @@ const english = {
                 {
                     text: 'That\'s great.',
                     response: 'Perfect! ',
-                    //  response: 'The algorithm will analyze a lot of CV samples (the CVs of all the people working at this company!) and try to figure out how a successful employee looks like - in numbers! ',
 
                 },
             ],
         },
         {
             dialogue_step: 2,
-            text: 'The algorithm will analyze a lot of past job applications, both successful and unsuccessful, and use that to figure out how a good job applicant looks like - in numbers!',
+            text: 'First, the algorithm will read through past applicants\' CVs and their outcomes. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decisions</u>!',
             answer_choice: [
                 {
-                    text: 'How will you make a machine think?',
+                    text: 'A machine will think like me??',
                     response: 'Thinking is a strong word.',
                 },
                 {
@@ -110,7 +118,7 @@ const english = {
         },
         {
             dialogue_step: 3,
-            text: 'It’s impossible for the program to recognize good and bad candidates without any human input - we first need to give it a *lot of data* to learn from.',
+            text: 'It’s impossible for the program to know good or bad candidates without human input - we first need to give it <u>a lot of data</u> to read and learn from.',
             answer_choice: [
                 {
                     text: 'Where do we get the data?',
@@ -124,67 +132,45 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help with this part: could you send me the CVs of all the candidates (‘cv_all.zip’) you’ve evaluated so far? It should be somewhere on your desktop',
+            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <u><i>cv_all.zip</i></u>',
             file_drag: true,
             answer_choice: [],
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! To build a reliable hiring program we need a bigger dataset than this, so here’s what we’ll do: big tech companies have massive job applicant databases, so we can just merge our CVs with the data of a tech company with similar values! \n Choose a company below that best aligns with our hiring vision, and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
                 'Amazon',
-                'Apple',
+                'Facebook',
             ],
         },
         {
             dialogue_step: 6,
-            text: 'That\s it! We can now train the algorithm with the data and then put it to use!',
+            text: 'That\s it! We can now train the algorithm with your data and put it to use!',
             answer_choice: [
                 {
-                    text: 'Great, let\'s train the algorithm!',
+                    text: 'Great, let\'s train it!',
                 },
             ],
         },
     ],
 
-    // conversation: [ { dialogue_step: 1, text: 'We’re working on a new hiring
-    // program, and the software team wants to use machine learning. It’s a
-    // great solution, because it allows us to teach the automated software to
-    // hire just as our HR team would, but at a much faster pace...',
-    // answer_choice: [ { text: 'How does that work?', response: 'The algorithm
-    // will analyze a lot of CV samples (the CVs of all the people working at
-    // this company!) and try to figure out how a successful employee looks like
-    // - in numbers! ', }, { text: 'Sure, that\'s fine.', //  response: 'Great!
-    // ', response: 'The algorithm will analyze a lot of CV samples (the CVs of
-    // all the people working at this company!) and try to figure out how a
-    // successful employee looks like - in numbers! ', // }, ], }, {
-    // dialogue_step: 2, text: 'And here’s the cool part: most of the CVs fed to
-    // the algorithm are of the people you hired - so the program I wrote will
-    // essentially try to replicate your hiring strategy!', answer_choice: [ {
-    // text: 'The program will think the way I do??', response: 'Thinking is a
-    // strong word, the program is not even close to thinking, it’s just really
-    // good at finding patterns in the data I give to it.', }, { text: 'Sounds
-    // too good to be true.', response: 'That’s why machine learning is getting
-    // so much hype these days!', }, ], }, { dialogue_step: 3, text: 'What
-    // matters is that the hiring algorithm will hire people just like you
-    // would, but at a much faster pace! Your role now is to sit back and
-    // supervise the algorithm.', answer_choice: [ { text: 'OK', }, ], }, ],
     mlLabStage: {
         onboarding: [
             {
-                text: "People’s CVs are now scanned and evaluated by a computer program"
+                text: "People’s CVs are now scanned and evaluated by a computer"
             },
             {
-                text: "People’s CVs are now scanned and evaluated by a computer program"
+                text: "People’s CVs are now scanned and evaluated by a computer"
             },
             {
                 text: "The machine scans each CV and either accepts or rejects the candidate"
             },
             {
-                text: "Candidates are informed about their status immediately after the machine makes its decision"
-            }, 
+                text: "Candidates are informed immediately after the machine makes its decision"
+            },
             {
                 text: "Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!"
             }
@@ -193,64 +179,66 @@ const english = {
 
         narration: [
             {
-                delay: 1,
+                delay: 2,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
-                    'Diplomatic or aggressive? Different ways to describe blue people traits',
+                    'Diplomatic or aggressive? Different ways to describe blue people',
                 ],
             },
             {
-                delay: 3,
-                messageFromVc: 'We’ve been able to both hire at 10x our past rate and cut down costs! Great job, this seems to be working!',
+                delay: 5,
+                messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working!',
                 responses: [
                     'Great to hear!',
                 ],
                 news: [
-                    'Yellowville Review: Does the future of hiring lie in algorithms?',
+                    'Yellowville Review: Does the future of hiring lie in AI?',
                     'Tech Junkies: Hiring algorithms are the next big thing',
                 ],
             },
             {
-                delay: 6,
-                messageFromVc: 'Hello, I just got a complaint from a past applicant who’s looking for feedback on why she was rejected. Can you look into it and let me know?',
+                delay: 8,
+                messageFromVc: 'Hi, I just got a complaint from a past applicant asking why she was rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'Decisions have been made in a “black box”. Machine is unable to track back specific reasons.',
+                    text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
                 },
             },
             {
-                delay: 12,
-                messageFromVc: 'Hello, just checking in on the hiring process so far. Can you look into the decisions it’s made?',
+                delay: 11,
+                messageFromVc: 'Hello, just checking in on the progress so far. How are the hiring decisions looking?',
                 responses: [
-                    'Sure, I can do that!',
+                    'Let me take a look',
+                    'Looking great!',
                 ],
             },
             {
-                delay: 16,
-                messageFromVc: 'Hey, some reporters have been talking about bias in recruitment, but I guess we’re off the hook since we’ve switched to automated hiring anyway! Is that right?',
+                delay: 14,
+                messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
-                    'Yes, we dodged that bullet.',
-                    'Not sure, I’ll look into it.',
+                    'Yes, machine can’t be biased.',
+                    'Not sure, let’s see.',
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged in context of previous CVs, replicating historical trends',
+                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data',
                 },
                 news: [
-                    'Techountability: Research shows hiring algorithms may be biased towards minorities',
+                    'Techountability: Research shows hiring algorithms may be biased against minorities',
                     'Tech Junkies: How do hiring algorithms work?',
                 ],
             },
             {
-                delay: 20,
-                messageFromVc: 'I’m hearing that we may be involved with this bias story, and reporters are asking us to make our process more transparent. Could you double check our evaluation metrics to see if we can go public?',
+                delay: 17,
+                messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
+                    'Um, actually...',
                 ],
                 tooltip: {
                     parent: 'scanray',
@@ -262,10 +250,10 @@ const english = {
                 ],
             },
             {
-                delay: 24,
-                messageFromVc: 'Hey, we are all over the news for biased hiring, all the investors are pulling out! We have to turn this story around, so I\'m sending you to AI debiasing seminar in Blueville. Think of it as paid vacation.',
+                delay: 20,
+                messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
-                    'Start learning about bias',
+                    'Start learning about AI and bias',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
@@ -275,6 +263,26 @@ const english = {
             },
         ],
     },
+    selfPromoMessages: [
+        'Hire me!',
+        'I\'m the best',
+        'Help me support my family!',
+        'I\'m an expert!',
+        'Help me pay off my student loan!',
+        'I desperately need a job!',
+        'Choose me!',
+        'I\'m a nice person!',
+        'I am ambitious',
+        'This is the startup with potential',
+        'You seem like a great CEO',
+        'I want to work for you',
+        'I am great with people',
+        'I can do better than these people',
+        'I am a fast learner!',
+        'Why wouldn\'t you hire me?',
+        'I have two kids',
+        'I was the smartest in my class'
+    ]
 };
 
 const language = 'hungarian';
@@ -297,12 +305,12 @@ function setLang(dictionary) {
 }
 
 switch (language) {
-case 'english':
-    setLang(english);
-    break;
-case 'arabic':
-    setLang(null);
-    break;
-default:
-    setLang(english);
+    case 'english':
+        setLang(english);
+        break;
+    case 'arabic':
+        setLang(null);
+        break;
+    default:
+        setLang(english);
 }
