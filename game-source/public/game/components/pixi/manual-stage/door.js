@@ -1,8 +1,6 @@
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
-import ANCHORS from '~/public/game/controllers/constants/pixi-anchors';
-import EVENTS from '~/public/game/controllers/constants/events.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
+import {ANCHORS, EVENTS, SCALES} from '~/public/game/controllers/constants';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {screenSizeDetector, uv2px, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 
@@ -21,6 +19,7 @@ export default class {
 
     addToPixi(parentContainer = mlLabStageContainer) {
         this.sprite = SPRITES[this.doorType];
+        console.log(this.sprite);
         this.sprite.name = this.doorType;
         this.sprite.loop = false;
         this._draw();

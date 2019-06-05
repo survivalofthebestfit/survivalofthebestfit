@@ -1,11 +1,7 @@
 import * as PIXI from 'pixi.js';
-import {uv2px, clamp, screenSizeDetector} from '~/public/game/controllers/common/utils.js';
+import {uv2px, waitForSeconds} from '~/public/game/controllers/common/utils.js';
 import {mlTrainingStageContainer, eventEmitter, pixiApp, ticker} from '~/public/game/controllers/game/gameSetup.js';
-import COLORS from '~/public/game/controllers/constants/pixi-colors.js';
-import ANCHORS from '~/public/game/controllers/constants/pixi-anchors';
-import EVENTS from '~/public/game/controllers/constants/events.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
-import {waitForSeconds} from '~/public/game/controllers/common/utils';
+import {EVENTS} from '~/public/game/controllers/constants';
 
 export default class {
     constructor() {

@@ -1,6 +1,6 @@
 import mq from 'browsernizr/lib/mq';
-import BREAKPOINTS from '../constants/breakpoints.js';
-import {pixiApp} from '../game/gameSetup.js';
+import {BREAKPOINTS} from '~/public/game/controllers/constants/index.js';
+import {pixiApp} from '~/public/game/controllers/game/gameSetup.js';
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 
@@ -152,4 +152,25 @@ const setCanvasBackground = ({color = undefined}) => {
     }
 };
 
-export {spacingUtils, uv2px, px2uv, clamp, animateTo, lerp, isMobile, getDateString, screenSizeDetector, waitForSeconds, setCanvasBackground};
+const createPersonSprite = (color) => {
+    const person = getPersonByColor(color);
+    return new PIXI.extras.AnimatedSprite(PIXI.loader.resources[person].spritesheet.animations['idle']);
+};
+
+const getAnimationByName = ({color, animName}) => {
+    const person = getPersonByColor(color);
+    return PIXI.loader.resources[person].spritesheet.animations[animName];
+};
+
+const getPersonByColor = (color) => {
+    switch (color) {
+    case 'yellow':
+        return 'yellowPerson';
+    case 'blue':
+        return 'bluePerson';
+    default:
+        throw new Error(`Invalid spritesheet requested, color '${color}' is invalid`);
+    }
+};
+
+export {spacingUtils, uv2px, px2uv, clamp, animateTo, lerp, isMobile, getDateString, screenSizeDetector, waitForSeconds, setCanvasBackground, createPersonSprite, getAnimationByName};

@@ -9,6 +9,8 @@ const testLastIndex = 50;
 class DataModule {
     constructor() {
         this.accepted = [];
+        this.rejected = [];
+        this.mlRejected = [];
         this.lastIndex = 0;
         this.groundTruth = [];
         this.acceptance = [];
@@ -20,6 +22,10 @@ class DataModule {
 
     recordAccept(personIndex) {
         this.accepted.push(personIndex);
+    }
+
+    recordMLReject(personIndex) {
+        this.mlRejected.push(personIndex);
     }
 
     recordLastIndex(personIndex) {
@@ -68,15 +74,16 @@ class DataModule {
         let hiredAverage = this.getAverageScore({selectedIndexArray: this.accepted});
         let candidateAverage = this.getAverageScore({indexRange: [0, this.lastIndex]});
 
-        //currently displaying only the skill with max difference from the average i.e. most prioritized feature
-        const formatScoreText = (maxDiff, maxDiffFeature) => `You hired people with ${maxDiff}% more ${maxDiffFeature.toLowerCase()} than the average applicant.`;
+        const formatScoreText = (maxDiff, maxDiffFeature) => {
+            return `You hired people with ${maxDiff >= 0 ? `<u>${maxDiff}%</u> more` : `<u>${maxDiff}%</u> less`} ${maxDiffFeature.toLowerCase()} than the average applicant.`
+        }
 
         let diff = [];
         hiredAverage.forEach((score, idx) => {
             diff.push(parseFloat(((score - candidateAverage[idx]) * 10).toFixed(1)));
         });
 
-        let maxDiff = Math.max(...diff);
+        let maxDiff = Math.round(Math.max(...diff));
         let maxDiffFeature = cvCollection.cvFeatures[diff.indexOf(Math.max(...diff))].name;
 
         return formatScoreText(maxDiff, maxDiffFeature);
@@ -88,6 +95,7 @@ class DataModule {
             this.accepted = testAccepted;
             this.lastIndex = testLastIndex;
         }
+
         this.rejected = this._getRejectedPeople();
 
         if (DEBUG_MODE) {
@@ -161,23 +169,8 @@ class DataModule {
         return;
     }
 
-    chooseCandidateToInspect() {
-
-        let buffer = 5;
-        let counter = this.lastIndex + buffer;
-        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
-
-        //we choose the first blue candidate with average score beyond threshold
-        while(counter < cvCollection.cvData.length) {
-            if (cvCollection.cvData[counter].color == "blue") {
-                let scoreArray = this.getAverageScore({selectedIndexArray: [counter]});
-                if (getAverage(scoreArray) > 6) {
-                    return counter;
-                }
-            }
-            counter++;
-        }
-        return this.lastIndex;
+    getNameForPersonId(personId) {
+        return cvCollection.cvData[personId].name;
     }
 }
 

@@ -48,31 +48,7 @@ const gameFSM = new machina.Fsm({
                     show: true,
                 });
 
-                eventEmitter.on('first-start-button-clicked', () => {
-                    this.handle('nextStage');
-                });
-            },
-
-            nextStage: 'tutorialStage',
-
-            _onExit: function() {
-
-            },
-        },
-
-        /* ///////////////////
-        // Tutorial stage
-        */// /////////////////
-        tutorialStage: {
-            _onEnter: function() {
-                titlePageUI.updateContent({
-                    headerText: txt.tutorialStage.header,
-                    content: txt.tutorialStage.instruction,
-                    responses: txt.tutorialStage.responses,
-                    show: true,
-                });
-
-                eventEmitter.on('second-start-button-clicked', () => {
+                eventEmitter.on(EVENTS.TITLE_STAGE_COMPLETED, () => {
                     this.handle('nextStage');
                 });
             },
@@ -91,6 +67,7 @@ const gameFSM = new machina.Fsm({
             _onEnter: function() {
                 currentStage = 0;
                 new TextBoxUI({
+                    subject: txt.smallOfficeStage.subject,
                     content: txt.smallOfficeStage.messageFromVc,
                     responses: txt.smallOfficeStage.responses,
                     show: true,
@@ -115,6 +92,7 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.mediumOfficeStage.subject,
                     content: txt.mediumOfficeStage.messageFromVc,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
@@ -138,6 +116,7 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.largeOfficeStage.subject,
                     content: txt.largeOfficeStage.messageFromVc,
                     responses: txt.largeOfficeStage.responses,
                     show: true,
@@ -161,12 +140,13 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.mlTransition.subject,
                     content: txt.mlTransition.messageFromVc,
                     responses: txt.mlTransition.responses,
                     show: true,
                     overlay: true,
                     isTransition: true,
-                    displayScore: true,
+                    displayScore: false,
                 });
 
                 eventEmitter.on(EVENTS.TRANSITION_INSTRUCTION_ACKED, () => {

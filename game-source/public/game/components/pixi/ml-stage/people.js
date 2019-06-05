@@ -1,12 +1,10 @@
-import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
+import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
 import {uv2px} from '~/public/game/controllers/common/utils.js';
-import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import EVENTS from '~/public/game/controllers/constants/events.js';
+import {EVENTS, ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants';
 import MLPerson from '~/public/game/components/pixi/ml-stage/person';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
-import {ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 
 export default class {
     constructor() {
@@ -16,6 +14,8 @@ export default class {
         this.mlStartIndex = dataModule.getLastIndex() || 0;
         this.mlLastIndex = dataModule.getLastIndex() || 0;
         this.peopleLine = [];
+        this.mlLabRejected = [];
+
         this.personXoffset = 70;
         this.peopleTalkManager = new PeopleTalkManager({parent: mlLabStageContainer, stage: 'ml'});
         this._createPeople();
@@ -24,6 +24,8 @@ export default class {
         mlLabStageContainer.addChild(this.container);
         this._draw();
         this.container.x = uv2px(0.25, 'w');
+
+
     }
 
     _draw() {
@@ -75,7 +77,21 @@ export default class {
 
     removeFirstPerson(status) {
         this.peopleLine[0].removeFromLine({decision: status});
+
+        if (status == 'rejected') {
+            this.mlLabRejected.push(this.peopleLine[0].id)
+        }
+
         this.peopleLine = this.peopleLine.slice(1);
         this._addNewPerson();
+    }
+
+    chooseCandidateToInspect() {
+        //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
+        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
+          
+        let result = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" );
+
+        return result || this.mlLabRejected[this.mlLabRejected.length - 1];
     }
 }

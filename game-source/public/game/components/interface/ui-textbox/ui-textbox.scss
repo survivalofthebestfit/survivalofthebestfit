@@ -15,30 +15,34 @@
   
   @include mq($until: mobile-landscape) {
       min-width: 450px;
+      padding: padding(xs) padding(sm) padding(sm) padding(sm);
+      max-height: 90%;
   }
   
   &__email {
     margin-bottom: margin(xs);
   }
   
-  i {
-    color: red;
-    font-size: 2em; 
-    padding-top: padding(xs);
-  }
-
   hr {
     opacity:0.3;
   }
   
   &__header {
-    margin-bottom: padding(sm);
+    margin-bottom: padding(xs);
+    color: color(txt-dark-grey);
   }
-  
-  &__subject {
-    font-weight: bold;
-    font-size: 1.3em;
-    color: black;
+
+  &__sender {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    .sender-avatar {
+      height: 20px;
+      width: 20px;
+      background: url("../assets/img/boss-icon.png") center/contain no-repeat;
+      margin-right: margin(xs);
+    }
   }
 
   &__signature {
@@ -47,15 +51,21 @@
     color: color(txt-dark-grey);
   }
 
-  &__response {
-    margin-top: padding(xs);
-
+  &__content, &__response {
+    font-size: font(email-body);
   }
 
-  &__content, &__response {
-    font-size: font(base);
+  &__content {
+    color: black;
+    margin-bottom: margin(sm);
+    @include mq($until: mobile-landscape) {
+      margin-bottom: margin(xs);
+    }  
+  }
+
+  &__response {
     color: color(txt-dark-grey);
-    margin-bottom: padding(sm);
+    margin-bottom: margin(xs);
   }
   
   &__buttons {

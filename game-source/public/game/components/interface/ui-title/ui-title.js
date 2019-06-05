@@ -1,6 +1,5 @@
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
-
+import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
@@ -44,17 +43,9 @@ export default class extends UIBase {
     }
 
     _buttonIsClicked(e) {
-        //TODO how to handle start button clicked vs share
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
-        if (!this.isAtSecondStage) {
-            eventEmitter.emit('first-start-button-clicked', {});
-            this.isAtSecondStage = true;
-            //this.hide();
-        }
-        else {
-            eventEmitter.emit('second-start-button-clicked', {});
-            this.destroy();
-        }
+        eventEmitter.emit(EVENTS.TITLE_STAGE_COMPLETED, {});
+        this.destroy();
     }
 
     _addEventListeners() {
@@ -62,7 +53,6 @@ export default class extends UIBase {
     }
 
     _removeEventListeners() {
-        // event listeners need to be removed explicitly because they are managed globally Jquery
         this.$buttons.off();
     }
 
@@ -76,14 +66,12 @@ export default class extends UIBase {
         this.$el.removeClass(CLASSES.FADE_IN)
             .addClass(CLASSES.FADE_OUT)
             .addClass(CLASSES.IS_INACTIVE);
-
-        // TODO you might need a delayed call for this
     }
 
     destroy() {
         this._removeEventListeners();
         super.dispose();
         this.hide();
-        // this.$el.destroy();
+        this.$el.remove();
     }
 }

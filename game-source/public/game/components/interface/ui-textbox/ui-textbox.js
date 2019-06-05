@@ -10,9 +10,11 @@ export default class extends UIBase {
         super();
         this.$el = $('#js-textbox-overlay'); // This should be a single element
         this.$textEl = this.$el.find('.Textbox__content');
+        this.$subjectEl = this.$el.find('.Textbox__subject');
         this.$buttons = this.$el.find('.TextboxButton');
         this.setContent = this.setContent.bind(this);
 
+        this.subject = options.subject ? `RE: ${options.subject}` : 'RE: Bestfit investment';
         this._mainContent = options.content || 'dummy text'; // TODO: change this to null
         this._responseContent = options.responses || ['Okay'];
 
@@ -34,16 +36,11 @@ export default class extends UIBase {
 
     setContent() {
         if (!this.overlay) this.$el.addClass(CLASSES.IS_TRANSPARENT);
-        this.$textEl.html(this._mainContent);
-
-        if (this.displayScore) {
-            this.$el.find('.Score').removeClass(CLASSES.IS_INACTIVE);;
-            this.$el.find('.Score_content').html(dataModule._calculateScore());
-            this.$el.find('.Score_content').css('padding-bottom', '1em');
-        }
-        else {
-            this.$el.find('.Score').addClass(CLASSES.IS_INACTIVE);;
-        }
+        const scoreText = this.displayScore ? dataModule._calculateScore().concat(' ') : '';
+        // only show score feedback after completing stage one
+        const emailText = (this.stageNumber === 1 && !this.isRetry) ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
+        this.$textEl.html(emailText);
+        this.$subjectEl.html(this.subject);
 
         this.$buttons.addClass(CLASSES.IS_INACTIVE);
         this._responseContent.forEach((response, index) => {

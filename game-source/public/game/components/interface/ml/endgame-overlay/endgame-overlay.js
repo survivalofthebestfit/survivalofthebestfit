@@ -23,4 +23,7 @@ export default class {
         this._removeEventListeners();
         this.hide();
     }
+
+
 }
+
