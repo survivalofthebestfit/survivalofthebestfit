@@ -179,7 +179,7 @@ const english = {
 
         narration: [
             {
-                delay: 2,
+                delay: 5,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
@@ -187,7 +187,7 @@ const english = {
                 ],
             },
             {
-                delay: 5,
+                delay: 9,
                 messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working!',
                 responses: [
                     'Great to hear!',
@@ -198,7 +198,7 @@ const english = {
                 ],
             },
             {
-                delay: 8,
+                delay: 14,
                 messageFromVc: 'Hi, I just got a complaint from a past applicant asking why she was rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
@@ -210,7 +210,7 @@ const english = {
                 },
             },
             {
-                delay: 11,
+                delay: 19,
                 messageFromVc: 'Hello, just checking in on the progress so far. How are the hiring decisions looking?',
                 responses: [
                     'Let me take a look',
@@ -218,7 +218,7 @@ const english = {
                 ],
             },
             {
-                delay: 14,
+                delay: 24,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -234,7 +234,7 @@ const english = {
                 ],
             },
             {
-                delay: 17,
+                delay: 30,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
@@ -250,7 +250,7 @@ const english = {
                 ],
             },
             {
-                delay: 20,
+                delay: 40,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',
