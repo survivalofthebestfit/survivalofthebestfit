@@ -9,7 +9,7 @@ export default class {
         this.machineContainer = machine;
 
         this.scanRay.loop = false;
-        this.scanRay.animationSpeed = 0.5;
+        this.scanRay.animationSpeed = 0.2;
         this.scanRay.gotoAndStop(0);
         this.scanRay.visible = false;
     

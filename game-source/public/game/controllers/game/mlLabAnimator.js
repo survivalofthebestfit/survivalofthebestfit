@@ -57,7 +57,6 @@ export default class MlLabAnimator {
         this.task = new TaskUI({
             showTimer: false, 
             placeLeft: true,
-            //hiring goal = number of people hired that would trigger the last investor email
             hires: txt.mlLabStage.narration[txt.mlLabStage.narration.length-1].delay
         });
 
@@ -115,7 +114,7 @@ export default class MlLabAnimator {
                 if (person !== undefined) this.resumeUI.showCV(person.getData());
                 // #3 play the conveyor belt scanline animation
                 this.machineRayTween.visible = true;
-                this.machineRayTween.animationSpeed = 0.5;
+                this.machineRayTween.animationSpeed = 0.8;
                 this.machineRayTween.play();
                 return waitForSeconds(0.4);
             })
@@ -158,7 +157,7 @@ export default class MlLabAnimator {
         //     play machine scan backwards
         this.resumeUI.hideScanline();
         this.resumeUI.hide();
-        this.machineRayTween.animationSpeed = -0.7;
+        this.machineRayTween.animationSpeed = -0.9;
         this.machineRayTween.play();
         // #5: start a new conveyor belt animation
         this.activeTween = this.resumeLineTween;

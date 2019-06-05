@@ -47,7 +47,7 @@ export default class {
         dataModule.recordLastIndex(this.mlLastIndex++);
     }
 
-    recalculateCandidateAverage(){
+    recalculateCandidateAverage() {
         return dataModule.getAverageScore({indexRange: Array(this.mlStartIndex, this.mlLastIndex)});
     }
 
@@ -55,7 +55,7 @@ export default class {
         const tween = PIXI.tweenManager.createTween(this.container);
         tween.from({x: this.container.x}).to({x: this.container.x-this.personXoffset});
         tween.delay = 200;
-        tween.time = 700;
+        tween.time = 600;
         return tween;
     }
 

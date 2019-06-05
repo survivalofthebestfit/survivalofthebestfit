@@ -12,7 +12,6 @@ import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class MlLabNarrator {
     constructor() {
-
         this.animator = new MlLabAnimator();
         this.newsFeed = new NewsFeedUI({show: true});
         
