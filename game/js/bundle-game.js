@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.8' };
+var core = module.exports = { version: '2.6.6' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
+var USE_NATIVE = typeof $Symbol == 'function';
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -102402,6 +102402,7 @@ function () {
     this.mlStartIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.peopleLine = [];
+    this.mlLabRejected = [];
     this.personXoffset = 70;
     this.peopleTalkManager = new _peopleTalkManager["default"]({
       parent: _gameSetup.mlLabStageContainer,
@@ -102491,9 +102492,29 @@ function () {
       this.peopleLine[0].removeFromLine({
         decision: status
       });
+
+      if (status == 'rejected') {
+        this.mlLabRejected.push(this.peopleLine[0].id);
+      }
+
       this.peopleLine = this.peopleLine.slice(1);
 
       this._addNewPerson();
+    }
+  }, {
+    key: "chooseCandidateToInspect",
+    value: function chooseCandidateToInspect() {
+      //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
+      var getAverage = function getAverage(array) {
+        return array.reduce(function (a, b) {
+          return a + parseInt(b);
+        }, 0) / array.length;
+      };
+
+      var result = this.mlLabRejected.find(function (personId) {
+        return _cvCollection.cvCollection.cvData[personId].color == "blue";
+      });
+      return result || this.mlLabRejected[this.mlLabRejected.length - 1];
     }
   }]);
 
@@ -104034,6 +104055,11 @@ function () {
   }
 
   _createClass(MlLabAnimator, [{
+    key: "chooseCandidateToInspect",
+    value: function chooseCandidateToInspect() {
+      return this.people.chooseCandidateToInspect();
+    }
+  }, {
     key: "_setupTweens",
     value: function _setupTweens() {
       var _this = this;
@@ -104135,6 +104161,11 @@ function () {
       } else {
         _gameSetup2.eventEmitter.emit(_events["default"].REJECTED, this.rejectedCount++);
 
+        var person = this.people.getFirstPerson();
+        console.log("rejected id: " + person.id);
+
+        _dataModule.dataModule.recordMLReject(person.id);
+
         this.dataServers[0].updateServerCounter(this.rejectedCount);
       }
 
@@ -104228,8 +104259,6 @@ var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-t
 
 var _infoTooltip = _interopRequireDefault(require("../../components/interface/ml/info-tooltip/info-tooltip"));
 
-var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
-
 var _stateManager = require("./stateManager.js");
 
 var _newsFeed = _interopRequireDefault(require("../../components/interface/ml/news-feed/news-feed.js"));
@@ -104237,6 +104266,8 @@ var _newsFeed = _interopRequireDefault(require("../../components/interface/ml/ne
 var _mlLabAnimator = _interopRequireDefault(require("./mlLabAnimator.js"));
 
 var _gameSetup = require("./gameSetup.js");
+
+var _dataModule = require("../machine-learning/dataModule");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -104303,6 +104334,16 @@ function () {
       if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
       var callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
       if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
+
+      if (msg.hasOwnProperty('inspect')) {
+        var toInspectId = this.animator.chooseCandidateToInspect();
+
+        var toInspectName = _dataModule.dataModule.getNameForPersonId(toInspectId);
+
+        msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
+      }
+
+      ;
       this.animator.pauseAnimation();
       this.newsFeed.stop();
       this.newsFeed.hide();
@@ -104384,7 +104425,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":556,"../constants/classes":576,"../constants/events":577,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./stateManager.js":591}],590:[function(require,module,exports){
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":556,"../constants/classes":576,"../constants/events":577,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./stateManager.js":591}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104557,8 +104598,8 @@ var gameFSM = new machina.Fsm({
         this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        // this.transition('mlLabStage');
-        // this.transition('gameBreakdown');
+
+        this.transition('mlLabStage'); // this.transition('gameBreakdown');
       }
     },
 
@@ -104748,6 +104789,8 @@ function () {
     _classCallCheck(this, DataModule);
 
     this.accepted = [];
+    this.rejected = [];
+    this.mlRejected = [];
     this.lastIndex = 0;
     this.groundTruth = [];
     this.acceptance = [];
@@ -104761,6 +104804,11 @@ function () {
     key: "recordAccept",
     value: function recordAccept(personIndex) {
       this.accepted.push(personIndex);
+    }
+  }, {
+    key: "recordMLReject",
+    value: function recordMLReject(personIndex) {
+      this.mlRejected.push(personIndex);
     }
   }, {
     key: "recordLastIndex",
@@ -104815,7 +104863,7 @@ function () {
       });
 
       var formatScoreText = function formatScoreText(maxDiff, maxDiffFeature) {
-        return "You hired people with ".concat(maxDiff > 10 ? "<u>".concat(maxDiff, "%</u>") : '', " more ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
+        return "You hired people with ".concat(maxDiff >= 0 ? "<u>".concat(maxDiff, "%</u> more") : "<u>".concat(maxDiff, "%</u> less"), " ").concat(maxDiffFeature.toLowerCase(), " than the average applicant.");
       };
 
       var diff = [];
@@ -104925,33 +104973,9 @@ function () {
       return;
     }
   }, {
-    key: "chooseCandidateToInspect",
-    value: function chooseCandidateToInspect() {
-      var buffer = 5;
-      var counter = this.lastIndex + buffer;
-
-      var getAverage = function getAverage(array) {
-        return array.reduce(function (a, b) {
-          return a + parseInt(b);
-        }, 0) / array.length;
-      }; //we choose the first blue candidate with average score beyond threshold
-
-
-      while (counter < _cvCollection.cvCollection.cvData.length) {
-        if (_cvCollection.cvCollection.cvData[counter].color == "blue") {
-          var scoreArray = this.getAverageScore({
-            selectedIndexArray: [counter]
-          });
-
-          if (getAverage(scoreArray) > 6) {
-            return counter;
-          }
-        }
-
-        counter++;
-      }
-
-      return this.lastIndex;
+    key: "getNameForPersonId",
+    value: function getNameForPersonId(personId) {
+      return _cvCollection.cvCollection.cvData[personId].name;
     }
   }]);
 
