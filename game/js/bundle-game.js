@@ -102382,8 +102382,9 @@ function () {
 
       var result = this.mlLabRejected.find(function (personId) {
         return _cvCollection.cvCollection.cvData[personId].color == "blue";
-      });
-      return result || this.mlLabRejected[this.mlLabRejected.length - 1];
+      }); // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
+
+      return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
     }
   }]);
 
@@ -104751,18 +104752,6 @@ function () {
       if (_mlConstants.DEBUG_MODE) {
         console.log('\n%c SEND SCREENSHOT OF BELOW OUTPUT IF MACHINE DECISIONS ARE WRONG \n IF YOU DON\'T WANT LOGS, SEARCH FOR VARIABLE "DEBUG_MODE" => SET TO 0', 'background: #222; color: #bada55');
         (0, _modelTesting.testInputData)();
-        console.log('\nTraining model - user decisions - all features');
-      } // build user model and test it
-
-
-      this.clf = (0, _modelTraining.buildUserModel)(this.accepted, this.rejected);
-
-      if ((0, _modelTesting.testClf)(this.clf)) {
-        gtag('event', 'test-userdecision-model-successful', {
-          'event_category': 'default',
-          'event_label': 'model-training'
-        });
-        return;
       } // build fake data model with extracted user feature preferences
 
 
