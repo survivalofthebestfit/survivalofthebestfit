@@ -1269,11 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-<<<<<<< HEAD
 var core = module.exports = { version: '2.6.5' };
-=======
-var core = module.exports = { version: '2.6.6' };
->>>>>>> 602024a5a12d4675c13267a7920994f310fb3242
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -103993,7 +103989,7 @@ function () {
         if (person !== undefined) _this2.resumeUI.showCV(person.getData()); // #3 play the conveyor belt scanline animation
 
         _this2.machineRayTween.visible = true;
-        _this2.machineRayTween.animationSpeed = 0.7;
+        _this2.machineRayTween.animationSpeed = 0.8;
 
         _this2.machineRayTween.play();
 
@@ -104050,7 +104046,7 @@ function () {
 
       this.resumeUI.hideScanline();
       this.resumeUI.hide();
-      this.machineRayTween.animationSpeed = -0.8;
+      this.machineRayTween.animationSpeed = -0.9;
       this.machineRayTween.play(); // #5: start a new conveyor belt animation
 
       this.activeTween = this.resumeLineTween;
@@ -104298,11 +104294,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-<<<<<<< HEAD
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":575,"../constants/events":576,"./gameSetup.js":586,"./mlLabAnimator.js":587,"./stateManager.js":590}],589:[function(require,module,exports){
-=======
-},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":556,"../constants/classes":576,"../constants/events":577,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./stateManager.js":591}],590:[function(require,module,exports){
->>>>>>> 602024a5a12d4675c13267a7920994f310fb3242
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":575,"../constants/events":576,"../machine-learning/dataModule":591,"./gameSetup.js":586,"./mlLabAnimator.js":587,"./stateManager.js":590}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104470,15 +104462,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-<<<<<<< HEAD
-=======
-
->>>>>>> 602024a5a12d4675c13267a7920994f310fb3242
-        this.transition('mlLabStage'); // this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        // this.transition('gameBreakdown');
       }
     },
 
