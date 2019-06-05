@@ -5,6 +5,7 @@ import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import CircleGrid from '~/public/game/components/pixi/training-stage/circle-grid';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {waitForSeconds, setCanvasBackground, clamp} from '~/public/game/controllers/common/utils';
+import * as state from '~/public/game/controllers/common/state';
 import {ticker} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class extends UIBase {
@@ -22,7 +23,7 @@ export default class extends UIBase {
         this.timePerUpdate = null;
         this.progressMessages = [
             'Loading CVs...',
-            'Loading Google dataset...',
+            'Loading %company% dataset...',
             'Processing data...',
             'Optimizing algorithm...',
             'Finished!',
@@ -31,6 +32,13 @@ export default class extends UIBase {
     }
 
     init() {
+        this.progressMessages = this.progressMessages.map((text) => {
+            if (text.includes('%company%')) {
+                return text.replace('%company%', state.get('big-tech-company'));
+            } else {
+                return text;
+            }
+        });
         waitForSeconds(1).then(() => {
             this.show();
             // this.showEndUI(); // debugging only

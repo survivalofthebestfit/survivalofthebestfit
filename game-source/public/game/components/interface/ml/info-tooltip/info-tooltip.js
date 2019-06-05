@@ -33,6 +33,7 @@ export default class extends UIBase {
         });
         if (!this.$icon.hasClass(CLASSES.PULSATE)) this.$icon.addClass(CLASSES.PULSATE);
         this.$text.html(this.content);
+        this.$icon.removeClass(CLASSES.IS_INACTIVE);
         this.$tooltip.addClass(CLASSES.IS_INACTIVE);
     }
 

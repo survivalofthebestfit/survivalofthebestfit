@@ -40,7 +40,6 @@ export default class extends UIBase {
             personContainer = undefined;
         };
         if (personContainer === undefined) return;
-
         const {x, y} = personContainer.getGlobalPosition();
         const height = personContainer.height;
         if (message) this.$el.find('.PersonTooltip__text').text(message);

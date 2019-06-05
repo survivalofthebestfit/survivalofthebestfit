@@ -9,10 +9,12 @@
     bottom: 200px;
     left: 50%;
     z-index: 1;
+    text-align: center;
+    box-shadow: 10px 10px 28px -19px rgba(0,0,0,0.75);
   }
   
   color: white;
   font-size: 1.3rem;
-  padding: 0 padding(xs) padding(xxs);
+  padding: padding(xxs) padding(xs) 7px padding(xs);
 
 }

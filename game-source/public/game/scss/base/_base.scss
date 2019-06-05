@@ -1,7 +1,15 @@
 // base styles
 
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
 // body 
 body { 
+  position: fixed;
+  top: 0;
+  left: 0;
   background-color: color(bg-yellow);
   font-family: 'VT323', monospace;
 }

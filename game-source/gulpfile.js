@@ -23,6 +23,7 @@ function browserSync(done) {
             baseDir: '../dist/',
         },
         port: 4000,
+        open: false,
     });
     done();
 }
@@ -56,7 +57,6 @@ function pugCompile() {
             return textFile;
         }))
         .pipe(pug())
-        // .pipe(rename('game.html'))
         .pipe(gulp.dest('../dist/game')); 
 };
 
@@ -77,6 +77,7 @@ function css() {
         .pipe(gulp.dest('../dist/game/css'))
         .pipe(browsersync.stream());
 }
+
 
 // JS, browserify, babel, etc...
 function compileJs(done, watchFlag) {
@@ -101,9 +102,9 @@ function compileJs(done, watchFlag) {
         bundler.on('update', function() {
             console.log('-> bundling...');
             rebundle();
-            browserSyncReload(() => {
-                console.log('Refreshed js')
-            });
+            // browserSyncReload(() => {
+            //     console.log('Refreshed js')
+            // });
         });
         rebundle();
     } else {
@@ -124,6 +125,7 @@ function watchFiles() {
     gulp.watch('./public/game/assets/**/*', browserSyncReload).on('add', function(path, stats) {
         console.log(`File ${path} was added`);
     });
+
     compileJs(undefined, true);
 }
 

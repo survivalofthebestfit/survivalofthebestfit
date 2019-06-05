@@ -4,7 +4,9 @@ import CLASSES from '~/public/game/controllers/constants/classes';
 import EVENTS from '~/public/game/controllers/constants/events';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {spotlight} from '~/public/game/components/pixi/manual-stage/office';
-import {eventEmitter, pixiApp} from '~/public/game/controllers/game/gameSetup.js';
+import {eventEmitter, pixiApp, officeStageContainer} from '~/public/game/controllers/game/gameSetup.js';
+import {isMobile} from '~/public/game/controllers/common/utils.js';
+import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -15,6 +17,8 @@ export default class extends UIBase {
         this.$noButton = this.$el.find('.js-no');
         this._addEventListeners();
         this.hasBeenClicked = false;
+        this.shownOnce = false;
+        this.personHeight = 100;
     }
 
     _acceptClicked(e) {
@@ -24,7 +28,7 @@ export default class extends UIBase {
             'event_label': 'accept/reject',
         });
         if (!this.hasBeenClicked) {
-            eventEmitter.emit(EVENTS.UPDATE_INSTRUCTIONS, {type: 'manual-eval-hide'});
+            eventEmitter.emit(EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
             this.hasBeenClicked = true;
         };
         this.$yesButton.addClass(CLASSES.ACCEPTED);
@@ -69,6 +73,8 @@ export default class extends UIBase {
     }
 
     _spotlightStatusHandler({spotlightOccupied, spotlightFill}) {
+        const {height} = officeStageContainer.getChildByName(OFFICE_PEOPLE_CONTAINER).getChildAt(0);
+        this.personHeight = height;
         if (spotlightOccupied) {
             spotlightFill ? '' : this.hide();
         } else {
@@ -78,12 +84,15 @@ export default class extends UIBase {
 
     show() {
         this.$el.css({
-            'top': `${spotlight.y - 150}px`,
+            'top': `${spotlight.y - this.personHeight - (isMobile() ? 20 : 40 )}px`, // get person height
             'left': `${spotlight.x + 10}px`,
         });
         TweenLite.set(this.$id, {y: 5, xPercent: -50, opacity: 0});
         this.$el.removeClass(CLASSES.IS_INACTIVE);
         TweenLite.to(this.$id, 0.2, {y: 0, opacity: 1, ease: Power1.easeInOut});
+        TweenLite.delayedCall(0.4, () => {
+            this.$el.removeClass(CLASSES.IS_INACTIVE);
+        });
     }
 
     hide() {

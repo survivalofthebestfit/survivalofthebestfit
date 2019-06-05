@@ -11,3 +11,20 @@
     }
   }
 }
+
+.play-button {
+
+  background-color: $rose-dark;
+  
+  &:hover {
+    background-color: $shadow-red-dark;
+  }
+
+  font-size: 3em;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 1.5em;
+  padding: 0.2em 1em 0.2em 1em;
+  font-family: 'VT323', monospace;
+
+}

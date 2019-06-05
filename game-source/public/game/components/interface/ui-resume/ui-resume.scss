@@ -29,9 +29,11 @@
   
   @include mq($until: mobile-landscape) {
     @include buttonBox();
-    min-width: 190px;
+    min-width: 180px;
     min-height: unset;
     padding: padding(xs) 15px padding(sm) 15px;
+    top: padding(xxs);
+    right: padding(xs);
     &--ml {
       top: 60px;
     }
@@ -106,6 +108,10 @@
   &__progress {
     height: inherit;
 
+    .animate-attributes & {
+      transition: width 0.5s ease-in-out;
+    }
+
     .Resume--yellow & {
       background-color: color(skill-val-yellow);
     }
@@ -113,43 +119,4 @@
       background-color: color(skill-val-blue);
     }
   }
-
-  &__candidate {
-    height: inherit;
-    background-color: color(skill-candidate);
-    width: 0.5em;
-    opacity: 0.8;
-  }
-
-  &__hired {
-    height: inherit;
-    background-color: color(skill-hired);
-    width: 0.5em;
-  }
-}
-
-.help {
-  padding: padding(xs) 0;
-
-  &-text {
-    display: inline-block;
-    color: #777;
-    margin: 0.4em;
-  }
-
-  &-color {
-    display: inline-block;
-    color: rgba(0, 0, 0, 0);
-    width: 1em;
-    height: 1em;
-    margin-left: 0.4em;
-  }
-}
-
-.hired-color {
-  background-color: color(skill-hired);
-}
-
-.candidate-color {
-  background-color: color(skill-candidate);
 }

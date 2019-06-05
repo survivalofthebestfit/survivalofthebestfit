@@ -4,6 +4,7 @@ export default {
     HIDE_NEWS_FEED: 'hide-news-feed',
     INSTRUCTION_ACKED: 'instruction-acked',
     RETRY_INSTRUCTION_ACKED: 'retry-instruction-acked',
+    TRANSITION_INSTRUCTION_ACKED: 'transition-instruction-acked',
     MANUAL_STAGE_COMPLETE: 'manual-stage-complete',
     PLAY_DOOR_ANIMATION: 'play-door-animation',
     INSPECT_ALGORITHM: 'inspect-algorithm',
@@ -23,5 +24,7 @@ export default {
     CHANGE_SPOTLIGHT_STATUS: 'change-spotlight-status',
     MAKE_ML_PEOPLE_TALK: 'show-ml-speech-bubble',
     UPDATE_INSTRUCTIONS: 'update-instructions',
+    HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
     EXIT_TRANSITION_STAGE: 'exit-transition-stage',
+    TITLE_STAGE_COMPLETED: 'title-stage-completed',
 };

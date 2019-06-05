@@ -1,19 +1,21 @@
-import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
+import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
 import {uv2px} from '~/public/game/controllers/common/utils.js';
-import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import EVENTS from '~/public/game/controllers/constants/events.js';
+import {EVENTS, ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants';
 import MLPerson from '~/public/game/components/pixi/ml-stage/person';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
+import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
 
 export default class {
     constructor() {
         this.container = new PIXI.Container();
+        this.container.name = ML_PEOPLE_CONTAINER;
         this.numOfPeople = Math.floor(uv2px(0.85, 'w')/70) * 2;
-        this.personCount = 0;
+        this.mlStartIndex = dataModule.getLastIndex() || 0;
+        this.mlLastIndex = dataModule.getLastIndex() || 0;
         this.peopleLine = [];
         this.personXoffset = 70;
-        this.peopleTalkManager = new PeopleTalkManager({parent: this.container, stage: 'ml'});
+        this.peopleTalkManager = new PeopleTalkManager({parent: mlLabStageContainer, stage: 'ml'});
         this._createPeople();
         eventEmitter.on(EVENTS.RESIZE, this._draw.bind(this));
         
@@ -33,15 +35,20 @@ export default class {
     }
 
     _addNewPerson() {
+        let currentX = (this.mlLastIndex-this.mlStartIndex);
         const person = new MLPerson({
             parent: this.container,
-            x: this.personCount*this.personXoffset,
-            personData: cvCollection.cvData[this.personCount],
-            id: this.personCount,
+            x: currentX*this.personXoffset,
+            personData: cvCollection.cvData[this.mlLastIndex],
+            id: this.mlLastIndex,
         });
         person.addToPixi();
         this.peopleLine.push(person);
-        this.personCount++;
+        dataModule.recordLastIndex(this.mlLastIndex++);
+    }
+
+    recalculateCandidateAverage(){
+        return dataModule.getAverageScore({indexRange: Array(this.mlStartIndex, this.mlLastIndex)});
     }
 
     createTween() {

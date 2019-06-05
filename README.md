@@ -1,7 +1,9 @@
 # Survival of the Best Fit
 
+You can play the game here https://survivalofthebestfit.com
+
 ## Concept
-Survival of the Best Fit is a web simulation of how blind usage of algorithms in hiring practices can reinforce workforce inequality. It aims to break down the barrier between internet users and the technologies behind building the internet (particularly AI and ML), by giving them an understanding of how decisions made by developers of recruitment applications directly impact the decisions produced by algorithms.
+Survival of the Best Fit is an educational web simulation to shed light on how AI and ML algorithms can be biased, particularly by looking at how using ML in hiring practices can reinforce workforce inequality. It aims to break down the barrier between internet users and the technologies behind building the internet (particularly AI and ML), by giving them an understanding of how decisions made by developers of recruitment applications directly impact the decisions produced by algorithms.
 
 ## Goals and potential impact
 "Thus we shall never experience our relationship to the essence of technology so long as we merely conceive and push forward the technological, put up with it, or evade it." -Martin Heidegger
@@ -28,5 +30,4 @@ If you'd like to join the team or can contribute with ideas/feedback, please fee
 
 ## Acknowledgements
 * Politics of Code class for bringing us together
-* Moz://a foundation for its inspiring mission
-
+* Moz://a foundation for its inspiring mission & support through the Creative Media Award

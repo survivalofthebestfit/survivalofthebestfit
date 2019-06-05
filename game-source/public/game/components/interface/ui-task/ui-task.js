@@ -11,6 +11,7 @@ export default class extends UIBase {
         this.$el = $('#js-task-timer');
         this.$hireGoalEl = this.$el.find('.js-hiring-goal');
         this.$timer = this.$el.find('.js-timer');
+        this.$feedbackEl = this.$el.find('.js-feedback');
         this._duration = options.duration || undefined;
         this._elapsedTime = 0;
         this._runningMS = 0;
@@ -18,6 +19,7 @@ export default class extends UIBase {
         this.hiresQuota = options.hires || undefined;
         this.hiresNum = 0;
         this._content = options.content || null;
+        this.placeLeft = options.placeLeft || false;
 
         this.setContent();
         this.show();
@@ -27,25 +29,34 @@ export default class extends UIBase {
             this.startTimer();
         }
 
+        if (options.placeLeft) {
+            const mlLabCoordinates = {left: 10, top: 17, minWidth: 150};
+            this.$el.css({
+                'top': `${mlLabCoordinates.top}%`,
+                'left': `${mlLabCoordinates.left}%`,
+                'min-width': `${mlLabCoordinates.minWidth}px`,
+            });
+        }
+
         this._addEventListeners();
     }
 
     setContent() {
+        this.resetStyles();
         this.updateCounter();
         this.writeTime();
     }
 
-    _addEventListeners() {
-        eventEmitter.on(EVENTS.ACCEPTED, () => {
-            this.hiresNum += 1;
-            this.updateCounter();
-        });
-    };
+    increaseCounter() {
+        this.hiresNum += 1;
+        this.updateCounter();
+    }
 
     updateCounter() {
         const peopleToHire = this.hiresQuota - this.hiresNum;
         const hireText = peopleToHire === 1 ? `${peopleToHire} person` : `${peopleToHire} people`;
         this.$hireGoalEl.find('.TaskTimer-value').text(hireText);
+        if (peopleToHire === 0) this.showTaskFeedback({stageCompleted: true});
     }
 
     writeTime() {
@@ -62,21 +73,33 @@ export default class extends UIBase {
                 this._elapsedTime++;
                 this.writeTime();
             }
-        } 
-        else if (this._runningMS > this._duration * 1000) {
+        } else if (this._runningMS > this._duration * 1000) {
             this._elapsedTime = this._duration;
             this.writeTime();
             this.timer.stop();
-            console.log("am i called why?")
             eventEmitter.emit(EVENTS.STAGE_INCOMPLETE, {});
+            this.showTaskFeedback({stageCompleted: false});
         }
+    }
+
+    showTaskFeedback({stageCompleted}) {
+        const feedbackText = stageCompleted ? 'Task completed' : 'Task failed';
+        [this.$timer, this.$hireGoalEl].map((el) => el.addClass(CLASSES.IS_INACTIVE));
+        this.$feedbackEl.removeClass(CLASSES.IS_INACTIVE);
+        this.$feedbackEl.find('.TaskTimer-value').text(feedbackText);
+        this.$el.addClass(CLASSES.HIRING_TASK_DONE);
+    }
+
+    resetStyles() {
+        this.$feedbackEl.addClass(CLASSES.IS_INACTIVE);
+        this.$el.removeClass(CLASSES.HIRING_TASK_DONE);
+        this.$hireGoalEl.removeClass(CLASSES.IS_INACTIVE);
     }
 
     startTimer() {
         if (this._duration === undefined) {
             throw new Error('the timer does not have a defined duration');
-        } 
-        else {
+        } else {
             this.timer.add(() => {
                 this.updateTimer(this.timer.elapsedMS);
             });
@@ -91,8 +114,12 @@ export default class extends UIBase {
         this.timer.start();
     }
 
+    _addEventListeners() {
+        eventEmitter.on(EVENTS.ACCEPTED, this.increaseCounter, this);
+    };
+
     _removeEventListeners() {
-        eventEmitter.off(EVENTS.ACCEPTED, () => {});
+        eventEmitter.off(EVENTS.ACCEPTED, this.increaseCounter, this);
     }
 
     show() {
@@ -110,7 +137,8 @@ export default class extends UIBase {
 
     destroy() {
         super.dispose();
-        this.hide();
         this._removeEventListeners();
+        this.hide();
+        this.$timer.addClass(CLASSES.IS_INACTIVE);
     }
 }

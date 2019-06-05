@@ -7,14 +7,16 @@ import TextBoxUI from '~/public/game/components/interface/ui-textbox/ui-textbox'
 import PerfMetrics from '~/public/game/components/interface/perf-metrics/perf-metrics';
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
-import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
+import EVENTS from '~/public/game/controllers/constants/events';
+import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
 
-let office = new Office();
+let office;
 let currentStage;
 let revenue;
 let transitionOverlay;
 let trainingStageOverlay;
 let titlePageUI;
+let mlLab;
 
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -30,6 +32,7 @@ const gameFSM = new machina.Fsm({
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 // this.transition('mlLabStage');
+                // this.transition('gameBreakdown');
             },
         },
 
@@ -45,31 +48,7 @@ const gameFSM = new machina.Fsm({
                     show: true,
                 });
 
-                eventEmitter.on('first-start-button-clicked', () => {
-                    this.handle('nextStage');
-                });
-            },
-
-            nextStage: 'tutorialStage',
-
-            _onExit: function() {
-
-            },
-        },
-
-        /* ///////////////////
-        // Tutorial stage
-        */// /////////////////
-        tutorialStage: {
-            _onEnter: function() {
-                titlePageUI.updateContent({
-                    headerText: txt.tutorialStage.header,
-                    content: txt.tutorialStage.instruction,
-                    responses: txt.tutorialStage.responses,
-                    show: true,
-                });
-
-                eventEmitter.on('second-start-button-clicked', () => {
+                eventEmitter.on(EVENTS.TITLE_STAGE_COMPLETED, () => {
                     this.handle('nextStage');
                 });
             },
@@ -87,14 +66,15 @@ const gameFSM = new machina.Fsm({
         smallOfficeStage: {
             _onEnter: function() {
                 currentStage = 0;
-
                 new TextBoxUI({
+                    subject: txt.smallOfficeStage.subject,
                     content: txt.smallOfficeStage.messageFromVc,
                     responses: txt.smallOfficeStage.responses,
                     show: true,
                     stageNumber: currentStage,
                     overlay: true,
                 });
+                office = new Office();
             },
 
             nextStage: 'mediumOfficeStage',
@@ -112,10 +92,12 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.mediumOfficeStage.subject,
                     content: txt.mediumOfficeStage.messageFromVc,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
                     overlay: true,
+                    displayScore: true,
                 });
             },
 
@@ -134,10 +116,12 @@ const gameFSM = new machina.Fsm({
 
                 new TextBoxUI({
                     stageNumber: currentStage,
+                    subject: txt.largeOfficeStage.subject,
                     content: txt.largeOfficeStage.messageFromVc,
                     responses: txt.largeOfficeStage.responses,
                     show: true,
                     overlay: true,
+                    displayScore: true,
                 });
             },
 
@@ -146,11 +130,28 @@ const gameFSM = new machina.Fsm({
             _onExit: function() {
             },
         },
+
        
         mlTransitionStage: {
             _onEnter: function() {
                 if (office) office.delete();
-                transitionOverlay = new TransitionOverlay({show: true});
+
+                currentStage = 3;
+
+                new TextBoxUI({
+                    stageNumber: currentStage,
+                    subject: txt.mlTransition.subject,
+                    content: txt.mlTransition.messageFromVc,
+                    responses: txt.mlTransition.responses,
+                    show: true,
+                    overlay: true,
+                    isTransition: true,
+                    displayScore: false,
+                });
+
+                eventEmitter.on(EVENTS.TRANSITION_INSTRUCTION_ACKED, () => {
+                    transitionOverlay = new TransitionOverlay({show: true});
+                });
             },
 
             nextStage: 'mlTrainingStage',
@@ -178,15 +179,24 @@ const gameFSM = new machina.Fsm({
                 if (revenue) {
                     revenue.show();
                 } else {
-                    office.delete();
+                    if (office) office.delete();
                     new PerfMetrics().show();
                 }
 
-                new MlLabNarrator();
+                mlLab = new MlLabNarrator();
             },
-            // TODO destroy the lab!
-            nextStage: 'Oh gosh we haven\'t even started it hahah',
 
+            nextStage: 'gameBreakdown',
+
+            _onExit: function() {
+            },
+        },
+
+        gameBreakdown: {
+            _onEnter: function() {
+                new EndGameOverlay();
+                if (mlLab) mlLab.destroy();
+            },
         },
 
     },

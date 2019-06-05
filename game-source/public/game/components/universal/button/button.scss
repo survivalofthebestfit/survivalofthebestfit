@@ -17,15 +17,21 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  
-  &:hover {
-    cursor: pointer;
-    @include boxColors($txt-color:color(txt-black), $bg-color: color(grey-main), $shadow-color: 'rose');
-    
-    .YesNoButton & {
-      @include boxColors($txt-color:color(txt-black), $bg-color: color(rose-light), $shadow-color: 'rose');
+
+
+  @include mq($from: mobile-landscape) {
+    &:hover {
+      cursor: pointer;
+      @include boxColors($txt-color:color(txt-black), $bg-color: color(grey-main), $shadow-color: 'rose');
+      
+      .YesNoButton & {
+        @include boxColors($txt-color:color(txt-black), $bg-color: color(rose-light), $shadow-color: 'rose');
+      }
     }
   }
+
+  
+
   
   &__text {
     .YesNoButton & {
@@ -35,6 +41,9 @@
   
   &:active {
     transform: translateY(2px);
+    .YesNoButton & {
+      @include boxColors($txt-color:color(txt-black), $bg-color: color(rose-light), $shadow-color: 'rose');
+    }
   }
   
   &.is-clicked {

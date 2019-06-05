@@ -2,6 +2,7 @@ import $ from 'jquery';
 import {Component} from 'component-loader-js';
 import {waitForSeconds} from '~/public/game/controllers/common/utils';
 import CLASSES from '~/public/game/controllers/constants/classes';
+import * as state from '~/public/game/controllers/common/state';
 
 // publishing custom event to any registered listener
 export default class Replica extends Component {
@@ -60,11 +61,10 @@ export default class Replica extends Component {
     }
 
     _addChoiceListener() {
-        console.log('we added a choice listener!');
+        // console.log('we added a choice listener!');
         $('.data-list__choice').on('click', (e) => {
-            console.log(e);
             const $choice = $(`#${e.target.id}`);
-            console.log([...$('.data-list__choice')]);
+            state.set('big-tech-company', $choice.text());
             [...$('.data-list__choice')].map((choice) => $(choice).addClass(CLASSES.IS_INACTIVE));
             $choice.removeClass(CLASSES.IS_INACTIVE).addClass(CLASSES.CONVERSATION_STEP_COMPLETED);
             $choice.find('.data-list__icon').addClass(CLASSES.IS_INACTIVE);

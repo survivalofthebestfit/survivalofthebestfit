@@ -1,16 +1,15 @@
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
-import ANCHORS from '~/public/game/controllers/constants/pixi-anchors';
-import EVENTS from '~/public/game/controllers/constants/events.js';
-import SCALES from '~/public/game/controllers/constants/pixi-scales.js';
+import {ANCHORS, EVENTS, SCALES} from '~/public/game/controllers/constants';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {screenSizeDetector, uv2px, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 
 export default class {
-    constructor({type, floor, floorParent, xAnchor}) {
+    constructor({type, floor, floorParent, xAnchorUV}) {
         this.doorType = type;
         this.floorParent = floorParent;
-        this.xAnchor = xAnchor;
+        this.xAnchorUV = xAnchorUV;
+        this.xAnchor = uv2px(this.xAnchorUV, 'w');
         this.yAnchorUV = floor === 'first_floor' ? ANCHORS.FLOORS.FIRST_FLOOR.y : ANCHORS.FLOORS.GROUND_FLOOR.y;
         this.yAnchor = uv2px(this.yAnchorUV, 'h');
         this.scale = SCALES.DOOR[screenSizeDetector()];
@@ -20,6 +19,7 @@ export default class {
 
     addToPixi(parentContainer = mlLabStageContainer) {
         this.sprite = SPRITES[this.doorType];
+        console.log(this.sprite);
         this.sprite.name = this.doorType;
         this.sprite.loop = false;
         this._draw();
@@ -52,6 +52,7 @@ export default class {
     _recomputeParams() {
         this.scale = SCALES.DOOR[screenSizeDetector()];
         this.yAnchor = uv2px(this.yAnchorUV, 'h');
+        this.xAnchor = uv2px(this.xAnchorUV, 'w');
     }
 
     _resizeHandler() {

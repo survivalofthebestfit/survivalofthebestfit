@@ -49,8 +49,10 @@ startTweenManager = startTweenManager.bind(this);
 stopTweenManager = startTweenManager.bind(this);
 
 window.addEventListener('resize', debounce(resize, 200));
+window.addEventListener('orientationchange', resize);
 
 function resize() {
+    console.log('resize the screen!');
     pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
     eventEmitter.emit(EVENTS.RESIZE, {});
     // TODO redraw all the elements!

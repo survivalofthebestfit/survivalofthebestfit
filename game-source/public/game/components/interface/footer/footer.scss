@@ -1,32 +1,41 @@
 .Footer {
   position: absolute;
-  bottom: 30px;
+  display: flex;
+  align-items: center;
+  bottom: margin(sm);
   right: margin(sm);
-  @include mq($until: mobile) {
+  height: 40px;
+  @include mq($until: mobile-landscape) {
     bottom: margin(xs);
     right: margin(xs);
   }
   z-index: 5;
+
   
-  &:hover {
-    transform: scale(1.1);
+  &-item {
+    height: 25px;
+    width: 48px;
+    @include mq($from: mobile-landscape) {
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+}
+
+
+.VolumeIcon {
+  height: 30px;
+  background: url('../assets/img/sound-on.png') center/contain no-repeat;
+  &--off {
+    background: url('../assets/img/sound-off.png') center/contain no-repeat;
   }
 }
 
 .FullscreenIcon {
-  height: 23px;
-  width: auto;
-  width: 50px;
-  
-  background: url('../assets/img/fullscreen-expand.png') no-repeat center;
-  background-size: contain;
-  
+  background: url('../assets/img/fullscreen-expand.png') center/contain no-repeat;
   &--expanded {
-    background: url('../assets/img/fullscreen-collapse.png') no-repeat center;
-    background-size: contain;
-  }
-
-  &:hover {
-    transform: scale(1.1);
+    background: url('../assets/img/fullscreen-collapse.png') center/contain no-repeat;
   }
 }

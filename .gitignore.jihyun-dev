@@ -1,0 +1,15 @@
+.ipynb_checkpoints
+node_modules/
+*.DS_Store
+**/.DS_Store
+.DS_Store
+*.log
+*.log.*
+.sass-cache
+bower_components
+npm-debug.log
+**/fontawesome-free/**
+**/.cache
+**/package-lock.json
+dist/js/*
+dist/css/*

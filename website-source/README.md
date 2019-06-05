@@ -1,9 +1,6 @@
 # Survival of the Best Fit
-## Landing Page
+## Commands to get you started:
 
-You can access the current landing page at https://survivalofthebestfit.com
-
-To build and serve run 
-```
-npm run start
-```
+npm install: install all modules
+npm start: transpile SASS, bundle up JS, and start a dev server and watch for changes, which triggers rebuild and browser reload
+Head over to localhost:4000 to view website

@@ -11,17 +11,52 @@
     transform: translate(-50%, -50%);
     max-height: 800px;
     max-width: 1200px;
+    @include mq($until: mobile-landscape) {
+      min-width: 70%;
+      max-height: 90%;
+      padding: padding(xs);
+    }
     
-      &__head {
-        color: color(txt-light-grey);
-      }
+    &__head {
+      color: color(txt-light-grey);
+    }
 
-  }
+    &__header {
+      text-align: center;
+      font-size: 3rem;
+      font-weight: 700;
+      @include mq($until: mobile-landscape) {
+        font-size: 2rem;
+        padding-bottom: padding(xs);
+      }
+    }
+
+    &__content {
+      font-size: font(email-body);
+      text-align:center;
+    }
+    
+    
+    .title-buttons {
+      display: inherit;
+      width: 200px;
+      height: 60px;
+      margin: auto;
+      margin-top: 1rem;
+      font-size: 2rem;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
 
 .title-blue-person {
     max-height: 150px;
     margin: auto;
     display: inherit;
+    @include mq($until: mobile-landscape) {
+      display: none;
+    }
+  }
+
 }
 
 //TODO change background here to something more colorful?
@@ -31,27 +66,4 @@
   height: auto;
   background-attachment: scroll;
   background-size: cover;
-}
-
-h1 {
-  text-align: center;
-  font-size: 3.5rem;
-  font-weight: 700;
-}
-
-h2 {
-  text-align: center;
-  font-size: 1.2rem;
-}
-
-
-.title-buttons {
-  display: inherit;
-  width: 200px;
-  height: 60px;
-  margin: auto;
-  margin-top: 1rem;
-  font-size: 2rem;
-  text-transform: uppercase;
-  font-weight: 700;
 }

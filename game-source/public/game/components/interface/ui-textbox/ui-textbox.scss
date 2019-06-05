@@ -13,31 +13,64 @@
   max-height: 510px;
   max-width: 600px;
   
-  
   @include mq($until: mobile-landscape) {
       min-width: 450px;
+      padding: padding(xs) padding(sm) padding(sm) padding(sm);
+      max-height: 90%;
   }
   
   &__email {
     margin-bottom: margin(xs);
   }
   
-  &__header, &__response {
+  hr {
+    opacity:0.3;
+  }
+  
+  &__header {
     margin-bottom: padding(xs);
+    color: color(txt-dark-grey);
   }
-  
+
+  &__sender {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    .sender-avatar {
+      height: 20px;
+      width: 20px;
+      background: url("../assets/img/boss-icon.png") center/contain no-repeat;
+      margin-right: margin(xs);
+    }
+  }
+
+  &__signature {
+    padding-left: 0.5em;
+    display: inline-block;
+    color: color(txt-dark-grey);
+  }
+
+  &__content, &__response {
+    font-size: font(email-body);
+  }
+
   &__content {
-    font-size: font(base);
+    color: black;
+    margin-bottom: margin(sm);
+    @include mq($until: mobile-landscape) {
+      margin-bottom: margin(xs);
+    }  
   }
-  
-   &__response, &__subject {
-     color: color(txt-light-grey);
-   }
+
+  &__response {
+    color: color(txt-dark-grey);
+    margin-bottom: margin(xs);
+  }
   
   &__buttons {
     display: flex;
   }
-
 }
 
 .TextboxButton {
