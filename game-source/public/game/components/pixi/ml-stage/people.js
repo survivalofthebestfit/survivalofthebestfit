@@ -14,6 +14,8 @@ export default class {
         this.mlStartIndex = dataModule.getLastIndex() || 0;
         this.mlLastIndex = dataModule.getLastIndex() || 0;
         this.peopleLine = [];
+        this.mlLabRejected = [];
+
         this.personXoffset = 70;
         this.peopleTalkManager = new PeopleTalkManager({parent: mlLabStageContainer, stage: 'ml'});
         this._createPeople();
@@ -22,6 +24,8 @@ export default class {
         mlLabStageContainer.addChild(this.container);
         this._draw();
         this.container.x = uv2px(0.25, 'w');
+
+
     }
 
     _draw() {
@@ -47,7 +51,7 @@ export default class {
         dataModule.recordLastIndex(this.mlLastIndex++);
     }
 
-    recalculateCandidateAverage(){
+    recalculateCandidateAverage() {
         return dataModule.getAverageScore({indexRange: Array(this.mlStartIndex, this.mlLastIndex)});
     }
 
@@ -55,7 +59,7 @@ export default class {
         const tween = PIXI.tweenManager.createTween(this.container);
         tween.from({x: this.container.x}).to({x: this.container.x-this.personXoffset});
         tween.delay = 200;
-        tween.time = 700;
+        tween.time = 600;
         return tween;
     }
 
@@ -73,7 +77,22 @@ export default class {
 
     removeFirstPerson(status) {
         this.peopleLine[0].removeFromLine({decision: status});
+
+        if (status == 'rejected') {
+            this.mlLabRejected.push(this.peopleLine[0].id)
+        }
+
         this.peopleLine = this.peopleLine.slice(1);
         this._addNewPerson();
+    }
+
+    chooseCandidateToInspect() {
+        //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
+        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
+          
+        let result = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" );
+        
+        // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
+        return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
     }
 }

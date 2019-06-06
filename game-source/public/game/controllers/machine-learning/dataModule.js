@@ -9,6 +9,8 @@ const testLastIndex = 50;
 class DataModule {
     constructor() {
         this.accepted = [];
+        this.rejected = [];
+        this.mlRejected = [];
         this.lastIndex = 0;
         this.groundTruth = [];
         this.acceptance = [];
@@ -20,6 +22,10 @@ class DataModule {
 
     recordAccept(personIndex) {
         this.accepted.push(personIndex);
+    }
+
+    recordMLReject(personIndex) {
+        this.mlRejected.push(personIndex);
     }
 
     recordLastIndex(personIndex) {
@@ -69,7 +75,7 @@ class DataModule {
         let candidateAverage = this.getAverageScore({indexRange: [0, this.lastIndex]});
 
         const formatScoreText = (maxDiff, maxDiffFeature) => {
-            return `You hired people with ${maxDiff > 10 ? `<u>${maxDiff}%</u>` : ''} more ${maxDiffFeature.toLowerCase()} than the average applicant.`
+            return `You hired people with ${maxDiff >= 0 ? `<u>${maxDiff}%</u> more` : `<u>${maxDiff}%</u> less`} ${maxDiffFeature.toLowerCase()} than the average applicant.`
         }
 
         let diff = [];
@@ -89,20 +95,12 @@ class DataModule {
             this.accepted = testAccepted;
             this.lastIndex = testLastIndex;
         }
+
         this.rejected = this._getRejectedPeople();
 
         if (DEBUG_MODE) {
             console.log('\n%c SEND SCREENSHOT OF BELOW OUTPUT IF MACHINE DECISIONS ARE WRONG \n IF YOU DON\'T WANT LOGS, SEARCH FOR VARIABLE "DEBUG_MODE" => SET TO 0', 'background: #222; color: #bada55'); 
             testInputData();
-            console.log('\nTraining model - user decisions - all features');
-        }
-        
-        // build user model and test it
-        this.clf = buildUserModel(this.accepted, this.rejected);
-        
-        if (testClf(this.clf)) {
-            gtag('event', 'test-userdecision-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
-            return;
         }
 
         // build fake data model with extracted user feature preferences
@@ -162,23 +160,8 @@ class DataModule {
         return;
     }
 
-    chooseCandidateToInspect() {
-
-        let buffer = 5;
-        let counter = this.lastIndex + buffer;
-        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
-
-        //we choose the first blue candidate with average score beyond threshold
-        while(counter < cvCollection.cvData.length) {
-            if (cvCollection.cvData[counter].color == "blue") {
-                let scoreArray = this.getAverageScore({selectedIndexArray: [counter]});
-                if (getAverage(scoreArray) > 6) {
-                    return counter;
-                }
-            }
-            counter++;
-        }
-        return this.lastIndex;
+    getNameForPersonId(personId) {
+        return cvCollection.cvData[personId].name;
     }
 }
 

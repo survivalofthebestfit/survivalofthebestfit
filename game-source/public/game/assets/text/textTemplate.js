@@ -19,7 +19,7 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars to turn your startup idea into reality. Are you ready to grow your new company, Bestfit?',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill venturesto build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -42,8 +42,8 @@ const english = {
     },
 
     smallOfficeStage: {
-        subject: 'CONGRATULATIONS!',
-        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to execute and hire good talent!',
+        subject: 'Our investment in Bestfit',
+        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
@@ -56,14 +56,14 @@ const english = {
             'I can do that!',
         ],
         hiringGoal: 5,
-        retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a team by then!',
+        retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a better team by then',
         retryResponses: ['I will this time.'],
         duration: 30
     },
 
     largeOfficeStage: {
-        subject: 'We have to hire faster!',
-        messageFromVc: 'Good effort, but you need to expand the team even faster to meet your targets! Can you pull this off?',
+        subject: 'Next investment round...',
+        messageFromVc: 'Good effort, but you need to grow faster to secure their funding. Can you pull this off?',
         responses: [
             'Of course!',
             'I\'m a bit overwhelmed.',
@@ -76,11 +76,11 @@ const english = {
     },
 
     mlTransition: {
-        subject: 'Switching to a hiring algorithm?',
-        messageFromVc: 'Solid work, but we keep receiving new applications and I don\'t think we can keep up... Talk to your engineers, maybe they can help us hire faster?',
+        subject: 'Using AI?',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your engineers about a shiny solution? I heard AI can solve every problem nowadays',
         responses: [
-            'Sure, perhaps we can automate things',
-            'Hmm. How could they help?',
+            'Sure, we can automate it all!',
+            'Hmm, I will ask.',
         ],
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
@@ -179,53 +179,46 @@ const english = {
 
         narration: [
             {
-                delay: 2,
+                delay: 3,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
-                    'Diplomatic or aggressive? Different ways to describe blue people',
+                    'Diplomatic or aggressive? Different ways to describe the blue people',
                 ],
             },
             {
-                delay: 5,
-                messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working!',
+                delay: 7,
+                messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working',
                 responses: [
                     'Great to hear!',
                 ],
                 news: [
-                    'Yellowville Review: Does the future of hiring lie in AI?',
+                    'Yellow Valley Review: Does the future of hiring lie in AI?',
                     'Tech Junkies: Hiring algorithms are the next big thing',
                 ],
             },
             {
-                delay: 8,
-                messageFromVc: 'Hi, I just got a complaint from a past applicant asking why she was rejected. Can you look into it?',
+                inspect: true,
+                delay: 12,
+                messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
                 tooltip: {
-                    parent: 'machine',
+                    parent: 'scanray',
                     text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
                 },
             },
             {
-                delay: 11,
-                messageFromVc: 'Hello, just checking in on the progress so far. How are the hiring decisions looking?',
-                responses: [
-                    'Let me take a look',
-                    'Looking great!',
-                ],
-            },
-            {
-                delay: 14,
+                delay: 17,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
                     'Not sure, let’s see.',
                 ],
                 tooltip: {
-                    parent: 'scanray',
+                    parent: 'machine',
                     text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data',
                 },
                 news: [
@@ -234,7 +227,7 @@ const english = {
                 ],
             },
             {
-                delay: 17,
+                delay: 22,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
@@ -250,7 +243,7 @@ const english = {
                 ],
             },
             {
-                delay: 20,
+                delay: 26,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',
