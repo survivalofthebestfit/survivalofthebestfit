@@ -8,6 +8,7 @@ import TransitionOverlay from '~/public/game/components/interface/transition/tra
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
 import EVENTS from '~/public/game/controllers/constants/events';
 import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
+import * as state from '~/public/game/controllers/common/state';
 
 let office;
 let currentStage;
@@ -88,16 +89,19 @@ const gameFSM = new machina.Fsm({
         mediumOfficeStage: {
             _onEnter: function() {
                 currentStage = 1;
-
+                state.set('hiring-stage-number', currentStage);
+                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.mediumOfficeStage;
+                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.mediumOfficeStage.subject,
-                    content: txt.mediumOfficeStage.messageFromVc,
+                    content: previousStageSuccess ? successMessage : failMessage,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
                     overlay: true,
                     displayScore: true,
                 });
+                state.set('hiring-stage-success', false);
             },
 
             nextStage: 'largeOfficeStage',
@@ -112,16 +116,19 @@ const gameFSM = new machina.Fsm({
         largeOfficeStage: {
             _onEnter: function() {
                 currentStage = 2;
-
+                state.set('hiring-stage-number', currentStage);
+                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.largeOfficeStage;
+                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.largeOfficeStage.subject,
-                    content: txt.largeOfficeStage.messageFromVc,
+                    content: previousStageSuccess ? successMessage : failMessage,
                     responses: txt.largeOfficeStage.responses,
                     show: true,
                     overlay: true,
                     displayScore: true,
                 });
+                state.set('hiring-stage-success', false);
             },
 
             nextStage: 'mlTransitionStage',

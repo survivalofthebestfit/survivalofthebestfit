@@ -89,13 +89,11 @@ export default class extends UIBase {
     }
 
     _addEventListeners() {
-        eventEmitter.on(EVENTS.STAGE_INCOMPLETE, this.hide, this);
-        eventEmitter.on(EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+        eventEmitter.on(EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
 
     _removeEventListeners() {
-        eventEmitter.off(EVENTS.STAGE_INCOMPLETE, this.hide, this);
-        eventEmitter.off(EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+        eventEmitter.off(EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
 
     show() {

@@ -100259,16 +100259,12 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.hide, this);
-
-      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.hide, this);
-
-      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
   }, {
     key: "show",
@@ -100343,6 +100339,12 @@ var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 var _office = require("../../pixi/manual-stage/office");
 
+var _stateManager = require("../../../controllers/game/stateManager.js");
+
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -100413,7 +100415,10 @@ function (_UIBase) {
         'left': "".concat(mlLabCoordinates.left, "%"),
         'min-width': "".concat(mlLabCoordinates.minWidth, "px")
       });
-    }
+    } // every stage in unsuccessful by default
+
+
+    state.set('hiring-in-progress', true);
 
     _this._addEventListeners();
 
@@ -100454,23 +100459,31 @@ function (_UIBase) {
   }, {
     key: "updateTimer",
     value: function updateTimer(elapsedMS) {
-      this._runningMS += elapsedMS;
+      this._runningMS += elapsedMS; // whil the task timer is running
 
       if (this._runningMS <= this._duration * 1000) {
         if (Math.floor(this._runningMS / 1000) > this._elapsedTime) {
           this._elapsedTime++;
           this.writeTime();
-        }
+        } // once the task timer runs out
+
       } else if (this._runningMS > this._duration * 1000) {
         this._elapsedTime = this._duration;
         this.writeTime();
-        this.timer.stop();
+        this.timer.stop(); // STAGE FAILED
 
-        _gameSetup.eventEmitter.emit(_events["default"].STAGE_INCOMPLETE, {});
+        if (state.get('hiring-in-progress', true)) {
+          this.showTaskFeedback({
+            stageCompleted: false
+          });
+          state.set('hiring-stage-success', false);
 
-        this.showTaskFeedback({
-          stageCompleted: false
-        });
+          _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_DONE, {});
+
+          this.reset();
+
+          _stateManager.gameFSM.nextStage();
+        }
       }
     }
   }, {
@@ -100554,7 +100567,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/game/gameSetup.js":586,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],555:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/game/gameSetup.js":586,"../../../controllers/game/stateManager.js":590,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100887,9 +100900,9 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
@@ -100900,6 +100913,8 @@ var _gameSetup = require("../../../controllers/game/gameSetup.js");
 var _utils = require("../../../controllers/common/utils.js");
 
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100960,16 +100975,16 @@ function (_UIBase) {
       });
 
       if (!this.hasBeenClicked) {
-        _gameSetup.eventEmitter.emit(_events["default"].HIDE_MANUAL_INSTRUCTIONS, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
 
         this.hasBeenClicked = true;
       }
 
       ;
-      this.$yesButton.addClass(_classes["default"].ACCEPTED);
+      this.$yesButton.addClass(_constants.CLASSES.ACCEPTED);
 
       if (candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].ACCEPTED, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.ACCEPTED, {});
 
         this.hide();
       }
@@ -100982,10 +100997,10 @@ function (_UIBase) {
         'event_category': 'default',
         'event_label': 'accept/reject'
       });
-      this.$noButton.addClass(_classes["default"].REJECTED);
+      this.$noButton.addClass(_constants.CLASSES.REJECTED);
 
       if (candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].REJECTED, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.REJECTED, {});
 
         this.hide();
       }
@@ -100993,16 +101008,12 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      var _this2 = this;
-
       this.$yesButton.click(this._acceptClicked.bind(this));
       this.$noButton.click(this._rejectClicked.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].MANUAL_STAGE_COMPLETE, function (data) {
-        if (data.stageNumber == 2) _this2.destroy();
-      });
+      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
 
-      _gameSetup.eventEmitter.on(_events["default"].CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
     }
   }, {
     key: "_removeEventListeners",
@@ -101010,13 +101021,17 @@ function (_UIBase) {
       this.$yesButton.off();
       this.$noButton.off();
 
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
 
-      _gameSetup.eventEmitter.off(_events["default"].REJECTED, function () {});
-
-      _gameSetup.eventEmitter.off(_events["default"].MANUAL_STAGE_COMPLETE, function () {});
-
-      _gameSetup.eventEmitter.off(_events["default"].CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
+    }
+  }, {
+    key: "_stageEndHandler",
+    value: function _stageEndHandler() {
+      if (state.get('hiring-stage-success') && state.get('hiring-stage-number') >= 2) {
+        console.log('we are done with manual hiring, destroy yes and no buttons');
+        this.destroy();
+      }
     }
   }, {
     key: "_spotlightStatusHandler",
@@ -101038,7 +101053,7 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      var _this3 = this;
+      var _this2 = this;
 
       this.$el.css({
         'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
@@ -101052,7 +101067,7 @@ function (_UIBase) {
         opacity: 0
       });
 
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.to(this.$id, 0.2, {
         y: 0,
@@ -101061,13 +101076,13 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this3.$el.removeClass(_classes["default"].IS_INACTIVE);
+        _this2.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
       });
     }
   }, {
     key: "hide",
     value: function hide() {
-      var _this4 = this;
+      var _this3 = this;
 
       _TweenMax.TweenLite.to(this.$id, 0.3, {
         y: 5,
@@ -101076,7 +101091,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this3.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
     }
   }, {
@@ -101095,7 +101110,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":573,"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],558:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101397,6 +101412,8 @@ var _pixiContainers = require("../../../controllers/constants/pixi-containers.js
 
 var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
 
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
@@ -101585,29 +101602,7 @@ function () {
         _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
-      this.stageResetHandler = function () {
-        (0, _utils.waitForSeconds)(0.5).then(function () {
-          sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
-          new _uiTextbox["default"]({
-            isRetry: true,
-            stageNumber: _this2.currentStage,
-            subject: _this2.stageText.subject,
-            content: _this2.stageText.retryMessage,
-            responses: _this2.stageText.retryResponses,
-            show: true,
-            overlay: true
-          });
-
-          if (_this2.task) {
-            _this2.task.reset();
-          }
-        });
-      };
-
-      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
       this.acceptedHandler = function () {
-        // console.log('record accepted!');
         sound.play(_constants.SOUNDS.PERSON_ACCEPTED);
 
         _dataModule.dataModule.recordAccept(candidateInSpot);
@@ -101634,15 +101629,15 @@ function () {
           _this2.doors[0].playAnimation({
             direction: 'reverse'
           });
-        });
+        }); // STAGE SUCCESS
 
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
+          state.set('hiring-in-progress', false);
+          state.set('hiring-stage-success', true);
           (0, _utils.waitForSeconds)(1).then(function () {
             sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
 
-            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
-              stageNumber: _this2.currentStage
-            });
+            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_DONE, {});
 
             _this2.task.reset();
 
@@ -101779,8 +101774,6 @@ function () {
 
       _gameSetup.eventEmitter.off(_constants.EVENTS.RETURN_CANDIDATE, function () {});
 
-      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
       _gameSetup.eventEmitter.off(_constants.EVENTS.DISPLAY_THIS_CV, function () {});
 
       _gameSetup.eventEmitter.off(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function () {});
@@ -101811,7 +101804,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../../controllers/game/sound.js":589,"../../../controllers/game/stateManager.js":590,"../../../controllers/machine-learning/dataModule.js":591,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":336,"pixi.js":482}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../../controllers/game/sound.js":589,"../../../controllers/game/stateManager.js":590,"../../../controllers/machine-learning/dataModule.js":591,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":336,"pixi.js":482}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103057,7 +103050,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.get = exports.set = void 0;
 var store = {
-  'big-tech-company': 'BIG COMPANY'
+  'big-tech-company': String('BIG COMPANY'),
+  'hiring-stage-number': Number(0),
+  'hiring-in-progress': Boolean(false),
+  'hiring-stage-success': Boolean(false)
 };
 
 var set = function set(prop, value) {
@@ -103470,7 +103466,7 @@ var _default = {
   INSTRUCTION_ACKED: 'instruction-acked',
   RETRY_INSTRUCTION_ACKED: 'retry-instruction-acked',
   TRANSITION_INSTRUCTION_ACKED: 'transition-instruction-acked',
-  MANUAL_STAGE_COMPLETE: 'manual-stage-complete',
+  MANUAL_STAGE_DONE: 'manual-stage-done',
   PLAY_DOOR_ANIMATION: 'play-door-animation',
   INSPECT_ALGORITHM: 'inspect-algorithm',
   DATASET_VIEW_INSPECT: 'inspect-dataset',
@@ -104499,6 +104495,8 @@ var _events = _interopRequireDefault(require("../constants/events"));
 
 var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
 
+var state = _interopRequireWildcard(require("../common/state"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
@@ -104579,15 +104577,21 @@ var gameFSM = new machina.Fsm({
     mediumOfficeStage: {
       _onEnter: function _onEnter() {
         currentStage = 1;
+        state.set('hiring-stage-number', currentStage);
+        var _txt$mediumOfficeStag = txt.mediumOfficeStage,
+            successMessage = _txt$mediumOfficeStag.messageFromVc,
+            failMessage = _txt$mediumOfficeStag.retryMessage;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mediumOfficeStage.subject,
-          content: txt.mediumOfficeStage.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.mediumOfficeStage.responses,
           show: true,
           overlay: true,
           displayScore: true
         });
+        state.set('hiring-stage-success', false);
       },
       nextStage: 'largeOfficeStage',
       _onExit: function _onExit() {}
@@ -104600,15 +104604,21 @@ var gameFSM = new machina.Fsm({
     largeOfficeStage: {
       _onEnter: function _onEnter() {
         currentStage = 2;
+        state.set('hiring-stage-number', currentStage);
+        var _txt$largeOfficeStage = txt.largeOfficeStage,
+            successMessage = _txt$largeOfficeStage.messageFromVc,
+            failMessage = _txt$largeOfficeStage.retryMessage;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.largeOfficeStage.subject,
-          content: txt.largeOfficeStage.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.largeOfficeStage.responses,
           show: true,
           overlay: true,
           displayScore: true
         });
+        state.set('hiring-stage-success', false);
       },
       nextStage: 'mlTransitionStage',
       _onExit: function _onExit() {}
@@ -104676,7 +104686,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../constants/events":576,"./gameSetup.js":586,"./mlLabNarrator":588,"machina":338}],591:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../common/state":571,"../constants/events":576,"./gameSetup.js":586,"./mlLabNarrator":588,"machina":338}],591:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {

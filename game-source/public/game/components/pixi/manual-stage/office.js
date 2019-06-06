@@ -17,6 +17,8 @@ import TaskUI from '../../interface/ui-task/ui-task';
 import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state';
+
 
 const candidatePoolSize = {
     smallOfficeStage: 7,
@@ -171,29 +173,7 @@ class Office {
             this.resumeUI.showCV(cvCollection.cvData[candidateClicked]);
         });
 
-        this.stageResetHandler = () => {
-            waitForSeconds(0.5).then(() => {
-                sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                new TextBoxUI({
-                    isRetry: true,
-                    stageNumber: this.currentStage,
-                    subject: this.stageText.subject,
-                    content: this.stageText.retryMessage,
-                    responses: this.stageText.retryResponses,
-                    show: true,
-                    overlay: true,
-                });
-    
-                if (this.task) {
-                    this.task.reset();
-                }
-            });
-        };
-
-        eventEmitter.on(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
         this.acceptedHandler = () => {
-            // console.log('record accepted!');
             sound.play(SOUNDS.PERSON_ACCEPTED);
             dataModule.recordAccept(candidateInSpot);
             this.takenDesks += 1;
@@ -211,14 +191,13 @@ class Office {
                 this.personContainer.removeChild(hiredPerson);
                 this.doors[0].playAnimation({direction: 'reverse'});
             });
-
+            // STAGE SUCCESS
             if (this.takenDesks == this.stageText.hiringGoal) {
-
+                state.set('hiring-in-progress', false);
+                state.set('hiring-stage-success', true);
                 waitForSeconds(1).then(() => {
                     sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                    eventEmitter.emit(EVENTS.MANUAL_STAGE_COMPLETE, {
-                        stageNumber: this.currentStage,
-                    });
+                    eventEmitter.emit(EVENTS.MANUAL_STAGE_DONE, {});
                     this.task.reset();
                     gameFSM.nextStage();
                 });
@@ -318,7 +297,6 @@ class Office {
         eventEmitter.off(EVENTS.ACCEPTED, this.acceptedHandler);
         eventEmitter.off(EVENTS.REJECTED, this.rejectedHandler);
         eventEmitter.off(EVENTS.RETURN_CANDIDATE, () => {});
-        eventEmitter.off(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
         eventEmitter.off(EVENTS.DISPLAY_THIS_CV, () => {});
         eventEmitter.off(EVENTS.RETRY_INSTRUCTION_ACKED, () => {});
         eventEmitter.off(EVENTS.INSTRUCTION_ACKED, () => {});

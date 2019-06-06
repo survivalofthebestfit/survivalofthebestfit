@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import {TweenLite} from 'gsap/TweenMax';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
+import * as state from '~/public/game/controllers/common/state';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {spotlight} from '~/public/game/components/pixi/manual-stage/office';
 import {eventEmitter, pixiApp, officeStageContainer} from '~/public/game/controllers/game/gameSetup.js';
@@ -54,22 +54,22 @@ export default class extends UIBase {
     _addEventListeners() {
         this.$yesButton.click(this._acceptClicked.bind(this));
         this.$noButton.click(this._rejectClicked.bind(this));
-
-        eventEmitter.on(EVENTS.MANUAL_STAGE_COMPLETE, (data) => {
-            if (data.stageNumber == 2) this.destroy();
-        });
-
-        eventEmitter.on(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+        eventEmitter.on(EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
+        eventEmitter.on(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
     };
 
     _removeEventListeners() {
         this.$yesButton.off();
         this.$noButton.off();
+        eventEmitter.off(EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
+        eventEmitter.off(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
+    }
 
-        eventEmitter.off(EVENTS.ACCEPTED, () => {});
-        eventEmitter.off(EVENTS.REJECTED, () => {});
-        eventEmitter.off(EVENTS.MANUAL_STAGE_COMPLETE, () => {});
-        eventEmitter.off(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+    _stageEndHandler() {
+        if (state.get('hiring-stage-success') && state.get('hiring-stage-number') >= 2) {
+            console.log('we are done with manual hiring, destroy yes and no buttons');
+            this.destroy();
+        }
     }
 
     _spotlightStatusHandler({spotlightOccupied, spotlightFill}) {
