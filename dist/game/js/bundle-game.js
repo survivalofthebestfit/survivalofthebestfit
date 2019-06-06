@@ -100117,11 +100117,13 @@ var _TweenMax = require("gsap/TweenMax");
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _utils = require("../../../controllers/common/utils");
+
+var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100161,6 +100163,8 @@ function (_UIBase) {
 
     _this._removeEventListeners();
 
+    _this._addEventListeners();
+
     _this.$el = (0, _jquery["default"])('#js-resume');
     _this.$nameEl = _this.$el.find('.Resume__title');
     _this.$taglineEl = _this.$el.find('.Resume__tagline');
@@ -100175,11 +100179,11 @@ function (_UIBase) {
     _this.type = options.type || 'manual'; // this.setContent(); // set content
 
     if (_this.type === 'ml') {
-      _this.$el.addClass(_classes["default"].ML_RESUME);
+      _this.$el.addClass(_constants.CLASSES.ML_RESUME);
 
-      _this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
+      _this.$scanline.removeClass(_constants.CLASSES.IS_INACTIVE);
     } else {
-      _this.$el.addClass(_classes["default"].ANIMATE_RESUME_ATTRIBUTES);
+      _this.$el.addClass(_constants.CLASSES.ANIMATE_RESUME_ATTRIBUTES);
     }
 
     if (_this._resumes === undefined || _this._resumeFeatures === undefined) {
@@ -100201,23 +100205,23 @@ function (_UIBase) {
 
       this._resumeFeatures.forEach(function (feature, index) {
         var skillScore = cv.qualifications[index] * 10;
-        var skillClass = ".".concat(_classes["default"].CV_CATEGORY, "--").concat(feature["class"]);
+        var skillClass = ".".concat(_constants.CLASSES.CV_CATEGORY, "--").concat(feature["class"]);
 
         var $skillEl = _this2.$el.find(skillClass);
 
-        $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__name")).html(feature.name);
-        $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
+        $skillEl.find(".".concat(_constants.CLASSES.CV_CATEGORY, "__name")).html(feature.name);
+        $skillEl.find(".".concat(_constants.CLASSES.CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
       });
 
-      if (this.$el.hasClass(_classes["default"].IS_INACTIVE)) this.show();
+      if (this.$el.hasClass(_constants.CLASSES.IS_INACTIVE)) this.show();
     }
   }, {
     key: "setColor",
     value: function setColor(color) {
       if (color === 'yellow') {
-        this.$el.addClass(_classes["default"].RESUME_YELLOW).removeClass(_classes["default"].RESUME_BLUE);
+        this.$el.addClass(_constants.CLASSES.RESUME_YELLOW).removeClass(_constants.CLASSES.RESUME_BLUE);
       } else {
-        this.$el.addClass(_classes["default"].RESUME_BLUE).removeClass(_classes["default"].RESUME_YELLOW);
+        this.$el.addClass(_constants.CLASSES.RESUME_BLUE).removeClass(_constants.CLASSES.RESUME_YELLOW);
       }
 
       ;
@@ -100241,27 +100245,35 @@ function (_UIBase) {
   }, {
     key: "showScanline",
     value: function showScanline() {
-      this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
-      this.$mask.removeClass(_classes["default"].IS_INACTIVE);
+      this.$scanline.removeClass(_constants.CLASSES.IS_INACTIVE);
+      this.$mask.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hideScanline",
     value: function hideScanline() {
-      this.$scanline.addClass(_classes["default"].IS_INACTIVE);
+      this.$scanline.addClass(_constants.CLASSES.IS_INACTIVE);
       this.$scanline.css('top', '0');
-      this.$mask.addClass(_classes["default"].IS_INACTIVE);
+      this.$mask.addClass(_constants.CLASSES.IS_INACTIVE);
       this.$mask.css('height', '0');
     }
   }, {
     key: "_addEventListeners",
-    value: function _addEventListeners() {}
+    value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.hide, this);
+
+      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+    }
   }, {
     key: "_removeEventListeners",
-    value: function _removeEventListeners() {}
+    value: function _removeEventListeners() {
+      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.hide, this);
+
+      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_COMPLETE, this.hide, this);
+    }
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       if (this.type === 'ml') {
         _TweenMax.TweenLite.set('#js-resume', {
@@ -100288,10 +100300,10 @@ function (_UIBase) {
         });
 
         _TweenMax.TweenLite.delayedCall(0.4, function () {
-          _this3.$el.addClass(_classes["default"].IS_INACTIVE);
+          _this3.$el.addClass(_constants.CLASSES.IS_INACTIVE);
         });
       } else {
-        this.$el.addClass(_classes["default"].IS_INACTIVE);
+        this.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       }
     }
   }, {
@@ -100311,7 +100323,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":573,"../../../controllers/constants/classes":575,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],554:[function(require,module,exports){
+},{"../../../controllers/common/utils":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],554:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101625,9 +101637,7 @@ function () {
         });
 
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
-          // console.log('stage complete!');
           (0, _utils.waitForSeconds)(1).then(function () {
-            // console.log('next stage!');
             sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
 
             _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
@@ -104510,8 +104520,8 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
+        // this.transition('titleStage');
+        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
         // this.transition('gameBreakdown');

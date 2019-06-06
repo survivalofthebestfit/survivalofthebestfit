@@ -213,10 +213,8 @@ class Office {
             });
 
             if (this.takenDesks == this.stageText.hiringGoal) {
-                // console.log('stage complete!');
-                
+
                 waitForSeconds(1).then(() => {
-                    // console.log('next stage!');
                     sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
                     eventEmitter.emit(EVENTS.MANUAL_STAGE_COMPLETE, {
                         stageNumber: this.currentStage,
