@@ -99492,15 +99492,11 @@ exports["default"] = void 0;
 
 var _componentLoaderJs = require("component-loader-js");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../../controllers/constants/events"));
+var _constants = require("../../../../controllers/constants");
 
 var _stateManager = require("../../../../controllers/game/stateManager.js");
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -99557,22 +99553,22 @@ function (_Component) {
       if (this.clicked) return; // add 'chosen' styling to the button
 
       if (this._step + 1 === this._totalSteps) {
-        _gameSetup.eventEmitter.emit(_events["default"].EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
 
 
         return;
       }
 
-      ;
+      ; // make the text above less prominent 
 
-      this._btn.classList.add(_classes["default"].BUTTON_CLICKED); // hide the other choice button
+      this._btn.classList.add(_constants.CLASSES.BUTTON_CLICKED); // hide the other choice button
 
 
-      this.publish('hide-other-choice', this._step); // show next replica
+      this.publish(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._step); // show next replica
 
       var choiceButtonResponse = this._getChoiceResponse(this._step, this._textContainer.innerHTML);
 
-      this.publish('reveal-next-replica', {
+      this.publish(_constants.EVENTS.REVEAL_REPLICA, {
         choice_response: choiceButtonResponse,
         step: this._step + 1
       }); // remove the event listeners on the clicked button and turn the boolean value
@@ -99585,20 +99581,20 @@ function (_Component) {
     key: "_addEventListeners",
     value: function _addEventListeners() {
       this.el.addEventListener('click', this._onBtnClick);
-      this.subscribe('hide-other-choice', this._hideBtn);
+      this.subscribe(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
       this.el.removeEventListener('click', this._onBtnClick);
-      this.unsubscribe('hide-other-choice', this._hideBtn);
+      this.unsubscribe(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     } // hide the unchosen button
 
   }, {
     key: "_hideBtn",
     value: function _hideBtn(conversationStep) {
-      if (this._step === conversationStep && !this._btn.classList.contains(_classes["default"].BUTTON_CLICKED)) {
-        this.el.classList.add(_classes["default"].IS_INACTIVE);
+      if (this._step === conversationStep && !this._btn.classList.contains(_constants.CLASSES.BUTTON_CLICKED)) {
+        this.el.classList.add(_constants.CLASSES.IS_INACTIVE);
 
         this._removeEventListeners();
 
@@ -99623,7 +99619,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"component-loader-js":14}],550:[function(require,module,exports){
+},{"../../../../controllers/constants":578,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"component-loader-js":14}],550:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99637,7 +99633,7 @@ var _componentLoaderJs = require("component-loader-js");
 
 var _utils = require("../../../../controllers/common/utils");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
 
@@ -99693,10 +99689,12 @@ function (_Component) {
     _this._dropzone = _this.el.querySelector('.replica__dropzone');
     _this._typeIcon = _this.el.querySelector('.replica__typeIcon');
 
-    _this.subscribe('reveal-next-replica', _this._revealReplica);
+    _this.subscribe(_constants.EVENTS.REVEAL_REPLICA, _this._revealReplica);
+
+    _this.subscribe(_constants.EVENTS.GREY_OUT_REPLICA, _this._greyOutReplica);
 
     if (_this._step === 0) {
-      _this._replicaContent.classList.remove(_classes["default"].IS_INACTIVE);
+      _this._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
       if (_this._fileDrag) _this._addFileClickListener();
       if (_this._datasetChoice) _this._addChoiceListener();
@@ -99711,15 +99709,15 @@ function (_Component) {
       var _this2 = this;
 
       if (this._step === data.step) {
-        this.el.classList.remove(_classes["default"].IS_INACTIVE);
+        this.el.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-        this._typeIcon.classList.remove(_classes["default"].IS_INACTIVE);
+        this._typeIcon.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
         this.scrollHandler();
         (0, _utils.waitForSeconds)(Math.round((Math.random() + 1) * 15) / 10).then(function () {
-          _this2._replicaContent.classList.remove(_classes["default"].IS_INACTIVE);
+          _this2._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-          _this2._typeIcon.classList.add(_classes["default"].IS_INACTIVE);
+          _this2._typeIcon.classList.add(_constants.CLASSES.IS_INACTIVE);
 
           _this2._textContainer.innerHTML = data.choice_response + _this2._textContainer.innerHTML;
 
@@ -99727,7 +99725,32 @@ function (_Component) {
 
           if (_this2._fileDrag) _this2._addFileClickListener();
           if (_this2._datasetChoice) _this2._addChoiceListener();
+
+          _this2.publish(_constants.EVENTS.GREY_OUT_REPLICA, {
+            step: _this2._step - 1
+          });
         });
+      }
+    }
+  }, {
+    key: "_greyOutReplica",
+    value: function _greyOutReplica(_ref) {// console.log(`grey out text in replica: ${data.step}`);
+      // if (this._step === data.step) {
+      //     // this.el.classList.remove(CLASSES.IS_INACTIVE);
+      //     this._textContainer.classList.add('grey-text');
+      //     const choiceButton = this.el.querySelector(this.getButtonSelector());
+      //     if (choiceButton) choiceButton.classList.add('grey-text');
+      // }
+
+      var step = _ref.step;
+    }
+  }, {
+    key: "getButtonSelector",
+    value: function getButtonSelector() {
+      if (this._fileDrag) {
+        return '.data-list';
+      } else {
+        return '.replica__buttons';
       }
     }
   }, {
@@ -99738,10 +99761,10 @@ function (_Component) {
       (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
 
-        $fileInstructions.classList.add(_classes["default"].CONVERSATION_STEP_COMPLETED);
+        $fileInstructions.classList.add(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
         $fileInstructions.innerHTML = 'Attached cv_all.zip';
 
-        _this3.publish('reveal-next-replica', {
+        _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this3._step + 1
         });
@@ -99770,13 +99793,13 @@ function (_Component) {
         state.set('big-tech-company', $choice.text());
 
         _toConsumableArray((0, _jquery["default"])('.data-list__choice')).map(function (choice) {
-          return (0, _jquery["default"])(choice).addClass(_classes["default"].IS_INACTIVE);
+          return (0, _jquery["default"])(choice).addClass(_constants.CLASSES.IS_INACTIVE);
         });
 
-        $choice.removeClass(_classes["default"].IS_INACTIVE).addClass(_classes["default"].CONVERSATION_STEP_COMPLETED);
-        $choice.find('.data-list__icon').addClass(_classes["default"].IS_INACTIVE);
+        $choice.removeClass(_constants.CLASSES.IS_INACTIVE).addClass(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
+        $choice.find('.data-list__icon').addClass(_constants.CLASSES.IS_INACTIVE);
 
-        _this4.publish('reveal-next-replica', {
+        _this4.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this4._step + 1
         });
@@ -99791,7 +99814,7 @@ function (_Component) {
 
 exports["default"] = Replica;
 
-},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"component-loader-js":14,"jquery":336}],551:[function(require,module,exports){
+},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants":578,"component-loader-js":14,"jquery":336}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103545,7 +103568,10 @@ var _default = {
   UPDATE_INSTRUCTIONS: 'update-instructions',
   HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
   EXIT_TRANSITION_STAGE: 'exit-transition-stage',
-  TITLE_STAGE_COMPLETED: 'title-stage-completed'
+  TITLE_STAGE_COMPLETED: 'title-stage-completed',
+  REVEAL_REPLICEA: 'reveal-next-replica',
+  GREY_OUT_REPLICA: 'grey-out-previous-replica',
+  HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons'
 };
 exports["default"] = _default;
 

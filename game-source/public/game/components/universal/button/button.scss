@@ -49,4 +49,8 @@
   &.is-clicked {
     @include boxColors($txt-color:color(txt-black), $bg-color: color(rose-light), $shadow-color: 'rose');
   }
+
+  .grey-text & {
+    color: grey;
+  }
 }

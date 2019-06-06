@@ -1,6 +1,5 @@
 import {Component} from 'component-loader-js';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
@@ -29,12 +28,14 @@ export default class ChoiceButton extends Component {
             // gameFSM.nextStage();
             return;
         };
+        // make the text above less prominent 
         this._btn.classList.add(CLASSES.BUTTON_CLICKED);
         // hide the other choice button
-        this.publish('hide-other-choice', this._step);
+        this.publish(EVENTS.HIDE_UNCHOSEN_BUTTONS, this._step);
+        
         // show next replica
         const choiceButtonResponse = this._getChoiceResponse(this._step, this._textContainer.innerHTML);
-        this.publish('reveal-next-replica', {choice_response: choiceButtonResponse, step: this._step+1});
+        this.publish(EVENTS.REVEAL_REPLICA, {choice_response: choiceButtonResponse, step: this._step+1});
         // remove the event listeners on the clicked button and turn the boolean value
         this._removeEventListeners();
         this.clicked = true;
@@ -42,12 +43,12 @@ export default class ChoiceButton extends Component {
 
     _addEventListeners() {
         this.el.addEventListener('click', this._onBtnClick);
-        this.subscribe('hide-other-choice', this._hideBtn);
+        this.subscribe(EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     }
 
     _removeEventListeners() {
         this.el.removeEventListener('click', this._onBtnClick);
-        this.unsubscribe('hide-other-choice', this._hideBtn);
+        this.unsubscribe(EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     }
 
     // hide the unchosen button
