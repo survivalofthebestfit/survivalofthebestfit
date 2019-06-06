@@ -34,7 +34,8 @@ export default class {
         const tween = PIXI.tweenManager.createTween(this.resumeContainer);
         tween.from({x: this.resumeContainer.x}).to({x: this.resumeContainer.x - this.resumeXOffset});
         tween.delay = 300;
-        tween.time = 700;
+        tween.time = 400;
+        tween.easing = PIXI.tween.Easing.inOutCubic();
         return tween;
     }
 

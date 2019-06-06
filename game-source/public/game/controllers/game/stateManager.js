@@ -4,7 +4,6 @@ import {Office} from '~/public/game/components/pixi/manual-stage/office.js';
 import MlLabNarrator from '~/public/game/controllers/game/mlLabNarrator';
 import TitlePageUI from '~/public/game/components/interface/ui-title/ui-title';
 import TextBoxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
-import PerfMetrics from '~/public/game/components/interface/perf-metrics/perf-metrics';
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
 import EVENTS from '~/public/game/controllers/constants/events';
@@ -176,12 +175,7 @@ const gameFSM = new machina.Fsm({
 
         mlLabStage: {
             _onEnter: function() {
-                if (revenue) {
-                    revenue.show();
-                } else {
-                    if (office) office.delete();
-                    new PerfMetrics().show();
-                }
+                if (office) office.delete();
 
                 mlLab = new MlLabNarrator();
             },

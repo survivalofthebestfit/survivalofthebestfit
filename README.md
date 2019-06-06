@@ -1,5 +1,7 @@
 # Survival of the Best Fit
 
+You can play the game here https://survivalofthebestfit.com
+
 ## Concept
 Survival of the Best Fit is an educational web simulation to shed light on how AI and ML algorithms can be biased, particularly by looking at how using ML in hiring practices can reinforce workforce inequality. It aims to break down the barrier between internet users and the technologies behind building the internet (particularly AI and ML), by giving them an understanding of how decisions made by developers of recruitment applications directly impact the decisions produced by algorithms.
 

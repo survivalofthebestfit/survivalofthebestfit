@@ -14,7 +14,7 @@ export default class extends UIBase {
         this.$taglineEl = this.$el.find('.Resume__tagline');
         this.$scanline = this.$el.find('.Resume__scanline');
         this.$mask = this.$el.find('.Resume__mask');
-        this.scanlineAnimDuration = 1.8;
+        this.scanlineAnimDuration = 1.2;
         this._content = options ? options.content : 'dummy text'; // TODO: change this to null
         this._resumeFeatures = options ? options.features : undefined;
         this._resumes = options ? options.scores : undefined;
