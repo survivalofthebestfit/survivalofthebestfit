@@ -23,6 +23,7 @@ function next2() {
     current.style.display = "none";
 	next.style.display = "block";
 	
+	window.open("https://survivalofthebestfit.com/resources/");
 } 
 
 function next3() {
