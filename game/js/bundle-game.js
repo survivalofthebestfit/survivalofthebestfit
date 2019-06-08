@@ -101192,6 +101192,8 @@ function (_UIBase) {
   }, {
     key: "destroy",
     value: function destroy() {
+      console.log('destroy yes no buttons!');
+
       _get(_getPrototypeOf(_default.prototype), "dispose", this).call(this);
 
       this.hide();
