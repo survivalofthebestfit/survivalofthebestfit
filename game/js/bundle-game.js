@@ -98070,7 +98070,7 @@ function (_Component) {
 
 exports["default"] = Footer;
 
-},{"../../../controllers/constants/classes":575,"../../../controllers/game/sound":589,"component-loader-js":14,"jquery":336,"screenfull":530}],539:[function(require,module,exports){
+},{"../../../controllers/constants/classes":575,"../../../controllers/game/sound":590,"component-loader-js":14,"jquery":336,"screenfull":530}],539:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98354,7 +98354,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98430,7 +98430,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"gsap/TweenMax":331,"jquery":336}],542:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"gsap/TweenMax":331,"jquery":336}],542:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98440,15 +98440,17 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../../controllers/constants/events"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
 var _gameSetup2 = require("../../../../controllers/game/gameSetup");
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98519,19 +98521,20 @@ function (_UIBase) {
         'top': "".concat(y, "px"),
         'left': "".concat(x, "px")
       });
-      if (!this.$icon.hasClass(_classes["default"].PULSATE)) this.$icon.addClass(_classes["default"].PULSATE);
+      if (!this.$icon.hasClass(_constants.CLASSES.PULSATE)) this.$icon.addClass(_constants.CLASSES.PULSATE);
       this.$text.html(this.content);
-      this.$icon.removeClass(_classes["default"].IS_INACTIVE);
-      this.$tooltip.addClass(_classes["default"].IS_INACTIVE);
+      this.$icon.removeClass(_constants.CLASSES.IS_INACTIVE);
+      this.$tooltip.addClass(_constants.CLASSES.IS_INACTIVE);
+      sound.play(_constants.SOUNDS.WRITING_MESSAGE);
     }
   }, {
     key: "_handleIconHover",
     value: function _handleIconHover() {
       if (!this.isActive) {
         this.isActive = true;
-        this.$icon.removeClass(_classes["default"].PULSATE);
+        this.$icon.removeClass(_constants.CLASSES.PULSATE);
 
-        _gameSetup.eventEmitter.emit(_events["default"].RESUME_TIMELINE, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.RESUME_TIMELINE, {});
       }
 
       ;
@@ -98540,12 +98543,15 @@ function (_UIBase) {
     key: "_expandTooltip",
     value: function _expandTooltip() {
       this.isActive = true;
-      this.$icon.addClass(_classes["default"].IS_INACTIVE);
-      this.$tooltip.removeClass(_classes["default"].IS_INACTIVE);
+      this.$icon.addClass(_constants.CLASSES.IS_INACTIVE);
+      this.$tooltip.removeClass(_constants.CLASSES.IS_INACTIVE);
+      sound.stop(_constants.SOUNDS.WRITING_MESSAGE);
+      sound.play(_constants.SOUNDS.NEW_MESSAGE);
     }
   }, {
     key: "_dismissTooltip",
     value: function _dismissTooltip() {
+      sound.play(_constants.SOUNDS.BUTTON_CLICK);
       this.callback();
       this.destroy();
     }
@@ -98563,12 +98569,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.addClass(_classes["default"].IS_INACTIVE);
+      this.$el.addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -98586,7 +98592,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup":586,"../../../../controllers/game/gameSetup.js":586,"../../ui-base/ui-base":551,"jquery":336}],543:[function(require,module,exports){
+},{"../../../../controllers/constants":578,"../../../../controllers/game/gameSetup":587,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/sound.js":590,"../../ui-base/ui-base":551,"jquery":336}],543:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98770,7 +98776,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98899,7 +98905,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":573,"../../../../controllers/constants/events":576,"../../../../controllers/constants/pixi-containers.js":582,"../../../../controllers/game/gameSetup.js":586,"../person-tooltip/person-tooltip":546}],545:[function(require,module,exports){
+},{"../../../../controllers/common/utils":573,"../../../../controllers/constants/events":576,"../../../../controllers/constants/pixi-containers.js":583,"../../../../controllers/game/gameSetup.js":587,"../person-tooltip/person-tooltip":546}],545:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98993,7 +98999,7 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
@@ -99113,7 +99119,7 @@ function (_UIBase) {
         opacity: 0
       });
 
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.to('#js-person-tooltip', 0.2, {
         y: 0,
@@ -99135,7 +99141,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this4.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
 
       this.isActive = false;
@@ -99154,7 +99160,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":573,"../../../../controllers/constants/classes":575,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],547:[function(require,module,exports){
+},{"../../../../controllers/common/utils":573,"../../../../controllers/constants":578,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],547:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99166,7 +99172,7 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
@@ -99177,6 +99183,8 @@ var _stateManager = require("../../../../controllers/game/stateManager.js");
 var _utils = require("../../../../controllers/common/utils");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
@@ -99246,6 +99254,7 @@ function (_UIBase) {
           return text;
         }
       });
+      sound.play(_constants.SOUNDS.TRAIN_ALGORITHM);
       (0, _utils.waitForSeconds)(1).then(function () {
         _this2.show(); // this.showEndUI(); // debugging only
 
@@ -99253,6 +99262,8 @@ function (_UIBase) {
         _this2.updateProgressText();
 
         _this2.launchProgressBar();
+
+        sound.play(_constants.SOUNDS.TRAIN_ALGORITHM);
       });
     }
   }, {
@@ -99265,6 +99276,8 @@ function (_UIBase) {
       _gameSetup.ticker.add(this.progressBarHandler.bind(this));
 
       _gameSetup.ticker.start();
+
+      sound.play(_constants.SOUNDS.TRAINING_UPDATE);
     }
   }, {
     key: "progressBarHandler",
@@ -99291,9 +99304,14 @@ function (_UIBase) {
 
           _this3.grid.lightDown();
 
+          sound.stop(_constants.SOUNDS.TRAIN_ALGORITHM);
+          sound.play(_constants.SOUNDS.STAGE_SUCCEEDED);
+
           _this3.showEndUI();
         } else {
           _this3.updateProgressStage();
+
+          sound.play(_constants.SOUNDS.TRAINING_UPDATE);
         }
       });
     }
@@ -99312,12 +99330,12 @@ function (_UIBase) {
       var _this4 = this;
 
       // console.log('show end ui!');
-      this.$progressBox.addClass(_classes["default"].IS_INACTIVE);
+      this.$progressBox.addClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.delayedCall(1, function () {
         _this4.$el.addClass('pink-background');
 
-        _this4.$email.removeClass(_classes["default"].IS_INACTIVE);
+        _this4.$email.removeClass(_constants.CLASSES.IS_INACTIVE);
 
         _TweenMax.TweenLite.set('.js-email', {
           y: 10,
@@ -99335,6 +99353,8 @@ function (_UIBase) {
           _this4.$stageEndBtn.find('.button').addClass('step-completed');
 
           _this4.exit();
+
+          sound.play(_constants.SOUNDS.BUTTON_CLICK);
         });
       });
     }
@@ -99349,12 +99369,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE).removeClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -99372,7 +99392,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants/classes":575,"../../../../controllers/game/gameSetup.js":586,"../../../../controllers/game/stateManager.js":590,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],548:[function(require,module,exports){
+},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants":578,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/sound.js":590,"../../../../controllers/game/stateManager.js":591,"../../../pixi/training-stage/circle-grid":570,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],548:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99387,6 +99407,10 @@ var _constants = require("../../../../controllers/constants");
 var _stateManager = require("../../../../controllers/game/stateManager.js");
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -99440,7 +99464,8 @@ function (_Component) {
     key: "_onBtnClick",
     // on button click
     value: function _onBtnClick(e) {
-      if (this.clicked) return; // add 'chosen' styling to the button
+      if (this.clicked) return;
+      sound.play(_constants.SOUNDS.BUTTON_CLICK); // add 'chosen' styling to the button
 
       if (this._step + 1 === this._totalSteps) {
         _gameSetup.eventEmitter.emit(_constants.EVENTS.EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
@@ -99509,7 +99534,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants":577,"../../../../controllers/game/gameSetup.js":586,"../../../../controllers/game/stateManager.js":590,"component-loader-js":14}],549:[function(require,module,exports){
+},{"../../../../controllers/constants":578,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/sound.js":590,"../../../../controllers/game/stateManager.js":591,"component-loader-js":14}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99526,6 +99551,8 @@ var _utils = require("../../../../controllers/common/utils");
 var _constants = require("../../../../controllers/constants");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99603,7 +99630,8 @@ function (_Component) {
 
         this._typeIcon.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-        this.scrollHandler();
+        this.scrollHandler(); // sound.schedule(SOUNDS.WRITING_MESSAGE, 0.3);
+
         (0, _utils.waitForSeconds)(Math.round((Math.random() + 1) * 15) / 10).then(function () {
           _this2._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
@@ -99619,6 +99647,10 @@ function (_Component) {
           _this2.publish(_constants.EVENTS.GREY_OUT_REPLICA, {
             step: _this2._step - 1
           });
+
+          console.log('play new message!'); // sound.stop(SOUNDS.WRITING_MESSAGE);
+
+          sound.play(_constants.SOUNDS.NEW_MESSAGE);
         });
       }
     }
@@ -99649,6 +99681,8 @@ function (_Component) {
       var _this3 = this;
 
       (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
+        sound.play(_constants.SOUNDS.BUTTON_CLICK);
+
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
 
         $fileInstructions.classList.add(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
@@ -99679,6 +99713,7 @@ function (_Component) {
 
       // console.log('we added a choice listener!');
       (0, _jquery["default"])('.data-list__choice').on('click', function (e) {
+        sound.play(_constants.SOUNDS.BUTTON_CLICK);
         var $choice = (0, _jquery["default"])("#".concat(e.target.id));
         state.set('big-tech-company', $choice.text());
 
@@ -99704,7 +99739,7 @@ function (_Component) {
 
 exports["default"] = Replica;
 
-},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants":577,"component-loader-js":14,"jquery":336}],550:[function(require,module,exports){
+},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants":578,"../../../../controllers/game/sound.js":590,"component-loader-js":14,"jquery":336}],550:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99841,7 +99876,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../../../controllers/game/stateManager.js":590,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],551:[function(require,module,exports){
+},{"../../../../controllers/common/utils":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"../../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100105,7 +100140,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":573,"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],553:[function(require,module,exports){
+},{"../../../controllers/common/utils":573,"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],553:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100319,7 +100354,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],554:[function(require,module,exports){
+},{"../../../controllers/common/utils":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],554:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100329,9 +100364,7 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
@@ -100342,6 +100375,8 @@ var _office = require("../../pixi/manual-stage/office");
 var _stateManager = require("../../../controllers/game/stateManager.js");
 
 var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -100398,9 +100433,11 @@ function (_UIBase) {
     _this.show();
 
     if (options.showTimer) {
-      _this.$timer.removeClass(_classes["default"].IS_INACTIVE);
+      _this.$timer.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _this.startTimer();
+
+      sound.schedule(_constants.SOUNDS.TIME_RUNNING_OUT, _this._duration - 10);
     }
 
     if (options.placeLeft) {
@@ -100422,6 +100459,7 @@ function (_UIBase) {
 
     _this._addEventListeners();
 
+    sound.schedule(_constants.SOUNDS.STAGE_BEGIN, 0.5);
     return _this;
   }
 
@@ -100478,8 +100516,11 @@ function (_UIBase) {
           });
           state.set('hiring-stage-success', false);
 
-          _gameSetup.eventEmitter.emit(_events["default"].MANUAL_STAGE_DONE, {});
+          _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_DONE, {});
 
+          sound.play(_constants.SOUNDS.STAGE_FAILED);
+          sound.stop(_constants.SOUNDS.TIME_RUNNING_OUT);
+          sound.stop(_constants.SOUNDS.MANUAL_AMBIENT);
           this.reset();
 
           _stateManager.gameFSM.nextStage();
@@ -100492,18 +100533,18 @@ function (_UIBase) {
       var stageCompleted = _ref.stageCompleted;
       var feedbackText = stageCompleted ? 'Task completed' : 'Task failed';
       [this.$timer, this.$hireGoalEl].map(function (el) {
-        return el.addClass(_classes["default"].IS_INACTIVE);
+        return el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
-      this.$feedbackEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.removeClass(_constants.CLASSES.IS_INACTIVE);
       this.$feedbackEl.find('.TaskTimer-value').text(feedbackText);
-      this.$el.addClass(_classes["default"].HIRING_TASK_DONE);
+      this.$el.addClass(_constants.CLASSES.HIRING_TASK_DONE);
     }
   }, {
     key: "resetStyles",
     value: function resetStyles() {
-      this.$feedbackEl.addClass(_classes["default"].IS_INACTIVE);
-      this.$el.removeClass(_classes["default"].HIRING_TASK_DONE);
-      this.$hireGoalEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.addClass(_constants.CLASSES.IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.HIRING_TASK_DONE);
+      this.$hireGoalEl.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "startTimer",
@@ -100530,12 +100571,12 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.increaseCounter, this);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this.increaseCounter, this);
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.increaseCounter, this);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this.increaseCounter, this);
     }
   }, {
     key: "show",
@@ -100543,12 +100584,12 @@ function (_UIBase) {
       this.$el.css({
         'left': "".concat(_office.spotlight.x, "px")
       });
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -100558,7 +100599,7 @@ function (_UIBase) {
       this._removeEventListeners();
 
       this.hide();
-      this.$timer.addClass(_classes["default"].IS_INACTIVE);
+      this.$timer.addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }]);
 
@@ -100567,7 +100608,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/state":571,"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/game/gameSetup.js":586,"../../../controllers/game/stateManager.js":590,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],555:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/game/stateManager.js":591,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"jquery":336}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100577,15 +100618,19 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var _index = require("../../../controllers/constants/index.js");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
+
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100657,42 +100702,47 @@ function (_UIBase) {
     value: function setContent() {
       var _this2 = this;
 
-      if (!this.overlay) this.$el.addClass(_classes["default"].IS_TRANSPARENT);
+      if (!this.overlay) this.$el.addClass(_index.CLASSES.IS_TRANSPARENT);
       var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
       var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
       this.$textEl.html(emailText);
       this.$subjectEl.html(this.subject);
-      this.$buttons.addClass(_classes["default"].IS_INACTIVE);
+      this.$buttons.addClass(_index.CLASSES.IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this2.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_index.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
-      });
+      }); // play sound in only small office stage
+
+
+      if (state.get('stage') === _index.STAGES.MANUAL_SMALL) sound.play(_index.SOUNDS.NEW_MESSAGE);
     }
   }, {
     key: "_mlStageButtonHandler",
     value: function _mlStageButtonHandler(e) {
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_index.CLASSES.BUTTON_CLICKED);
+      sound.play(_index.SOUNDS.BUTTON_CLICK);
       this.callback();
       this.destroy();
     }
   }, {
     key: "_manualStageButtonHandler",
     value: function _manualStageButtonHandler(e) {
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_index.CLASSES.BUTTON_CLICKED);
+      sound.play(_index.SOUNDS.BUTTON_CLICK);
 
       if (this.isRetry) {
-        _gameSetup.eventEmitter.emit(_events["default"].RETRY_INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.RETRY_INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       } else if (this.isTransition) {
-        _gameSetup.eventEmitter.emit(_events["default"].TRANSITION_INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.TRANSITION_INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       } else {
-        _gameSetup.eventEmitter.emit(_events["default"].INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       }
@@ -100702,7 +100752,7 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      if (this.type === _classes["default"].ML) {
+      if (this.type === _index.CLASSES.ML) {
         this.$buttons.click(this._mlStageButtonHandler.bind(this));
       } else {
         this.$buttons.click(this._manualStageButtonHandler.bind(this));
@@ -100717,12 +100767,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_index.CLASSES.IS_INACTIVE).removeClass(_index.CLASSES.FADE_OUT).addClass(_index.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_index.CLASSES.FADE_IN).addClass(_index.CLASSES.FADE_OUT).addClass(_index.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -100740,7 +100790,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":575,"../../../controllers/constants/events":576,"../../../controllers/game/gameSetup.js":586,"../../../controllers/machine-learning/dataModule.js":591,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100888,7 +100938,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"../ui-base/ui-base":551,"jquery":336}],557:[function(require,module,exports){
+},{"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../ui-base/ui-base":551,"jquery":336}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100913,6 +100963,8 @@ var _gameSetup = require("../../../controllers/game/gameSetup.js");
 var _utils = require("../../../controllers/common/utils.js");
 
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -100992,11 +101044,20 @@ function (_UIBase) {
   }, {
     key: "_rejectClicked",
     value: function _rejectClicked(e) {
-      // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+      sound.play(_constants.SOUNDS.BUTTON_CLICK); // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+
       gtag('event', 'reject', {
         'event_category': 'default',
         'event_label': 'accept/reject'
       });
+
+      if (!this.hasBeenClicked) {
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
+
+        this.hasBeenClicked = true;
+      }
+
+      ;
       this.$noButton.addClass(_constants.CLASSES.REJECTED);
 
       if (candidateInSpot != null) {
@@ -101110,7 +101171,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],558:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../pixi/manual-stage/office":560,"../ui-base/ui-base":551,"gsap/TweenMax":331,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101248,7 +101309,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup":586,"../../../controllers/game/gameSetup.js":586}],559:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587}],559:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101366,7 +101427,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"pixi.js":482}],560:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],560:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101533,7 +101594,8 @@ function () {
           break;
       }
 
-      this.draw(stageNum); // sound.play(SOUNDS.MANUAL_AMBIENT);
+      this.draw(stageNum);
+      sound.schedule(_constants.SOUNDS.MANUAL_AMBIENT, 1);
     }
   }, {
     key: "draw",
@@ -101634,8 +101696,10 @@ function () {
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
           state.set('hiring-in-progress', false);
           state.set('hiring-stage-success', true);
+          sound.stop(_constants.SOUNDS.TIME_RUNNING_OUT);
           (0, _utils.waitForSeconds)(1).then(function () {
             sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
+            sound.play(_constants.SOUNDS.STAGE_SUCCEEDED);
 
             _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_DONE, {});
 
@@ -101804,7 +101868,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/constants/pixi-containers.js":582,"../../../controllers/game/gameSetup.js":586,"../../../controllers/game/sound.js":589,"../../../controllers/game/stateManager.js":590,"../../../controllers/machine-learning/dataModule.js":591,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":336,"pixi.js":482}],561:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":571,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/game/stateManager.js":591,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":552,"../../interface/ui-resume/ui-resume":553,"../../interface/ui-task/ui-task":554,"../../interface/ui-textbox/ui-textbox":555,"../../interface/yes-no/yes-no":557,"./door.js":558,"./floor.js":559,"./person.js":561,"jquery":336,"pixi.js":482}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101982,7 +102046,7 @@ function repositionPerson(person, x, y) {
   }
 }
 
-},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"./office":560}],562:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"./office":560}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102073,7 +102137,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup":586,"../../../controllers/game/gameSetup.js":586,"pixi.js":482}],563:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102183,7 +102247,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"jquery":336}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"jquery":336}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102276,7 +102340,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup":586}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102440,7 +102504,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"../../../controllers/machine-learning/dataModule.js":591,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":566}],566:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":566}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102580,7 +102644,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":573,"../../../controllers/constants/index.js":577,"../../../controllers/game/gameSetup.js":586}],567:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":573,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102687,7 +102751,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup":586,"./resume":568,"pixi.js":482}],568:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"./resume":568,"pixi.js":482}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102743,7 +102807,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"pixi.js":482}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"pixi.js":482}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102817,7 +102881,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/game/gameSetup.js":586}],570:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":572,"../../../controllers/common/utils.js":573,"../../../controllers/game/gameSetup.js":587}],570:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103042,7 +103106,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":577,"../../../controllers/game/gameSetup.js":586,"pixi.js":482}],571:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":573,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103053,7 +103117,8 @@ var store = {
   'big-tech-company': String('BIG COMPANY'),
   'hiring-stage-number': Number(0),
   'hiring-in-progress': Boolean(false),
-  'hiring-stage-success': Boolean(false)
+  'hiring-stage-success': Boolean(false),
+  'stage': String('pregame')
 };
 
 var set = function set(prop, value) {
@@ -103163,7 +103228,7 @@ var cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
 exports.cvTexture = cvTexture;
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-},{"../constants/pixi-scales.js":583,"./utils.js":573}],573:[function(require,module,exports){
+},{"../constants/pixi-scales.js":584,"./utils.js":573}],573:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103402,7 +103467,7 @@ var getPersonByColor = function getPersonByColor(color) {
   }
 };
 
-},{"../constants/index.js":577,"../game/gameSetup.js":586,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
+},{"../constants/index.js":578,"../game/gameSetup.js":587,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103500,6 +103565,25 @@ exports["default"] = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports["default"] = void 0;
+var _default = {
+  TITLE: 'title',
+  MANUAL_SMALL: 'manual-small',
+  MANUAL_MEDIUM: 'manual-medium',
+  MANUAL_LARGE: 'manual-large',
+  TRANSITION: 'transition',
+  TRAINING: 'training',
+  ML_LAB: 'ml-lab',
+  GAME_END: 'game-end'
+};
+exports["default"] = _default;
+
+},{}],578:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 Object.defineProperty(exports, "BREAKPOINTS", {
   enumerable: true,
   get: function get() {
@@ -103548,6 +103632,12 @@ Object.defineProperty(exports, "SCALES", {
     return _pixiScales["default"];
   }
 });
+Object.defineProperty(exports, "STAGES", {
+  enumerable: true,
+  get: function get() {
+    return _gameStages["default"];
+  }
+});
 Object.defineProperty(exports, "SOUNDS", {
   enumerable: true,
   get: function get() {
@@ -103589,13 +103679,15 @@ var _pixiContainers = _interopRequireDefault(require("./pixi-containers.js"));
 
 var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
 
+var _gameStages = _interopRequireDefault(require("./game-stages.js"));
+
 var _sounds = require("./sounds.js");
 
 var _mlConstants = require("./mlConstants.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./breakpoints.js":574,"./classes.js":575,"./events.js":576,"./mlConstants.js":578,"./pixi-anchors.js":579,"./pixi-animations.js":580,"./pixi-colors.js":581,"./pixi-containers.js":582,"./pixi-scales.js":583,"./sounds.js":584}],578:[function(require,module,exports){
+},{"./breakpoints.js":574,"./classes.js":575,"./events.js":576,"./game-stages.js":577,"./mlConstants.js":579,"./pixi-anchors.js":580,"./pixi-animations.js":581,"./pixi-colors.js":582,"./pixi-containers.js":583,"./pixi-scales.js":584,"./sounds.js":585}],579:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103607,7 +103699,7 @@ exports.DEBUG_MODE = DEBUG_MODE;
 var SILENT = true;
 exports.SILENT = SILENT;
 
-},{}],579:[function(require,module,exports){
+},{}],580:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103632,7 +103724,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],580:[function(require,module,exports){
+},{}],581:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103648,7 +103740,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],581:[function(require,module,exports){
+},{}],582:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103661,7 +103753,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],582:[function(require,module,exports){
+},{}],583:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103674,7 +103766,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],583:[function(require,module,exports){
+},{}],584:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103719,26 +103811,86 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],584:[function(require,module,exports){
+},{}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.SOUND_MANIFEST = exports.SOUNDS = void 0;
-var SOUNDS_DIR = './assets/sound';
+var SOUNDS_DIR = './assets/sound'; // values should match mp3 files in the assets folder! they should also all be mp3 files
+
 var SOUNDS = {
+  BUTTON_CLICK: 'button-click',
+  NEW_MESSAGE: 'new-message',
+  WRITING_MESSAGE: 'writing-message',
   MANUAL_AMBIENT: 'manual-stage-ambient',
-  PERSON_ACCEPTED: 'person-accepted'
+  TIME_RUNNING_OUT: 'time-running-out',
+  PERSON_ACCEPTED: 'person-accepted',
+  STAGE_BEGIN: 'stage-begin',
+  STAGE_SUCCEEDED: 'stage-succeeded',
+  STAGE_FAILED: 'stage-failed',
+  TRAIN_ALGORITHM: 'train-algorithm',
+  TRAINING_UPDATE: 'training-update',
+  ML_LAB_AMBIENT: 'ml-lab-ambient'
 };
 exports.SOUNDS = SOUNDS;
 var SOUND_MANIFEST = [{
+  name: SOUNDS.TRAIN_ALGORITHM,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TRAIN_ALGORITHM, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 0.8
+}, {
+  name: SOUNDS.TRAINING_UPDATE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TRAINING_UPDATE, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 0.5
+}, {
+  name: SOUNDS.BUTTON_CLICK,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.BUTTON_CLICK, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.WRITING_MESSAGE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.WRITING_MESSAGE, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 0.3
+}, {
+  name: SOUNDS.NEW_MESSAGE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.NEW_MESSAGE, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
   name: SOUNDS.MANUAL_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.MANUAL_AMBIENT, ".mp3"),
   player: null,
   loop: true,
   playerID: null,
-  volume: 0.3
+  volume: 0.5
+}, {
+  name: SOUNDS.ML_LAB_AMBIENT,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_LAB_AMBIENT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 1
+}, {
+  name: SOUNDS.TIME_RUNNING_OUT,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TIME_RUNNING_OUT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 1.0
 }, {
   name: SOUNDS.PERSON_ACCEPTED,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.PERSON_ACCEPTED, ".mp3"),
@@ -103746,10 +103898,31 @@ var SOUND_MANIFEST = [{
   loop: false,
   playerID: null,
   volume: 1.0
+}, {
+  name: SOUNDS.STAGE_BEGIN,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_BEGIN, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.STAGE_FAILED,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_FAILED, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.STAGE_SUCCEEDED,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_SUCCEEDED, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
 }];
 exports.SOUND_MANIFEST = SOUND_MANIFEST;
 
-},{}],585:[function(require,module,exports){
+},{}],586:[function(require,module,exports){
 "use strict";
 
 require("@babel/polyfill");
@@ -103792,7 +103965,7 @@ Promise.all([sound.load(), textures.loadAssets()]).then(function () {
   console.log(err);
 });
 
-},{"../../components/interface/footer/footer":538,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":572,"../game/sound.js":589,"./gameSetup.js":586,"./stateManager.js":590,"@babel/polyfill":1,"component-loader-js":14}],586:[function(require,module,exports){
+},{"../../components/interface/footer/footer":538,"../../components/interface/transition/choice-button/choice-button":548,"../../components/interface/transition/replica/replica":549,"../common/textures.js":572,"../game/sound.js":590,"./gameSetup.js":587,"./stateManager.js":591,"@babel/polyfill":1,"component-loader-js":14}],587:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103871,7 +104044,7 @@ function resize() {
   eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
 }
 
-},{"../constants/events":576,"debounce":319,"pixi-tween":366,"pixi.js":482}],587:[function(require,module,exports){
+},{"../constants/events":576,"debounce":319,"pixi-tween":366,"pixi.js":482}],588:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104166,7 +104339,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":573,"../constants/events.js":576,"../machine-learning/dataModule.js":591,"./gameSetup":586,"./gameSetup.js":586}],588:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":573,"../constants/events.js":576,"../machine-learning/dataModule.js":592,"./gameSetup":587,"./gameSetup.js":587}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104174,9 +104347,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
-var _events = _interopRequireDefault(require("../constants/events"));
-
-var _classes = _interopRequireDefault(require("../constants/classes"));
+var _constants = require("../constants");
 
 var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-textbox/ui-textbox"));
 
@@ -104191,6 +104362,10 @@ var _mlLabAnimator = _interopRequireDefault(require("./mlLabAnimator.js"));
 var _gameSetup = require("./gameSetup.js");
 
 var _dataModule = require("../machine-learning/dataModule");
+
+var sound = _interopRequireWildcard(require("./sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -104228,6 +104403,7 @@ function () {
       this.newsFeed.updateNewsFeed({
         news: this.ML_TIMELINE[0].news
       });
+      sound.schedule(_constants.SOUNDS.ML_LAB_AMBIENT, 1);
       if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
   }, {
@@ -104270,9 +104446,11 @@ function () {
       this.animator.pauseAnimation();
       this.newsFeed.stop();
       this.newsFeed.hide();
+      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT, false);
+      sound.play(_constants.SOUNDS.NEW_MESSAGE);
       new _uiTextbox["default"]({
         show: true,
-        type: _classes["default"].ML,
+        type: _constants.CLASSES.ML,
         content: msg.messageFromVc,
         responses: msg.responses,
         callback: callback
@@ -104290,6 +104468,7 @@ function () {
       animator.startAnimation();
       newsFeed.start();
       newsFeed.show();
+      sound.play(_constants.SOUNDS.ML_LAB_AMBIENT);
 
       if (msg.isLastMessage) {
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
@@ -104320,16 +104499,16 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }
   }, {
     key: "destroy",
@@ -104348,19 +104527,20 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":555,"../constants/classes":575,"../constants/events":576,"../machine-learning/dataModule":591,"./gameSetup.js":586,"./mlLabAnimator.js":587,"./stateManager.js":590}],589:[function(require,module,exports){
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":555,"../constants":578,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./sound.js":590,"./stateManager.js":591}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.loadSound = exports.play = exports.fadeOut = exports.stop = exports.toggleVolume = exports.load = exports.init = void 0;
+exports.loadSound = exports.play = exports.schedule = exports.fadeOut = exports.stop = exports.toggleVolume = exports.load = exports.init = void 0;
 
 var _howler = require("howler");
 
 var _constants = require("../constants");
 
 var soundMuted = false;
+var soundTimeouts = {};
 
 var init = function init() {
   window.addEventListener('click', resumeAudioContext);
@@ -104399,6 +104579,11 @@ var resumeAudioContext = function resumeAudioContext() {
 };
 
 var stop = function stop(name) {
+  if (soundTimeouts[name]) {
+    console.log("clear timeout for sound ".concat(name));
+    clearTimeout(soundTimeouts[name]);
+  }
+
   var _findSoundByName = findSoundByName(name),
       player = _findSoundByName.player,
       playerID = _findSoundByName.playerID;
@@ -104411,23 +104596,38 @@ var stop = function stop(name) {
 exports.stop = stop;
 
 var fadeOut = function fadeOut(name) {
-  var _findSoundByName2 = findSoundByName(name),
-      player = _findSoundByName2.player,
-      _findSoundByName2$vol = _findSoundByName2.volume,
-      volume = _findSoundByName2$vol === void 0 ? 1.0 : _findSoundByName2$vol,
-      playerID = _findSoundByName2.playerID;
+  var resetPlayback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  var sound = findSoundByName(name);
+  if (!sound) return;
+  var player = sound.player,
+      _sound$volume = sound.volume,
+      volume = _sound$volume === void 0 ? 1.0 : _sound$volume,
+      playerID = sound.playerID;
 
   if (player && player.playing(playerID)) {
     player.fade(volume, 0.0, 1000, playerID);
     setTimeout(function () {
-      return player.stop(playerID);
+      console.log("".concat(resetPlayback ? 'stop' : 'pause', " the player"));
+      resetPlayback ? player.stop(playerID) : player.pause(playerID);
+      console.log("play ".concat(name, " at volume ").concat(sound.volume));
+      player.volume(sound.volume, playerID);
     }, 1000);
   }
 };
 
 exports.fadeOut = fadeOut;
 
+var schedule = function schedule(name, waitForSeconds) {
+  console.log("schedule a playback for sound ".concat(name, " in ").concat(waitForSeconds, " seconds"));
+  soundTimeouts[name] = setTimeout(function () {
+    return play(name);
+  }, waitForSeconds * 1000);
+};
+
+exports.schedule = schedule;
+
 var play = function play(name) {
+  console.log("play the sound by name ".concat(name));
   var sound = findSoundByName(name);
   var player = sound.player;
 
@@ -104467,7 +104667,7 @@ var findSoundByName = function findSoundByName(name) {
   });
 };
 
-},{"../constants":577,"howler":333}],590:[function(require,module,exports){
+},{"../constants":578,"howler":333}],591:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104491,7 +104691,7 @@ var _transitionOverlay = _interopRequireDefault(require("../../components/interf
 
 var _trainingOverlay = _interopRequireDefault(require("../../components/interface/training-stage/training-overlay/training-overlay"));
 
-var _events = _interopRequireDefault(require("../constants/events"));
+var _constants = require("../constants");
 
 var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
 
@@ -104518,8 +104718,8 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        this.transition('smallOfficeStage'); // this.transition('mlTransitionStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
         // this.transition('gameBreakdown');
@@ -104534,6 +104734,7 @@ var gameFSM = new machina.Fsm({
       _onEnter: function _onEnter() {
         var _this = this;
 
+        state.set('stage', _constants.STAGES.TITLE);
         titlePageUI = new _uiTitle["default"]({
           headerText: txt.titleStage.header,
           content: txt.titleStage.instruction,
@@ -104541,7 +104742,7 @@ var gameFSM = new machina.Fsm({
           show: true
         });
 
-        _gameSetup.eventEmitter.on(_events["default"].TITLE_STAGE_COMPLETED, function () {
+        _gameSetup.eventEmitter.on(_constants.EVENTS.TITLE_STAGE_COMPLETED, function () {
           _this.handle('nextStage');
         });
       },
@@ -104555,6 +104756,7 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     smallOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_SMALL);
         currentStage = 0;
         new _uiTextbox["default"]({
           subject: txt.smallOfficeStage.subject,
@@ -104576,6 +104778,7 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     mediumOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_MEDIUM);
         currentStage = 1;
         state.set('hiring-stage-number', currentStage);
         var _txt$mediumOfficeStag = txt.mediumOfficeStage,
@@ -104603,6 +104806,7 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     largeOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_LARGE);
         currentStage = 2;
         state.set('hiring-stage-number', currentStage);
         var _txt$largeOfficeStage = txt.largeOfficeStage,
@@ -104626,6 +104830,7 @@ var gameFSM = new machina.Fsm({
     mlTransitionStage: {
       _onEnter: function _onEnter() {
         if (office) office["delete"]();
+        state.set('stage', _constants.STAGES.TRANSITION);
         currentStage = 3;
         new _uiTextbox["default"]({
           stageNumber: currentStage,
@@ -104638,7 +104843,7 @@ var gameFSM = new machina.Fsm({
           displayScore: false
         });
 
-        _gameSetup.eventEmitter.on(_events["default"].TRANSITION_INSTRUCTION_ACKED, function () {
+        _gameSetup.eventEmitter.on(_constants.EVENTS.TRANSITION_INSTRUCTION_ACKED, function () {
           transitionOverlay = new _transitionOverlay["default"]({
             show: true
           });
@@ -104651,6 +104856,7 @@ var gameFSM = new machina.Fsm({
     },
     mlTrainingStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.TRAINING);
         if (office) office["delete"]();
         trainingStageOverlay = new _trainingOverlay["default"]();
       },
@@ -104662,6 +104868,7 @@ var gameFSM = new machina.Fsm({
     mlLabStage: {
       _onEnter: function _onEnter() {
         if (office) office["delete"]();
+        state.set('stage', _constants.STAGES.ML_LAB);
         mlLab = new _mlLabNarrator["default"]();
       },
       nextStage: 'gameBreakdown',
@@ -104669,6 +104876,7 @@ var gameFSM = new machina.Fsm({
     },
     gameBreakdown: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.GAME_END);
         new _endgameOverlay["default"]();
         if (mlLab) mlLab.destroy();
       }
@@ -104686,7 +104894,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../common/state":571,"../constants/events":576,"./gameSetup.js":586,"./mlLabNarrator":588,"machina":338}],591:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":547,"../../components/interface/transition/transition-overlay/transition-overlay":550,"../../components/interface/ui-textbox/ui-textbox":555,"../../components/interface/ui-title/ui-title":556,"../../components/pixi/manual-stage/office.js":560,"../common/state":571,"../constants":578,"./gameSetup.js":587,"./mlLabNarrator":589,"machina":338}],592:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104902,7 +105110,7 @@ function () {
 var dataModule = new DataModule();
 exports.dataModule = dataModule;
 
-},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":578,"./modelTesting":592,"./modelTraining.js":593}],592:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting":593,"./modelTraining.js":594}],593:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105063,7 +105271,7 @@ var round = function round(num) {
   return Math.round(num * 100) / 100;
 };
 
-},{"../../assets/text/badCvTestData.json":533,"../../assets/text/cvCollection.js":534,"../../assets/text/equalCvTestData.json":536,"../../assets/text/goodCvTestData.json":537,"../constants/mlConstants.js":578,"./modelTraining.js":593}],593:[function(require,module,exports){
+},{"../../assets/text/badCvTestData.json":533,"../../assets/text/cvCollection.js":534,"../../assets/text/equalCvTestData.json":536,"../../assets/text/goodCvTestData.json":537,"../constants/mlConstants.js":579,"./modelTraining.js":594}],594:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105290,6 +105498,6 @@ var _shuffle = function _shuffle(b) {
   return a;
 };
 
-},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":578,"./modelTesting.js":592,"ml-cart":344}]},{},[585])
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting.js":593,"ml-cart":344}]},{},[586])
 
 //# sourceMappingURL=bundle-game.js.map
