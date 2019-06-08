@@ -21,8 +21,9 @@ function next2() {
     var next = document.getElementById("part4");
    
     current.style.display = "none";
-    next.style.display = "block";
+	next.style.display = "block";
 	
+	window.open("https://survivalofthebestfit.com/resources/");
 } 
 
 function next3() {

@@ -6,6 +6,7 @@ import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import PersonCard from '~/public/game/components/interface/ml/person-card/person-card';
 import DatasetResumePreview from '~/public/game/components/interface/ml/dataset-resume-preview/dataset-resume-preview';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
+import {waitForSeconds} from '~/public/game/controllers/common/utils.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -14,6 +15,8 @@ export default class extends UIBase {
         this.$el = $('#dataset-overlay');
         this.$resume = $('#dataset-view-resume');
         this.$xIcon = this.$el.find('.js-x-icon');
+        this.$button = this.$el.find('.ReplyButton');
+        this.$button.addClass(CLASSES.IS_INACTIVE);
         this.dataset = [];
         this.resumePreview = new DatasetResumePreview();
         this.scrollIsActive = false;
@@ -27,11 +30,17 @@ export default class extends UIBase {
         }
     }
 
+    _buttonHandler() {
+        this.$button.addClass(CLASSES.BUTTON_CLICKED);
+        eventEmitter.emit(EVENTS.EMAIL_REPLY, {});
+    }
+
     _addEventListeners() {
         this.$xIcon.on('click', this._handleIconClick);
         eventEmitter.on(EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
         const $resumeGrids = document.querySelectorAll('.DatasetGrid');
         $resumeGrids.forEach((grid) => grid.addEventListener('mouseover', this._handlePersonCardHover));
+        this.$button.click(this._buttonHandler.bind(this));
     }
 
     _removeEventListeners() {
@@ -67,6 +76,14 @@ export default class extends UIBase {
         });
     }
 
+    _showNewEmailNotification() {
+        if (this.$button.hasClass(CLASSES.IS_INACTIVE)) {
+            waitForSeconds(8).then(() => {
+                this.$button.removeClass(CLASSES.IS_INACTIVE);
+            })
+        }
+    }
+
     _handlePersonCardHover(event) {
         let personID;
         if (event.target.matches('.PersonCard.is-parent')) {
@@ -79,6 +96,7 @@ export default class extends UIBase {
             this.resumePreview.previewNewPerson(activePerson.getData());
             this.activePerson = activePerson;
         };
+        this._showNewEmailNotification();
     }
 
     show() {
