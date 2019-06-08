@@ -31,6 +31,9 @@ function next3() {
 } 
 
 
+
+//clean this into 1 function
+
 function open1() {
 
 	var current = document.getElementById("text1");
@@ -51,5 +54,24 @@ function open2() {
 	current.style.display = "none";
 	next.style.display = "block";
 	
+} 
+
+
+function back() {
+
+	var text1 = document.getElementById("text1");
+	var text2 = document.getElementById("text2");
+	var text3 = document.getElementById("text3");
+	
+	if (text2.style.display === "block") {
+	text2.style.display = "none";
+	text1.style.display = "block";
+}
+
+if (text3.style.display === "block") {
+	text3.style.display = "none";
+	text2.style.display = "block";
+}
+
 } 
 

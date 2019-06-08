@@ -16,6 +16,26 @@ h4.next-box:hover {
     color: black;
   }
 
+
+.back-box {
+position: relative;
+@include buttonBox();
+@include boxColors($shadow-color: 'darkred');
+float: left;
+margin-right: 12%; 
+clear: left;
+  
+}
+
+h4.back-box:hover {
+    color: black;
+  }
+
+
+#text1 {
+  style: block;
+}
+
 #text2, #text3 {
   display: none;
 }
