@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.5' };
+var core = module.exports = { version: '2.6.6' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -2804,6 +2804,7 @@ module.exports.f = function (C) {
 },{"./_a-function":45}],109:[function(require,module,exports){
 'use strict';
 // 19.1.2.1 Object.assign(target, source, ...)
+var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var gOPS = require('./_object-gops');
 var pIE = require('./_object-pie');
@@ -2833,11 +2834,14 @@ module.exports = !$assign || require('./_fails')(function () {
     var length = keys.length;
     var j = 0;
     var key;
-    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
+    while (length > j) {
+      key = keys[j++];
+      if (!DESCRIPTORS || isEnum.call(S, key)) T[key] = S[key];
+    }
   } return T;
 } : $assign;
 
-},{"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
+},{"./_descriptors":70,"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -3007,6 +3011,7 @@ module.exports = function (KEY, exec) {
 };
 
 },{"./_core":64,"./_export":74,"./_fails":76}],122:[function(require,module,exports){
+var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var toIObject = require('./_to-iobject');
 var isEnum = require('./_object-pie').f;
@@ -3018,13 +3023,17 @@ module.exports = function (isEntries) {
     var i = 0;
     var result = [];
     var key;
-    while (length > i) if (isEnum.call(O, key = keys[i++])) {
-      result.push(isEntries ? [key, O[key]] : O[key]);
-    } return result;
+    while (length > i) {
+      key = keys[i++];
+      if (!DESCRIPTORS || isEnum.call(O, key)) {
+        result.push(isEntries ? [key, O[key]] : O[key]);
+      }
+    }
+    return result;
   };
 };
 
-},{"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
+},{"./_descriptors":70,"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
 // all object keys, includes non-enumerable and symbols
 var gOPN = require('./_object-gopn');
 var gOPS = require('./_object-gops');
@@ -6804,12 +6813,14 @@ var enumKeys = require('./_enum-keys');
 var isArray = require('./_is-array');
 var anObject = require('./_an-object');
 var isObject = require('./_is-object');
+var toObject = require('./_to-object');
 var toIObject = require('./_to-iobject');
 var toPrimitive = require('./_to-primitive');
 var createDesc = require('./_property-desc');
 var _create = require('./_object-create');
 var gOPNExt = require('./_object-gopn-ext');
 var $GOPD = require('./_object-gopd');
+var $GOPS = require('./_object-gops');
 var $DP = require('./_object-dp');
 var $keys = require('./_object-keys');
 var gOPD = $GOPD.f;
@@ -6936,7 +6947,7 @@ if (!USE_NATIVE) {
   $DP.f = $defineProperty;
   require('./_object-gopn').f = gOPNExt.f = $getOwnPropertyNames;
   require('./_object-pie').f = $propertyIsEnumerable;
-  require('./_object-gops').f = $getOwnPropertySymbols;
+  $GOPS.f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !require('./_library')) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -6987,6 +6998,16 @@ $export($export.S + $export.F * !USE_NATIVE, 'Object', {
   getOwnPropertySymbols: $getOwnPropertySymbols
 });
 
+// Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
+// https://bugs.chromium.org/p/v8/issues/detail?id=3443
+var FAILS_ON_PRIMITIVES = $fails(function () { $GOPS.f(1); });
+
+$export($export.S + $export.F * FAILS_ON_PRIMITIVES, 'Object', {
+  getOwnPropertySymbols: function getOwnPropertySymbols(it) {
+    return $GOPS.f(toObject(it));
+  }
+});
+
 // 24.3.2 JSON.stringify(value [, replacer [, space]])
 $JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
   var S = $Symbol();
@@ -7020,7 +7041,7 @@ setToStringTag(Math, 'Math', true);
 // 24.3.3 JSON[@@toStringTag]
 setToStringTag(global.JSON, 'JSON', true);
 
-},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
+},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-object":154,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
 'use strict';
 var $export = require('./_export');
 var $typed = require('./_typed');
@@ -22373,7 +22394,7 @@ function isAnyArray(object) {
 module.exports = isAnyArray;
 
 },{}],335:[function(require,module,exports){
-!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,l=/\bAndroid(?:.+)SD4930UR\b/i,b=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,u=/\bWindows(?:.+)ARM\b/i,c=/BlackBerry/i,s=/BB10/i,v=/Opera Mini/i,h=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/\Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(l,i),tablet:!m(l,i)&&m(b,i),device:m(l,i)||m(b,i)},android:{phone:!m(f,i)&&m(l,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(l,i)&&!m(a,i)&&(m(b,i)||m(p,i)),device:!m(f,i)&&(m(l,i)||m(b,i)||m(a,i)||m(p,i))},windows:{phone:m(f,i),tablet:m(u,i),device:m(f,i)||m(u,i)},other:{blackberry:m(c,i),blackberry10:m(s,i),opera:m(v,i),firefox:m(w,i),chrome:m(h,i),device:m(c,i)||m(s,i)||m(v,i)||m(w,i)||m(h,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?module.exports=i():"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
+!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,b=/\bAndroid(?:.+)SD4930UR\b/i,l=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,s=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,c=/BB10/i,h=/Opera Mini/i,v=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(b,i),tablet:!m(b,i)&&m(l,i),device:m(b,i)||m(l,i)},android:{phone:!m(f,i)&&m(b,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(b,i)&&!m(a,i)&&(m(l,i)||m(p,i)),device:!m(f,i)&&(m(b,i)||m(l,i)||m(a,i)||m(p,i))||m(/\bokhttp\b/i,i)},windows:{phone:m(f,i),tablet:m(s,i),device:m(f,i)||m(s,i)},other:{blackberry:m(u,i),blackberry10:m(c,i),opera:m(h,i),firefox:m(w,i),chrome:m(v,i),device:m(u,i)||m(c,i)||m(h,i)||m(w,i)||m(v,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?(module.exports=i(),module.exports.isMobile=i):"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
 },{}],336:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.4.1
@@ -97932,7 +97953,14 @@ var cvCollection = {
     name: 'Ambition',
     "class": _classes["default"].CV_AMBITION
   }],
-  cvData: require('./cvData.json').candidates
+  cvData: require('./cvData.json').candidates,
+  specialCandidate: {
+    "name": "Elvan Yang",
+    "city": 1,
+    "color": "blue",
+    "empl": 0,
+    "qualifications": [10, 9, 8, 9]
+  }
 };
 exports.cvCollection = cvCollection;
 
@@ -98149,6 +98177,8 @@ var _datasetResumePreview = _interopRequireDefault(require("../dataset-resume-pr
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
+var _utils = require("../../../../controllers/common/utils.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -98188,6 +98218,10 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#dataset-overlay');
     _this.$resume = (0, _jquery["default"])('#dataset-view-resume');
     _this.$xIcon = _this.$el.find('.js-x-icon');
+    _this.$button = _this.$el.find('.ReplyButton');
+
+    _this.$button.addClass(_classes["default"].IS_INACTIVE);
+
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
     _this.scrollIsActive = false;
@@ -98206,6 +98240,13 @@ function (_UIBase) {
   }
 
   _createClass(_default, [{
+    key: "_buttonHandler",
+    value: function _buttonHandler() {
+      this.$button.addClass(_classes["default"].BUTTON_CLICKED);
+
+      _gameSetup.eventEmitter.emit(_events["default"].EMAIL_REPLY, {});
+    }
+  }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
       var _this2 = this;
@@ -98218,6 +98259,7 @@ function (_UIBase) {
       $resumeGrids.forEach(function (grid) {
         return grid.addEventListener('mouseover', _this2._handlePersonCardHover);
       });
+      this.$button.click(this._buttonHandler.bind(this));
     }
   }, {
     key: "_removeEventListeners",
@@ -98262,6 +98304,17 @@ function (_UIBase) {
       });
     }
   }, {
+    key: "_showNewEmailNotification",
+    value: function _showNewEmailNotification() {
+      var _this4 = this;
+
+      if (this.$button.hasClass(_classes["default"].IS_INACTIVE)) {
+        (0, _utils.waitForSeconds)(8).then(function () {
+          _this4.$button.removeClass(_classes["default"].IS_INACTIVE);
+        });
+      }
+    }
+  }, {
     key: "_handlePersonCardHover",
     value: function _handlePersonCardHover(event) {
       var personID;
@@ -98283,6 +98336,8 @@ function (_UIBase) {
       }
 
       ;
+
+      this._showNewEmailNotification();
     }
   }, {
     key: "show",
@@ -98303,7 +98358,7 @@ function (_UIBase) {
   }, {
     key: "hide",
     value: function hide() {
-      var _this4 = this;
+      var _this5 = this;
 
       _TweenMax.TweenLite.to('#dataset-overlay', 0.2, {
         y: 20,
@@ -98312,7 +98367,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this5.$el.addClass(_classes["default"].IS_INACTIVE);
       });
     }
   }, {
@@ -98333,7 +98388,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99361,15 +99416,11 @@ exports["default"] = void 0;
 
 var _componentLoaderJs = require("component-loader-js");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../../controllers/constants/events"));
+var _constants = require("../../../../controllers/constants");
 
 var _stateManager = require("../../../../controllers/game/stateManager.js");
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -99426,22 +99477,22 @@ function (_Component) {
       if (this.clicked) return; // add 'chosen' styling to the button
 
       if (this._step + 1 === this._totalSteps) {
-        _gameSetup.eventEmitter.emit(_events["default"].EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
 
 
         return;
       }
 
-      ;
+      ; // make the text above less prominent 
 
-      this._btn.classList.add(_classes["default"].BUTTON_CLICKED); // hide the other choice button
+      this._btn.classList.add(_constants.CLASSES.BUTTON_CLICKED); // hide the other choice button
 
 
-      this.publish('hide-other-choice', this._step); // show next replica
+      this.publish(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._step); // show next replica
 
       var choiceButtonResponse = this._getChoiceResponse(this._step, this._textContainer.innerHTML);
 
-      this.publish('reveal-next-replica', {
+      this.publish(_constants.EVENTS.REVEAL_REPLICA, {
         choice_response: choiceButtonResponse,
         step: this._step + 1
       }); // remove the event listeners on the clicked button and turn the boolean value
@@ -99454,20 +99505,20 @@ function (_Component) {
     key: "_addEventListeners",
     value: function _addEventListeners() {
       this.el.addEventListener('click', this._onBtnClick);
-      this.subscribe('hide-other-choice', this._hideBtn);
+      this.subscribe(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
       this.el.removeEventListener('click', this._onBtnClick);
-      this.unsubscribe('hide-other-choice', this._hideBtn);
+      this.unsubscribe(_constants.EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     } // hide the unchosen button
 
   }, {
     key: "_hideBtn",
     value: function _hideBtn(conversationStep) {
-      if (this._step === conversationStep && !this._btn.classList.contains(_classes["default"].BUTTON_CLICKED)) {
-        this.el.classList.add(_classes["default"].IS_INACTIVE);
+      if (this._step === conversationStep && !this._btn.classList.contains(_constants.CLASSES.BUTTON_CLICKED)) {
+        this.el.classList.add(_constants.CLASSES.IS_INACTIVE);
 
         this._removeEventListeners();
 
@@ -99492,7 +99543,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":586,"../../../../controllers/game/stateManager.js":590,"component-loader-js":14}],549:[function(require,module,exports){
+},{"../../../../controllers/constants":577,"../../../../controllers/game/gameSetup.js":586,"../../../../controllers/game/stateManager.js":590,"component-loader-js":14}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99506,7 +99557,7 @@ var _componentLoaderJs = require("component-loader-js");
 
 var _utils = require("../../../../controllers/common/utils");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
 
@@ -99562,10 +99613,12 @@ function (_Component) {
     _this._dropzone = _this.el.querySelector('.replica__dropzone');
     _this._typeIcon = _this.el.querySelector('.replica__typeIcon');
 
-    _this.subscribe('reveal-next-replica', _this._revealReplica);
+    _this.subscribe(_constants.EVENTS.REVEAL_REPLICA, _this._revealReplica);
+
+    _this.subscribe(_constants.EVENTS.GREY_OUT_REPLICA, _this._greyOutReplica);
 
     if (_this._step === 0) {
-      _this._replicaContent.classList.remove(_classes["default"].IS_INACTIVE);
+      _this._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
       if (_this._fileDrag) _this._addFileClickListener();
       if (_this._datasetChoice) _this._addChoiceListener();
@@ -99580,15 +99633,15 @@ function (_Component) {
       var _this2 = this;
 
       if (this._step === data.step) {
-        this.el.classList.remove(_classes["default"].IS_INACTIVE);
+        this.el.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-        this._typeIcon.classList.remove(_classes["default"].IS_INACTIVE);
+        this._typeIcon.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
         this.scrollHandler();
         (0, _utils.waitForSeconds)(Math.round((Math.random() + 1) * 15) / 10).then(function () {
-          _this2._replicaContent.classList.remove(_classes["default"].IS_INACTIVE);
+          _this2._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-          _this2._typeIcon.classList.add(_classes["default"].IS_INACTIVE);
+          _this2._typeIcon.classList.add(_constants.CLASSES.IS_INACTIVE);
 
           _this2._textContainer.innerHTML = data.choice_response + _this2._textContainer.innerHTML;
 
@@ -99596,7 +99649,32 @@ function (_Component) {
 
           if (_this2._fileDrag) _this2._addFileClickListener();
           if (_this2._datasetChoice) _this2._addChoiceListener();
+
+          _this2.publish(_constants.EVENTS.GREY_OUT_REPLICA, {
+            step: _this2._step - 1
+          });
         });
+      }
+    }
+  }, {
+    key: "_greyOutReplica",
+    value: function _greyOutReplica(_ref) {// console.log(`grey out text in replica: ${data.step}`);
+      // if (this._step === data.step) {
+      //     // this.el.classList.remove(CLASSES.IS_INACTIVE);
+      //     this._textContainer.classList.add('grey-text');
+      //     const choiceButton = this.el.querySelector(this.getButtonSelector());
+      //     if (choiceButton) choiceButton.classList.add('grey-text');
+      // }
+
+      var step = _ref.step;
+    }
+  }, {
+    key: "getButtonSelector",
+    value: function getButtonSelector() {
+      if (this._fileDrag) {
+        return '.data-list';
+      } else {
+        return '.replica__buttons';
       }
     }
   }, {
@@ -99607,10 +99685,10 @@ function (_Component) {
       (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
 
-        $fileInstructions.classList.add(_classes["default"].CONVERSATION_STEP_COMPLETED);
+        $fileInstructions.classList.add(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
         $fileInstructions.innerHTML = 'Attached cv_all.zip';
 
-        _this3.publish('reveal-next-replica', {
+        _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this3._step + 1
         });
@@ -99639,13 +99717,13 @@ function (_Component) {
         state.set('big-tech-company', $choice.text());
 
         _toConsumableArray((0, _jquery["default"])('.data-list__choice')).map(function (choice) {
-          return (0, _jquery["default"])(choice).addClass(_classes["default"].IS_INACTIVE);
+          return (0, _jquery["default"])(choice).addClass(_constants.CLASSES.IS_INACTIVE);
         });
 
-        $choice.removeClass(_classes["default"].IS_INACTIVE).addClass(_classes["default"].CONVERSATION_STEP_COMPLETED);
-        $choice.find('.data-list__icon').addClass(_classes["default"].IS_INACTIVE);
+        $choice.removeClass(_constants.CLASSES.IS_INACTIVE).addClass(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
+        $choice.find('.data-list__icon').addClass(_constants.CLASSES.IS_INACTIVE);
 
-        _this4.publish('reveal-next-replica', {
+        _this4.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this4._step + 1
         });
@@ -99660,7 +99738,7 @@ function (_Component) {
 
 exports["default"] = Replica;
 
-},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants/classes":575,"component-loader-js":14,"jquery":336}],550:[function(require,module,exports){
+},{"../../../../controllers/common/state":571,"../../../../controllers/common/utils":573,"../../../../controllers/constants":577,"component-loader-js":14,"jquery":336}],550:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102287,6 +102365,7 @@ function () {
     this._draw();
 
     this.container.x = (0, _utils.uv2px)(0.25, 'w');
+    this.toInspectId;
   }
 
   _createClass(_default, [{
@@ -102305,6 +102384,16 @@ function () {
     key: "_addNewPerson",
     value: function _addNewPerson() {
       var currentX = this.mlLastIndex - this.mlStartIndex;
+      var thisColor = _cvCollection.cvCollection.cvData[this.mlLastIndex].color;
+
+      if (!this.toInspectId && thisColor == "blue") {
+        // the candidate to inspect will be the first blue candidate in ML line
+        // overwrite that person's CV data with the special rejected perfect blue candidate's cv
+        _cvCollection.cvCollection.cvData[this.mlLastIndex] = _cvCollection.cvCollection.specialCandidate;
+        this.toInspectId = this.mlLastIndex;
+        console.log("special" + this.toInspectId);
+      }
+
       var person = new _person["default"]({
         parent: this.container,
         x: currentX * this.personXoffset,
@@ -102378,13 +102467,17 @@ function () {
         return array.reduce(function (a, b) {
           return a + parseInt(b);
         }, 0) / array.length;
-      };
+      }; //find the first blue candidate in the ML lab rejected 
+      //this ID has to be dynamic since we dont know how many candidates were previously populated
+      //overwrite that person's CV data with the special rejected perfect blue candidate's cv
+      // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
 
-      var result = this.mlLabRejected.find(function (personId) {
+
+      var resultId = this.mlLabRejected.find(function (personId) {
         return _cvCollection.cvCollection.cvData[personId].color == "blue";
-      }); // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-
-      return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
+      }) || 10;
+      _cvCollection.cvCollection.cvData[resultId] = _cvCollection.cvCollection.specialCandidate;
+      return resultId;
     }
   }]);
 
@@ -103437,7 +103530,11 @@ var _default = {
   UPDATE_INSTRUCTIONS: 'update-instructions',
   HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
   EXIT_TRANSITION_STAGE: 'exit-transition-stage',
-  TITLE_STAGE_COMPLETED: 'title-stage-completed'
+  TITLE_STAGE_COMPLETED: 'title-stage-completed',
+  REVEAL_REPLICEA: 'reveal-next-replica',
+  GREY_OUT_REPLICA: 'grey-out-previous-replica',
+  HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons',
+  EMAIL_REPLY: 'email-reply'
 };
 exports["default"] = _default;
 
@@ -103925,9 +104022,9 @@ function () {
   }
 
   _createClass(MlLabAnimator, [{
-    key: "chooseCandidateToInspect",
-    value: function chooseCandidateToInspect() {
-      return this.people.chooseCandidateToInspect();
+    key: "getToInspectId",
+    value: function getToInspectId() {
+      return this.people.toInspectId;
     }
   }, {
     key: "_setupTweens",
@@ -103962,7 +104059,12 @@ function () {
     key: "evalFirstPerson",
     value: function evalFirstPerson() {
       var firstPerson = this.people.getFirstPerson();
-      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected';
+      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the first person
+
+      if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+        status = 'rejected';
+      }
+
       this.people.removeFirstPerson(status);
       this.datasetView.handleNewResume({
         status: status,
@@ -104205,12 +104307,11 @@ function () {
       var callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
       if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
 
-      if (msg.hasOwnProperty('inspect')) {
-        var toInspectId = this.animator.chooseCandidateToInspect();
-
-        var toInspectName = _dataModule.dataModule.getNameForPersonId(toInspectId);
+      if (msg.launchCVInspector) {
+        var toInspectName = _dataModule.dataModule.getNameForPersonId(this.animator.getToInspectId());
 
         msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
+        this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
       }
 
       ;
@@ -104234,9 +104335,18 @@ function () {
   }, {
     key: "textAckCallback",
     value: function textAckCallback(msg, animator, newsFeed) {
-      animator.startAnimation();
-      newsFeed.start();
-      newsFeed.show();
+      // not starting animation when we need to launch inspector
+      // make sure we restart it elsewhere
+      if (msg.launchCVInspector) {
+        animator.datasetView.show();
+        return;
+      }
+
+      if (msg.launchMachineInspector) {
+        // TODO - link the second dataset inspector view
+        // this.animator.datasetview.show();
+        return;
+      }
 
       if (msg.isLastMessage) {
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
@@ -104245,17 +104355,36 @@ function () {
           'event_label': 'how-far-do-ppl-get'
         });
 
-        _stateManager.gameFSM.nextStage(); // new EndGameOverlay();
-
+        _stateManager.gameFSM.nextStage();
 
         return;
       }
+
+      animator.startAnimation();
+      newsFeed.start();
+      newsFeed.show();
     } // update schedule: pop the first timer value from the array
 
   }, {
     key: "updateTimeline",
     value: function updateTimeline() {
       this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
+    }
+  }, {
+    key: "_handleEmailReply",
+    value: function _handleEmailReply() {
+      this.animator.datasetView.hide();
+      this.ML_TIMELINE[0].launchCVInspector = false;
+      var callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
+      new _uiTextbox["default"]({
+        show: true,
+        type: _classes["default"].ML,
+        content: this.ML_TIMELINE[0].inspectQuestion,
+        responses: this.ML_TIMELINE[0].inspectResponses,
+        callback: callback,
+        //TODO - can we do overlay??
+        overlay: true
+      });
     }
   }, {
     key: "_triggerTimelineUpdate",
@@ -104267,6 +104396,8 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_events["default"].EMAIL_REPLY, this._handleEmailReply.bind(this));
+
       _gameSetup.eventEmitter.on(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
       _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
@@ -104274,6 +104405,8 @@ function () {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
+      _gameSetup.eventEmitter.off(_events["default"].EMAIL_REPLY, this._handleEmailReply.bind(this));
+
       _gameSetup.eventEmitter.off(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
       _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
@@ -104463,11 +104596,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        // this.transition('titleStage');
+        // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        // this.transition('mlLabStage');
-        // this.transition('gameBreakdown');
+        this.transition('mlLabStage'); // this.transition('gameBreakdown');
       }
     },
 

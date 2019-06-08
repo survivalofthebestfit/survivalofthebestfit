@@ -84,3 +84,47 @@
   justify-content: center;
 }
 
+.Email {
+  @include boxColors($bg-color: color(shadow-rose-light), $shadow-color: color(shadow-red-dark));
+  @include textBox();
+
+  position: absolute;
+  width: 18%;
+  bottom: 12%;
+  right: 8%;
+  padding: 1em;
+  text-align: left;
+
+  &_Notificaiton {
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding-bottom: 0.4em;
+  }
+
+  &_Sender {
+    font-weight: 700;
+    font-size: 1.5em;
+    color: #333;
+    padding-bottom: 0;
+  }
+
+  &_Subject {
+    font-size: 1.2em;
+    color: #555;
+    padding-bottom: 0.5em;
+  }
+
+  &_Content {
+    color: #999;
+  }
+}
+
+.ReplyButton {
+  cursor: pointer;
+  background: color(shadow-rose-light);
+  &:hover {
+    background: color(shadow-red-light);
+      // @include boxColors($txt-color: color(txt-light-grey), $bg-color: color(shadow-rose-light), $shadow-color: 'rose');
+  }
+}

@@ -1,7 +1,7 @@
 import $ from 'jquery';
 import {Component} from 'component-loader-js';
 import {waitForSeconds} from '~/public/game/controllers/common/utils';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import * as state from '~/public/game/controllers/common/state';
 
 // publishing custom event to any registered listener
@@ -18,7 +18,8 @@ export default class Replica extends Component {
         this._replicaContent = this.el.querySelector('.replica__content');
         this._dropzone = this.el.querySelector('.replica__dropzone');
         this._typeIcon = this.el.querySelector('.replica__typeIcon');
-        this.subscribe('reveal-next-replica', this._revealReplica);
+        this.subscribe(EVENTS.REVEAL_REPLICA, this._revealReplica);
+        this.subscribe(EVENTS.GREY_OUT_REPLICA, this._greyOutReplica);
         if (this._step === 0) {
             this._replicaContent.classList.remove(CLASSES.IS_INACTIVE);
             if (this._fileDrag) this._addFileClickListener();
@@ -38,7 +39,26 @@ export default class Replica extends Component {
                 this.scrollHandler();
                 if (this._fileDrag) this._addFileClickListener();
                 if (this._datasetChoice) this._addChoiceListener();
+                this.publish(EVENTS.GREY_OUT_REPLICA, {step: this._step -1});
             });
+        }
+    }
+
+    _greyOutReplica({step}) {
+        // console.log(`grey out text in replica: ${data.step}`);
+        // if (this._step === data.step) {
+        //     // this.el.classList.remove(CLASSES.IS_INACTIVE);
+        //     this._textContainer.classList.add('grey-text');
+        //     const choiceButton = this.el.querySelector(this.getButtonSelector());
+        //     if (choiceButton) choiceButton.classList.add('grey-text');
+        // }
+    }
+
+    getButtonSelector() {
+        if (this._fileDrag) {
+            return '.data-list';
+        } else {
+            return '.replica__buttons';
         }
     }
 
@@ -47,7 +67,7 @@ export default class Replica extends Component {
             const $fileInstructions = this.el.querySelector('.replica__send-instructions');
             $fileInstructions.classList.add(CLASSES.CONVERSATION_STEP_COMPLETED);
             $fileInstructions.innerHTML = 'Attached cv_all.zip';
-            this.publish('reveal-next-replica', {choice_response: '', step: this._step+1});
+            this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
             $('#js-cv-all-file').off();
         });
     }
@@ -68,7 +88,7 @@ export default class Replica extends Component {
             [...$('.data-list__choice')].map((choice) => $(choice).addClass(CLASSES.IS_INACTIVE));
             $choice.removeClass(CLASSES.IS_INACTIVE).addClass(CLASSES.CONVERSATION_STEP_COMPLETED);
             $choice.find('.data-list__icon').addClass(CLASSES.IS_INACTIVE);
-            this.publish('reveal-next-replica', {choice_response: '', step: this._step+1});
+            this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
             $('.data-list__choice').off();
         });
     }
