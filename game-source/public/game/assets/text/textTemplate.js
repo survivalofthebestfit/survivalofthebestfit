@@ -176,7 +176,7 @@ const english = {
             }
 
         ],
-
+        
         narration: [
             {
                 delay: 3,
@@ -198,20 +198,25 @@ const english = {
                 ],
             },
             {
-                inspect: true,
-                delay: 12,
+                delay: 10,
+                launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                tooltip: {
-                    parent: 'scanray',
-                    text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
-                },
+                inspectQuestion: "So why did you reject the candidate?",
+                inspectResponses: [
+                    "I have no idea.",
+                    "Maybe because Elvan is blue?"
+                ]
+                // tooltip: {
+                //     parent: 'scanray',
+                //     text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
+                // },
             },
             {
-                delay: 17,
+                delay: 13,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -227,7 +232,8 @@ const english = {
                 ],
             },
             {
-                delay: 22,
+                delay: 16,
+                launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
@@ -243,7 +249,7 @@ const english = {
                 ],
             },
             {
-                delay: 26,
+                delay: 6,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',

@@ -24,7 +24,7 @@ export default class {
         mlLabStageContainer.addChild(this.container);
         this._draw();
         this.container.x = uv2px(0.25, 'w');
-
+        this.toInspectId;
 
     }
 
@@ -40,12 +40,24 @@ export default class {
 
     _addNewPerson() {
         let currentX = (this.mlLastIndex-this.mlStartIndex);
+
+        let thisColor = cvCollection.cvData[this.mlLastIndex].color;
+        if (!this.toInspectId && thisColor == "blue") {
+            
+            // the candidate to inspect will be the first blue candidate in ML line
+                // overwrite that person's CV data with the special rejected perfect blue candidate's cv
+                cvCollection.cvData[this.mlLastIndex] = cvCollection.specialCandidate;
+                this.toInspectId = this.mlLastIndex;
+                console.log("special" + this.toInspectId);
+        }
+
         const person = new MLPerson({
             parent: this.container,
             x: currentX*this.personXoffset,
             personData: cvCollection.cvData[this.mlLastIndex],
             id: this.mlLastIndex,
         });
+
         person.addToPixi();
         this.peopleLine.push(person);
         dataModule.recordLastIndex(this.mlLastIndex++);
@@ -90,9 +102,14 @@ export default class {
         //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
         let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
           
-        let result = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" );
-        
+        //find the first blue candidate in the ML lab rejected 
+        //this ID has to be dynamic since we dont know how many candidates were previously populated
+        //overwrite that person's CV data with the special rejected perfect blue candidate's cv
         // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-        return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
+
+        let resultId = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" ) || 10;
+        cvCollection.cvData[resultId] = cvCollection.specialCandidate;
+
+        return resultId;
     }
 }

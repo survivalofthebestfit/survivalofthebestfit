@@ -54,12 +54,11 @@ export default class MlLabNarrator {
         let callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
 
-        if (msg.hasOwnProperty('inspect')) {
+        if (msg.launchCVInspector) {
 
-            let toInspectId = this.animator.chooseCandidateToInspect();
-            let toInspectName = dataModule.getNameForPersonId(toInspectId);
-            
-            msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>"+toInspectName+"</u>");
+            let toInspectName = dataModule.getNameForPersonId(this.animator.getToInspectId());
+            msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
+            this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
         };
         
         this.animator.pauseAnimation();
@@ -83,9 +82,21 @@ export default class MlLabNarrator {
     }
 
     textAckCallback(msg, animator, newsFeed) {
-        animator.startAnimation();
-        newsFeed.start();
-        newsFeed.show();
+
+        // not starting animation when we need to launch inspector
+        // make sure we restart it elsewhere
+        if (msg.launchCVInspector) {
+            animator.datasetView.show();
+            return;
+        }
+
+
+        if (msg.launchMachineInspector) {
+            // TODO - link the second dataset inspector view
+            // this.animator.datasetview.show();
+            return;
+        }
+        // if we are not inspecting anything, continue playing the background sound
         sound.play(SOUNDS.ML_LAB_AMBIENT);
         
         if (msg.isLastMessage) {
@@ -95,16 +106,37 @@ export default class MlLabNarrator {
                 'event_label': 'how-far-do-ppl-get',
             });
 
+            
             gameFSM.nextStage();
-            // new EndGameOverlay();
 
             return;
         } 
+
+        animator.startAnimation();
+        newsFeed.start();
+        newsFeed.show();
+
     }
 
     // update schedule: pop the first timer value from the array
     updateTimeline() {
         this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
+    }
+
+    _handleEmailReply() {
+        this.animator.datasetView.hide();
+        this.ML_TIMELINE[0].launchCVInspector = false;
+        let callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
+
+        new TextboxUI({
+            show: true,
+            type: CLASSES.ML,
+            content: this.ML_TIMELINE[0].inspectQuestion,
+            responses: this.ML_TIMELINE[0].inspectResponses,
+            callback: callback,
+            //TODO - can we do overlay??
+            overlay: true
+        });        
     }
 
     _triggerTimelineUpdate(count) {
@@ -114,11 +146,13 @@ export default class MlLabNarrator {
     }
 
     _addEventListeners() {
+        eventEmitter.on(EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
         eventEmitter.on(EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
         eventEmitter.on(EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }
 
     _removeEventListeners() {
+        eventEmitter.off(EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
         eventEmitter.off(EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
         eventEmitter.off(EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }

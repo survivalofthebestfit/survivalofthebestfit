@@ -64,8 +64,8 @@ export default class MlLabAnimator {
         this.rejectedCount = 0;
     }
 
-    chooseCandidateToInspect() {
-        return this.people.chooseCandidateToInspect();
+    getToInspectId() {
+        return this.people.toInspectId;
     }
 
     _setupTweens() {
@@ -96,7 +96,13 @@ export default class MlLabAnimator {
 
     evalFirstPerson() {
         const firstPerson = this.people.getFirstPerson();
-        const status = dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected';
+        let status = dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected';
+
+        // make sure to always reject the first person
+        if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+            status = 'rejected';
+        }
+
         this.people.removeFirstPerson(status);
         this.datasetView.handleNewResume({status: status, data: firstPerson.getData()});
         return status;

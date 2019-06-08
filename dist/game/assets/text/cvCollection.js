@@ -25,6 +25,7 @@ const cvCollection = {
         },
     ],
     cvData: require('./cvData.json').candidates,
+    specialCandidate: {"name": "Elvan Yang", "city": 1, "color": "blue", "empl": 0, "qualifications": [10, 9, 8, 9]}
 };
 
 export {cvCollection};

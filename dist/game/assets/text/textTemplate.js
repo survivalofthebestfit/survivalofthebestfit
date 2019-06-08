@@ -19,7 +19,7 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill venturesto build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill Ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -34,7 +34,7 @@ const english = {
     instructions: {
         manual: {
             click: 'Click on candidates to see their CVs',
-            eval: 'Click Hire or reject each candidate. Reject to see more new applicants.',
+            eval: 'Click Accept to hire a candidate, or Reject to see more applicants.',
         },
         ml: {
 
@@ -43,7 +43,7 @@ const english = {
 
     smallOfficeStage: {
         subject: 'Our investment in Bestfit',
-        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers',
+        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire, only the best. I\'ve worked with some great Yellow Valley engineers.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
@@ -63,7 +63,7 @@ const english = {
 
     largeOfficeStage: {
         subject: 'Next investment round...',
-        messageFromVc: 'Good effort, but you need to grow faster to secure their funding. Can you pull this off?',
+        messageFromVc: 'Good effort, but you need to grow faster to secure funding. Can you pull this off?',
         responses: [
             'Of course!',
             'I\'m a bit overwhelmed.',
@@ -89,7 +89,7 @@ const english = {
     conversation: [
         {
             dialogue_step: 1,
-            text: 'You asked us how we can hire faster. So we built a hiring algorithm using machine learning. Basically, we will teach a computer to hire like you, but way faster!',
+            text: 'You asked us how we can hire faster, so we built a hiring algorithm (or a computer program) using machine learning. Basically, we will teach a computer to hire like you, but way faster!',
             answer_choice: [
                 {
                     text: 'How does that work?',
@@ -132,13 +132,13 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <u><i>cv_all.zip</i></u>',
+            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <b><i>cv_all.zip</i></b>',
             file_drag: true,
             answer_choice: [],
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies\' data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
@@ -176,7 +176,7 @@ const english = {
             }
 
         ],
-
+        
         narration: [
             {
                 delay: 3,
@@ -198,20 +198,25 @@ const english = {
                 ],
             },
             {
-                inspect: true,
-                delay: 12,
+                delay: 10,
+                launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                tooltip: {
-                    parent: 'scanray',
-                    text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
-                },
+                inspectQuestion: "So why did you reject the candidate?",
+                inspectResponses: [
+                    "I have no idea.",
+                    "Maybe because Elvan is blue?"
+                ]
+                // tooltip: {
+                //     parent: 'scanray',
+                //     text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
+                // },
             },
             {
-                delay: 17,
+                delay: 13,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -227,7 +232,8 @@ const english = {
                 ],
             },
             {
-                delay: 22,
+                delay: 16,
+                launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
@@ -243,7 +249,7 @@ const english = {
                 ],
             },
             {
-                delay: 26,
+                delay: 6,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',
