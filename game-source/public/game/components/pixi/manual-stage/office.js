@@ -305,7 +305,7 @@ class Office {
     }
 
     delete() {
-        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task, ...this.doors];
+        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.yesno, this.task, ...this.doors];
         officeStageContainer.removeChild(this.interiorContainer);
         officeStageContainer.removeChild(this.personContainer);
         this._removeEventListeners();
