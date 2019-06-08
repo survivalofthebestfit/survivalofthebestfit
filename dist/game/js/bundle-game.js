@@ -97953,7 +97953,14 @@ var cvCollection = {
     name: 'Ambition',
     "class": _classes["default"].CV_AMBITION
   }],
-  cvData: require('./cvData.json').candidates
+  cvData: require('./cvData.json').candidates,
+  specialCandidate: {
+    "name": "Elvan Yang",
+    "city": 1,
+    "color": "blue",
+    "empl": 0,
+    "qualifications": [10, 9, 8, 9]
+  }
 };
 exports.cvCollection = cvCollection;
 
@@ -98170,6 +98177,8 @@ var _datasetResumePreview = _interopRequireDefault(require("../dataset-resume-pr
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
+var _utils = require("../../../../controllers/common/utils.js");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -98209,6 +98218,10 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#dataset-overlay');
     _this.$resume = (0, _jquery["default"])('#dataset-view-resume');
     _this.$xIcon = _this.$el.find('.js-x-icon');
+    _this.$button = _this.$el.find('.ReplyButton');
+
+    _this.$button.addClass(_classes["default"].IS_INACTIVE);
+
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
     _this.scrollIsActive = false;
@@ -98227,6 +98240,13 @@ function (_UIBase) {
   }
 
   _createClass(_default, [{
+    key: "_buttonHandler",
+    value: function _buttonHandler() {
+      this.$button.addClass(_classes["default"].BUTTON_CLICKED);
+
+      _gameSetup.eventEmitter.emit(_events["default"].EMAIL_REPLY, {});
+    }
+  }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
       var _this2 = this;
@@ -98239,6 +98259,7 @@ function (_UIBase) {
       $resumeGrids.forEach(function (grid) {
         return grid.addEventListener('mouseover', _this2._handlePersonCardHover);
       });
+      this.$button.click(this._buttonHandler.bind(this));
     }
   }, {
     key: "_removeEventListeners",
@@ -98283,6 +98304,17 @@ function (_UIBase) {
       });
     }
   }, {
+    key: "_showNewEmailNotification",
+    value: function _showNewEmailNotification() {
+      var _this4 = this;
+
+      if (this.$button.hasClass(_classes["default"].IS_INACTIVE)) {
+        (0, _utils.waitForSeconds)(8).then(function () {
+          _this4.$button.removeClass(_classes["default"].IS_INACTIVE);
+        });
+      }
+    }
+  }, {
     key: "_handlePersonCardHover",
     value: function _handlePersonCardHover(event) {
       var personID;
@@ -98304,6 +98336,8 @@ function (_UIBase) {
       }
 
       ;
+
+      this._showNewEmailNotification();
     }
   }, {
     key: "show",
@@ -98324,7 +98358,7 @@ function (_UIBase) {
   }, {
     key: "hide",
     value: function hide() {
-      var _this4 = this;
+      var _this5 = this;
 
       _TweenMax.TweenLite.to('#dataset-overlay', 0.2, {
         y: 20,
@@ -98333,7 +98367,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this5.$el.addClass(_classes["default"].IS_INACTIVE);
       });
     }
   }, {
@@ -98354,7 +98388,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":573,"../../../../controllers/constants/classes":575,"../../../../controllers/constants/events":576,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":551,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102398,6 +102432,7 @@ function () {
     this._draw();
 
     this.container.x = (0, _utils.uv2px)(0.25, 'w');
+    this.toInspectId;
   }
 
   _createClass(_default, [{
@@ -102416,6 +102451,16 @@ function () {
     key: "_addNewPerson",
     value: function _addNewPerson() {
       var currentX = this.mlLastIndex - this.mlStartIndex;
+      var thisColor = _cvCollection.cvCollection.cvData[this.mlLastIndex].color;
+
+      if (!this.toInspectId && thisColor == "blue") {
+        // the candidate to inspect will be the first blue candidate in ML line
+        // overwrite that person's CV data with the special rejected perfect blue candidate's cv
+        _cvCollection.cvCollection.cvData[this.mlLastIndex] = _cvCollection.cvCollection.specialCandidate;
+        this.toInspectId = this.mlLastIndex;
+        console.log("special" + this.toInspectId);
+      }
+
       var person = new _person["default"]({
         parent: this.container,
         x: currentX * this.personXoffset,
@@ -102489,13 +102534,17 @@ function () {
         return array.reduce(function (a, b) {
           return a + parseInt(b);
         }, 0) / array.length;
-      };
+      }; //find the first blue candidate in the ML lab rejected 
+      //this ID has to be dynamic since we dont know how many candidates were previously populated
+      //overwrite that person's CV data with the special rejected perfect blue candidate's cv
+      // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
 
-      var result = this.mlLabRejected.find(function (personId) {
+
+      var resultId = this.mlLabRejected.find(function (personId) {
         return _cvCollection.cvCollection.cvData[personId].color == "blue";
-      }); // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-
-      return result || this.mlLabRejected[this.mlLabRejected.length - 1] || 10;
+      }) || 10;
+      _cvCollection.cvCollection.cvData[resultId] = _cvCollection.cvCollection.specialCandidate;
+      return resultId;
     }
   }]);
 
@@ -103565,7 +103614,8 @@ var _default = {
   TITLE_STAGE_COMPLETED: 'title-stage-completed',
   REVEAL_REPLICEA: 'reveal-next-replica',
   GREY_OUT_REPLICA: 'grey-out-previous-replica',
-  HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons'
+  HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons',
+  EMAIL_REPLY: 'email-reply'
 };
 exports["default"] = _default;
 
@@ -104161,9 +104211,9 @@ function () {
   }
 
   _createClass(MlLabAnimator, [{
-    key: "chooseCandidateToInspect",
-    value: function chooseCandidateToInspect() {
-      return this.people.chooseCandidateToInspect();
+    key: "getToInspectId",
+    value: function getToInspectId() {
+      return this.people.toInspectId;
     }
   }, {
     key: "_setupTweens",
@@ -104198,7 +104248,12 @@ function () {
     key: "evalFirstPerson",
     value: function evalFirstPerson() {
       var firstPerson = this.people.getFirstPerson();
-      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected';
+      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the first person
+
+      if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+        status = 'rejected';
+      }
+
       this.people.removeFirstPerson(status);
       this.datasetView.handleNewResume({
         status: status,
@@ -104444,12 +104499,11 @@ function () {
       var callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
       if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
 
-      if (msg.hasOwnProperty('inspect')) {
-        var toInspectId = this.animator.chooseCandidateToInspect();
-
-        var toInspectName = _dataModule.dataModule.getNameForPersonId(toInspectId);
+      if (msg.launchCVInspector) {
+        var toInspectName = _dataModule.dataModule.getNameForPersonId(this.animator.getToInspectId());
 
         msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
+        this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
       }
 
       ;
@@ -104475,9 +104529,20 @@ function () {
   }, {
     key: "textAckCallback",
     value: function textAckCallback(msg, animator, newsFeed) {
-      animator.startAnimation();
-      newsFeed.start();
-      newsFeed.show();
+      // not starting animation when we need to launch inspector
+      // make sure we restart it elsewhere
+      if (msg.launchCVInspector) {
+        animator.datasetView.show();
+        return;
+      }
+
+      if (msg.launchMachineInspector) {
+        // TODO - link the second dataset inspector view
+        // this.animator.datasetview.show();
+        return;
+      } // if we are not inspecting anything, continue playing the background sound
+
+
       sound.play(_constants.SOUNDS.ML_LAB_AMBIENT);
 
       if (msg.isLastMessage) {
@@ -104487,17 +104552,36 @@ function () {
           'event_label': 'how-far-do-ppl-get'
         });
 
-        _stateManager.gameFSM.nextStage(); // new EndGameOverlay();
-
+        _stateManager.gameFSM.nextStage();
 
         return;
       }
+
+      animator.startAnimation();
+      newsFeed.start();
+      newsFeed.show();
     } // update schedule: pop the first timer value from the array
 
   }, {
     key: "updateTimeline",
     value: function updateTimeline() {
       this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
+    }
+  }, {
+    key: "_handleEmailReply",
+    value: function _handleEmailReply() {
+      this.animator.datasetView.hide();
+      this.ML_TIMELINE[0].launchCVInspector = false;
+      var callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
+      new _uiTextbox["default"]({
+        show: true,
+        type: _constants.CLASSES.ML,
+        content: this.ML_TIMELINE[0].inspectQuestion,
+        responses: this.ML_TIMELINE[0].inspectResponses,
+        callback: callback,
+        //TODO - can we do overlay??
+        overlay: true
+      });
     }
   }, {
     key: "_triggerTimelineUpdate",
@@ -104509,6 +104593,8 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
+
       _gameSetup.eventEmitter.on(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
@@ -104516,6 +104602,8 @@ function () {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
+      _gameSetup.eventEmitter.off(_constants.EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
+
       _gameSetup.eventEmitter.off(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
       _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
@@ -104728,10 +104816,10 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        this.transition('titleStage'); //this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        // this.transition('mlLabStage');
+        //this.transition('mlLabStage');
         // this.transition('gameBreakdown');
       }
     },
