@@ -19,7 +19,7 @@
   text-align: center;
 
 
-  @include mq($from: mobile-landscape) {
+  @include mq($from: desktop) {
     &:hover {
       cursor: pointer;
       @include boxColors($txt-color:color(txt-black), $bg-color: color(grey-main), $shadow-color: 'rose');

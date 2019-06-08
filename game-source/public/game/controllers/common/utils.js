@@ -9,7 +9,16 @@ const screenSizeDetector = () => {
 };
 
 const isMobile = () => {
-    return mq(BREAKPOINTS.PHONE_LANDSCAPE);
+    return (window.screen.width < 1025 || getDevice.android() || getDevice.iOS());
+};
+
+const getDevice = {
+    android: function() {
+        return navigator.userAgent.match(/Android/i);
+    },
+    iOS: function() {
+        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+    },
 };
 
 const spacingUtils = {
