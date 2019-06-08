@@ -103255,10 +103255,18 @@ var screenSizeDetector = function screenSizeDetector() {
 exports.screenSizeDetector = screenSizeDetector;
 
 var isMobile = function isMobile() {
-  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE);
+  return window.screen.width < 1025 || getDevice.android() || getDevice.iOS();
 };
 
 exports.isMobile = isMobile;
+var getDevice = {
+  android: function android() {
+    return navigator.userAgent.match(/Android/i);
+  },
+  iOS: function iOS() {
+    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+  }
+};
 var spacingUtils = {
   getRelativePoint: function getRelativePoint(val1, val2, ratio) {
     var min = Math.min(val1, val2);
@@ -103475,7 +103483,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  PHONE_LANDSCAPE: 'only screen and (max-width:815px)' // includes iPhoneX
+  PHONE_LANDSCAPE: 'only screen and (max-width:815px)',
+  // includes iPhoneX
+  PHONE_AND_TABLET: 'screen and (min-width: 1024px)' // includes iPad
 
 };
 exports["default"] = _default;
