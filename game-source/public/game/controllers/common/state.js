@@ -3,6 +3,7 @@ const store = {
     'hiring-stage-number': Number(0),
     'hiring-in-progress': Boolean(false),
     'hiring-stage-success': Boolean(false),
+    'stage': String('pregame'),
 };
 
 

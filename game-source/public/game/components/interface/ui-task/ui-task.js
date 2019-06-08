@@ -1,11 +1,11 @@
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter, pixiApp} from '~/public/game/controllers/game/gameSetup.js';
 import {spotlight} from '~/public/game/components/pixi/manual-stage/office';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import * as state from '~/public/game/controllers/common/state';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -29,6 +29,7 @@ export default class extends UIBase {
         if (options.showTimer) {
             this.$timer.removeClass(CLASSES.IS_INACTIVE);
             this.startTimer();
+            sound.schedule(SOUNDS.TIME_RUNNING_OUT, this._duration - 10);
         }
 
         if (options.placeLeft) {
@@ -42,6 +43,7 @@ export default class extends UIBase {
         // every stage in unsuccessful by default
         state.set('hiring-in-progress', true);
         this._addEventListeners();
+        sound.schedule(SOUNDS.STAGE_BEGIN, 0.5);
     }
 
     setContent() {
@@ -87,6 +89,9 @@ export default class extends UIBase {
                 this.showTaskFeedback({stageCompleted: false});
                 state.set('hiring-stage-success', false);
                 eventEmitter.emit(EVENTS.MANUAL_STAGE_DONE, {});
+                sound.play(SOUNDS.STAGE_FAILED);
+                sound.stop(SOUNDS.TIME_RUNNING_OUT);
+                sound.stop(SOUNDS.MANUAL_AMBIENT);
                 this.reset();
                 gameFSM.nextStage();
             }

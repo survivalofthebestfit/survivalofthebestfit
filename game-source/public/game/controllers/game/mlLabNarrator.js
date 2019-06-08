@@ -1,6 +1,5 @@
 
-import EVENTS from '~/public/game/controllers/constants/events';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {EVENTS, CLASSES, SOUNDS} from '~/public/game/controllers/constants';
 import TextboxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import InfoTooltip from '~/public/game/components/interface/ml/info-tooltip/info-tooltip';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
@@ -8,7 +7,8 @@ import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import NewsFeedUI from '~/public/game/components/interface/ml/news-feed/news-feed.js';
 import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import { dataModule } from '~/public/game/controllers/machine-learning/dataModule';
+import {dataModule} from '~/public/game/controllers/machine-learning/dataModule';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class MlLabNarrator {
     constructor() {
@@ -28,6 +28,7 @@ export default class MlLabNarrator {
         this.isActive = true;
         // DISPLAY THE FIRST NEWSFEED that happens before the first investor message
         this.newsFeed.updateNewsFeed({news: this.ML_TIMELINE[0].news});
+        sound.schedule(SOUNDS.ML_LAB_AMBIENT, 1);
         if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
 
@@ -64,6 +65,8 @@ export default class MlLabNarrator {
         this.animator.pauseAnimation();
         this.newsFeed.stop();
         this.newsFeed.hide();
+        sound.fadeOut(SOUNDS.ML_LAB_AMBIENT, false);
+        sound.play(SOUNDS.NEW_MESSAGE);
 
         new TextboxUI({
             show: true,
@@ -83,6 +86,7 @@ export default class MlLabNarrator {
         animator.startAnimation();
         newsFeed.start();
         newsFeed.show();
+        sound.play(SOUNDS.ML_LAB_AMBIENT);
         
         if (msg.isLastMessage) {
             // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names

@@ -1,9 +1,9 @@
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class extends UIBase {
     constructor({text, parent}, callback) {
@@ -35,6 +35,7 @@ export default class extends UIBase {
         this.$text.html(this.content);
         this.$icon.removeClass(CLASSES.IS_INACTIVE);
         this.$tooltip.addClass(CLASSES.IS_INACTIVE);
+        sound.play(SOUNDS.WRITING_MESSAGE);
     }
 
     _handleIconHover() {
@@ -49,9 +50,12 @@ export default class extends UIBase {
         this.isActive = true;
         this.$icon.addClass(CLASSES.IS_INACTIVE);
         this.$tooltip.removeClass(CLASSES.IS_INACTIVE);
+        sound.stop(SOUNDS.WRITING_MESSAGE);
+        sound.play(SOUNDS.NEW_MESSAGE);
     }
 
     _dismissTooltip() {
+        sound.play(SOUNDS.BUTTON_CLICK);
         this.callback();
         this.destroy();
     }

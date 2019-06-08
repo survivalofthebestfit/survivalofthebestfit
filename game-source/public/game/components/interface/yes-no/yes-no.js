@@ -1,12 +1,13 @@
 import $ from 'jquery';
 import {TweenLite} from 'gsap/TweenMax';
-import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
+import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
 import * as state from '~/public/game/controllers/common/state';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {spotlight} from '~/public/game/components/pixi/manual-stage/office';
 import {eventEmitter, pixiApp, officeStageContainer} from '~/public/game/controllers/game/gameSetup.js';
 import {isMobile} from '~/public/game/controllers/common/utils.js';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -39,11 +40,16 @@ export default class extends UIBase {
     }
 
     _rejectClicked(e) {
+        sound.play(SOUNDS.BUTTON_CLICK);
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
         gtag('event', 'reject', {
             'event_category': 'default',
             'event_label': 'accept/reject',
         });
+        if (!this.hasBeenClicked) {
+            eventEmitter.emit(EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
+            this.hasBeenClicked = true;
+        };
         this.$noButton.addClass(CLASSES.REJECTED);
         if (candidateInSpot != null) {
             eventEmitter.emit(EVENTS.REJECTED, {});

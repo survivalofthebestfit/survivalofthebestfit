@@ -58,7 +58,7 @@ const english = {
         hiringGoal: 5,
         retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a better team by then',
         retryResponses: ['I will this time.'],
-        duration: 45
+        duration: 20
     },
 
     largeOfficeStage: {

@@ -118,7 +118,7 @@ class Office {
         }
 
         this.draw(stageNum);
-        // sound.play(SOUNDS.MANUAL_AMBIENT);
+        sound.schedule(SOUNDS.MANUAL_AMBIENT, 1);
     }
 
     draw() {
@@ -195,8 +195,10 @@ class Office {
             if (this.takenDesks == this.stageText.hiringGoal) {
                 state.set('hiring-in-progress', false);
                 state.set('hiring-stage-success', true);
+                sound.stop(SOUNDS.TIME_RUNNING_OUT);
                 waitForSeconds(1).then(() => {
                     sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
+                    sound.play(SOUNDS.STAGE_SUCCEEDED);
                     eventEmitter.emit(EVENTS.MANUAL_STAGE_DONE, {});
                     this.task.reset();
                     gameFSM.nextStage();
