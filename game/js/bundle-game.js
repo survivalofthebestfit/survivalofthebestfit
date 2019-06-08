@@ -101197,6 +101197,8 @@ function (_UIBase) {
       this.hide();
 
       this._removeEventListeners();
+
+      this.$el.remove();
     }
   }]);
 
@@ -101881,7 +101883,7 @@ function () {
   }, {
     key: "delete",
     value: function _delete() {
-      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task].concat(_toConsumableArray(this.doors));
+      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.yesno, this.task].concat(_toConsumableArray(this.doors));
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
 
