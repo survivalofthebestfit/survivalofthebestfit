@@ -112,5 +112,6 @@ export default class extends UIBase {
         super.dispose();
         this.hide();
         this._removeEventListeners();
+        this.$el.remove();
     }
 }
