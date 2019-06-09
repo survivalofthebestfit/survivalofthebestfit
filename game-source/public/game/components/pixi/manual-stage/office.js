@@ -163,7 +163,7 @@ class Office {
         } else {
             showTimer = true;
             candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
-
+            this.yesno.hide();
             officeStageContainer.removeChild(this.personContainer);
             this.personContainer = new PIXI.Container();
             this.personContainer.name = OFFICE_PEOPLE_CONTAINER;

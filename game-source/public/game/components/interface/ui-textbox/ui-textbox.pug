@@ -1,5 +1,8 @@
 include ../ui-overlay/ui-overlay.pug
+include ../ui-desktop/ui-desktop.pug
+
 +overlay()(id="js-textbox-overlay" class="TextboxOverlay")
+  +desktop()(class="is-inactive")
   div.Textbox__wrapper
     div.Textbox 
       div.Textbox__email

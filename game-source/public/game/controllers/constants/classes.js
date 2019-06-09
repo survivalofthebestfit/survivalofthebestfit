@@ -21,6 +21,7 @@ export default {
     VOLUME_ICON_OFF: 'VolumeIcon--off',
     ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
     HIRING_TASK_DONE: 'hiring-task-done',
+    FILE_PULSE: 'datafile-pulse',
     ML: 'ml',
     OSCILLATE: 'u-oscillate',
     PULSATE: 'u-pulsate',

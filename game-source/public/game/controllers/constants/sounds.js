@@ -63,7 +63,7 @@ export const SOUND_MANIFEST = [
         player: null, 
         loop: true,
         playerID: null,
-        volume: 0.5,
+        volume: 0.8,
     },
     {
         name: SOUNDS.ML_LAB_AMBIENT,
@@ -71,7 +71,7 @@ export const SOUND_MANIFEST = [
         player: null, 
         loop: true,
         playerID: null,
-        volume: 1,
+        volume: 1.0,
     },
     {
         name: SOUNDS.TIME_RUNNING_OUT,

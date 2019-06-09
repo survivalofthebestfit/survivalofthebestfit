@@ -68,13 +68,18 @@ export default class Replica extends Component {
     }
 
     _addFileClickListener() {
-        $('#js-cv-all-file').on('click', () => {
+        const $datafile = $('#js-cv-all-file');
+        $datafile.addClass(CLASSES.FILE_PULSE);
+        // sound.play(SOUNDS.WRITING_MESSAGE);
+        $datafile.on('click', () => {
             sound.play(SOUNDS.BUTTON_CLICK);
             const $fileInstructions = this.el.querySelector('.replica__send-instructions');
             $fileInstructions.classList.add(CLASSES.CONVERSATION_STEP_COMPLETED);
             $fileInstructions.innerHTML = 'Attached cv_all.zip';
             this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
-            $('#js-cv-all-file').off();
+            // sound.stop(SOUNDS.WRITING_MESSAGE);
+            $datafile.off();
+            $datafile.remove();
         });
     }
 
