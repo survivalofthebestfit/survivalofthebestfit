@@ -9,13 +9,32 @@
   align-items: center;
 
   .button {
-    width: 5rem; 
+    min-width: 5rem;
+    padding: padding(xs) padding(xs) padding(xs) + 3px padding(xs); 
     height: 1rem; 
     float: left;
     margin-bottom: 3%;
 
+
+    &__choice {
+      margin-left: margin(sm);
+      &:nth-child(1)  {
+        margin-left: 0;
+      }
+    }
+
+    &__proceed {
+      @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
+      color: white;
+
+      a{
+        color: white;
+      }
+    }
+
     p, a {
-    font-size: 1.0rem;
+      font-size: 1.0rem;
+      text-decoration: none;
     }
   }
 
