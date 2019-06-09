@@ -99715,7 +99715,10 @@ function (_Component) {
     value: function _addFileClickListener() {
       var _this3 = this;
 
-      (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
+      var $datafile = (0, _jquery["default"])('#js-cv-all-file');
+      $datafile.addClass(_constants.CLASSES.FILE_PULSE); // sound.play(SOUNDS.WRITING_MESSAGE);
+
+      $datafile.on('click', function () {
         sound.play(_constants.SOUNDS.BUTTON_CLICK);
 
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
@@ -99726,9 +99729,11 @@ function (_Component) {
         _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this3._step + 1
-        });
+        }); // sound.stop(SOUNDS.WRITING_MESSAGE);
 
-        (0, _jquery["default"])('#js-cv-all-file').off();
+
+        $datafile.off();
+        $datafile.remove();
       });
     }
   }, {
@@ -100665,6 +100670,8 @@ var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"
 
 var state = _interopRequireWildcard(require("../../../controllers/common/state"));
 
+var _utils = require("../../../controllers/common/utils");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -100705,6 +100712,7 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-textbox-overlay'); // This should be a single element
 
     _this.$textEl = _this.$el.find('.Textbox__content');
+    _this.$dateEl = _this.$el.find('.header__date');
     _this.$subjectEl = _this.$el.find('.Textbox__subject');
     _this.$buttons = _this.$el.find('.TextboxButton');
     _this.setContent = _this.setContent.bind(_assertThisInitialized(_this));
@@ -100738,6 +100746,12 @@ function (_UIBase) {
       var _this2 = this;
 
       if (!this.overlay) this.$el.addClass(_index.CLASSES.IS_TRANSPARENT);
+
+      if (this.$dateEl && state.get('stage' !== _index.STAGES.ML_LAB)) {
+        this.$dateEl.removeClass(_index.CLASSES.IS_INACTIVE);
+        this.$dateEl.html((0, _utils.getDateString)());
+      }
+
       var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
       var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
@@ -100825,7 +100839,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/state":571,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/common/utils":573,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101694,6 +101708,7 @@ function () {
       } else {
         showTimer = true;
         candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
+        this.yesno.hide();
 
         _gameSetup.officeStageContainer.removeChild(this.personContainer);
 
@@ -103313,6 +103328,10 @@ var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
+var state = _interopRequireWildcard(require("./state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -103437,12 +103456,33 @@ var clamp = function clamp(val, minVal, maxVal) {
 
 exports.clamp = clamp;
 
+var getGameProgressInMonths = function getGameProgressInMonths(month) {
+  switch (state.get('stage')) {
+    case _index.STAGES.MANUAL_MEDIUM:
+      return 1;
+
+    case _index.STAGES.MANUAL_LARGE:
+      return 2;
+
+    case _index.STAGES.TRANSITION:
+      return 3;
+
+    case _index.STAGES.ML_LAB:
+      return 3;
+
+    default:
+      return 0;
+  }
+};
+
 var getDateString = function getDateString() {
   var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
   var d = new Date();
+  var gameMonth = (d.getMonth() + getGameProgressInMonths(d.getMonth())) % months.length;
+  console.log("game month is ".concat(months[gameMonth]));
   var hourString = "".concat(d.getHours() > 0 ? d.getHours() : "0".concat(d.getHours()), ":").concat(d.getMinutes() > 0 ? d.getMinutes() : "0".concat(d.getMinutes()));
-  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[d.getMonth()], " ").concat(d.getDate(), " ").concat(d.getFullYear());
+  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[gameMonth], " ").concat(d.getDate(), " ").concat(d.getFullYear());
 }; // convenience function to animate object, parameter default to not moving anywhere
 
 
@@ -103545,7 +103585,7 @@ var getPersonByColor = function getPersonByColor(color) {
   }
 };
 
-},{"../constants/index.js":578,"../game/gameSetup.js":587,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
+},{"../constants/index.js":578,"../game/gameSetup.js":587,"./state":571,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103590,6 +103630,7 @@ var _default = {
   VOLUME_ICON_OFF: 'VolumeIcon--off',
   ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
   HIRING_TASK_DONE: 'hiring-task-done',
+  FILE_PULSE: 'datafile-pulse',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -103957,14 +103998,14 @@ var SOUND_MANIFEST = [{
   player: null,
   loop: true,
   playerID: null,
-  volume: 0.5
+  volume: 0.8
 }, {
   name: SOUNDS.ML_LAB_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_LAB_AMBIENT, ".mp3"),
   player: null,
   loop: true,
   playerID: null,
-  volume: 1
+  volume: 1.0
 }, {
   name: SOUNDS.TIME_RUNNING_OUT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TIME_RUNNING_OUT, ".mp3"),
@@ -104860,9 +104901,9 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
-        // this.transition('mlTrainingStage');
+        // this.transition('titleStage');
+        // this.transition('smallOfficeStage');
+        this.transition('mlTransitionStage'); // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
         //this.transition('gameBreakdown');
       }
