@@ -101530,24 +101530,40 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var candidatePoolSize = {
-  smallOfficeStage: 7,
-  mediumOfficeStage: 10,
-  largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
-};
-var officeCoordinates = {
-  entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
-  exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
-  personStartX: 0.2,
-  peoplePaddingX: 0.1,
-  // personStartY: 0.87, // should be dependent on the floot size
-  personStartY: computePersonY(),
-  xOffset: 0.06
-};
+function computeOfficeParams(type) {
+  switch (type) {
+    case 'candidate-pool':
+      return {
+        smallOfficeStage: 7,
+        mediumOfficeStage: 10,
+        largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
+      };
 
-function computeSpotlight() {
+    case 'office-coordinates':
+      return {
+        entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
+        exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
+        personStartX: 0.2,
+        peoplePaddingX: 0.1,
+        personStartY: computePersonY(),
+        xOffset: 0.06
+      };
+
+    case 'spotlight':
+      return computeSpotlight();
+
+    default:
+      throw new Error("we cannot compute parameters for type ".concat(type));
+  }
+}
+
+;
+
+function computeSpotlight(_ref) {
+  var entryDoor = _ref.entryDoor,
+      exitDoor = _ref.exitDoor;
   return {
-    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
     y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
 }
@@ -101556,7 +101572,7 @@ function computePersonY() {
   return 1 - (0, _utils.px2uv)((0, _utils.isMobile)() ? 15 : 25, 'h');
 }
 
-var spotlight = computeSpotlight();
+var spotlight = {};
 exports.spotlight = spotlight;
 
 var Office =
@@ -101565,13 +101581,20 @@ function () {
   function Office() {
     _classCallCheck(this, Office);
 
+    console.log('construct office!');
     this.uniqueCandidateIndex = 0;
     this.currentStage = 0;
     this.scale = 1;
     this.takenDesks = 0;
     this.interiorContainer = new PIXI.Container();
     this.personContainer = new PIXI.Container();
-    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER; // IMPORTANT: candidates ID refer to this array's index
+    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER;
+    this.candidatePoolSize = computeOfficeParams('candidate-pool');
+    this.officeCoordinates = computeOfficeParams('office-coordinates');
+    exports.spotlight = spotlight = computeSpotlight({
+      entryDoor: this.officeCoordinates.entryDoorX,
+      exitDoor: this.officeCoordinates.exitDoorX
+    }); // IMPORTANT: candidates ID refer to this array's index
 
     this.allPeople = [];
     this.hiredPeople = [];
@@ -101600,12 +101623,12 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.entryDoorX
+      xAnchorUV: this.officeCoordinates.entryDoorX
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.exitDoorX
+      xAnchorUV: this.officeCoordinates.exitDoorX
     })];
     this.listenerSetup();
   }
@@ -101649,7 +101672,7 @@ function () {
 
       if (this.currentStage == 0) {
         // SMALL STAGE - INITIAL SET UP
-        candidatesToAdd = candidatePoolSize.smallOfficeStage;
+        candidatesToAdd = this.candidatePoolSize.smallOfficeStage;
 
         for (var floor in this.floors) {
           if (Object.prototype.hasOwnProperty.call(this.floors, floor)) {
@@ -101670,7 +101693,7 @@ function () {
         this.peopleTalkManager.startTimeline();
       } else {
         showTimer = true;
-        candidatesToAdd = this.currentStage === 1 ? candidatePoolSize.mediumOfficeStage : candidatePoolSize.largeOfficeStage;
+        candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
 
         _gameSetup.officeStageContainer.removeChild(this.personContainer);
 
@@ -101713,7 +101736,7 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(_this2.officeCoordinates.entryDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[0].playAnimation({
@@ -101752,7 +101775,7 @@ function () {
         _this2.placeCandidate(_this2.toReplaceX);
 
         rejectedPerson.scale.x *= -1;
-        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(_this2.officeCoordinates.exitDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[1].playAnimation({
@@ -101772,7 +101795,7 @@ function () {
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler, this);
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
         (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
@@ -101791,7 +101814,7 @@ function () {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
       var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
-      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
+      var person = (0, _person.createPerson)(thisX, this.officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
       this.uniqueCandidateIndex++;
@@ -101814,12 +101837,10 @@ function () {
     key: "resizeHandler",
     value: function resizeHandler() {
       // change spotlight position
-      var _computeSpotlight = computeSpotlight(),
-          spotNewX = _computeSpotlight.x,
-          spotNewY = _computeSpotlight.y;
-
-      spotlight.x = spotNewX;
-      spotlight.y = spotNewY; // reposition candidates
+      exports.spotlight = spotlight = computeSpotlight({
+        entryDoor: this.officeCoordinates.entryDoorX,
+        exitDoor: this.officeCoordinates.exitDoorX
+      }); // reposition candidates
 
       var candidates = this.getCandidatePoolSize(this.currentStage);
 
@@ -101841,15 +101862,16 @@ function () {
     key: "getCandidatePoolSize",
     value: function getCandidatePoolSize(currentStage) {
       var stages = ['smallOfficeStage', 'mediumOfficeStage', 'largeOfficeStage'];
-      return candidatePoolSize[stages[currentStage]];
+      return this.candidatePoolSize[stages[currentStage]];
     }
   }, {
     key: "centerPeopleLine",
     value: function centerPeopleLine(count) {
-      var entryDoorX = officeCoordinates.entryDoorX,
-          exitDoorX = officeCoordinates.exitDoorX,
-          xOffset = officeCoordinates.xOffset,
-          peoplePaddingX = officeCoordinates.peoplePaddingX;
+      var _this$officeCoordinat = this.officeCoordinates,
+          entryDoorX = _this$officeCoordinat.entryDoorX,
+          exitDoorX = _this$officeCoordinat.exitDoorX,
+          xOffset = _this$officeCoordinat.xOffset,
+          peoplePaddingX = _this$officeCoordinat.peoplePaddingX;
 
       var peopleCenterX = _utils.spacingUtils.getRelativePoint(entryDoorX, exitDoorX, 1 / 2);
 
@@ -104100,7 +104122,8 @@ window.addEventListener('orientationchange', resize);
 function resize() {
   console.log('resize the screen!');
   pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
-  eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
+  pixiApp.renderer.render(pixiApp.stage);
+  eventEmitter.emit(_events["default"].RESIZE, {});
 }
 
 },{"../constants/events":576,"debounce":319,"pixi-tween":366,"pixi.js":482}],588:[function(require,module,exports){
