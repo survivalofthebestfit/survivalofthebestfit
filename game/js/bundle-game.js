@@ -99257,7 +99257,7 @@ var _default = function _default(isManualStageStats) {
 
     var $skillEl = _this.$el.find(skillClass);
 
-    $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
+    $skillEl.find(".".concat(_classes["default"].STATS_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
   });
 };
 
@@ -103684,6 +103684,7 @@ var _default = {
   FADE_OUT: 'u-fade-out',
   BUTTON_CLICKED: 'is-clicked',
   CV_CATEGORY: 'cv-category',
+  STAS_CATEGORY: 'stats-category',
   CV_SKILL: 'skill',
   CV_WORK: 'work',
   CV_AMBITION: 'ambition',
