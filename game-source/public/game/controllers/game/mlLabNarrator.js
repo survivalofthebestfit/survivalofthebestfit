@@ -9,19 +9,48 @@ import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import TaskUI from '~/public/game/components/interface/ui-task/ui-task';
 
 export default class MlLabNarrator {
     constructor() {
         this.animator = new MlLabAnimator();
         this.newsFeed = new NewsFeedUI({show: true});
-        
+
         this.ML_TIMELINE = txt.mlLabStage.narration;
         this.newsTimeOffset = 6;
         this.isActive = false;
         this.scheduleTimelineUpdate = this.scheduleTimelineUpdate.bind(this);
-        this._addEventListeners();
+        this.populateHiringGoals();
 
+        this.task = new TaskUI({
+            showTimer: false, 
+            placeLeft: true,
+            hires: this.ML_TIMELINE[this.ML_TIMELINE.length-1].delay
+        });
+
+        this._addEventListeners();
         this.start();
+    }
+
+    populateHiringGoals() {
+
+        // You can use this to debug so that ML lab stage progresses faster
+        let debugMode = true;
+        
+        let hiringCount = 0;
+
+        if (debugMode) {
+            for (let i = 0; i < this.ML_TIMELINE.length; i++) {
+                this.ML_TIMELINE[i].delay = ++hiringCount;
+            }
+        }
+        else {
+            let stageGoal = 3;
+            for (let i = 0; i < this.ML_TIMELINE.length; i++) {
+                hiringCount += stageGoal;
+                this.ML_TIMELINE[i].delay = hiringCount;
+            }
+        }
     }
 
     start() {
