@@ -13,7 +13,7 @@ class DataModule {
         this.mlRejected = [];
         this.lastIndex = 0;
         this.groundTruth = [];
-        this.acceptance = [];
+        this.acceptanceArrayByAlgo = [];
         this.colorArr = [];
         this.averageScore = [0, 0, 0, 0];
         this.skillFeatureSize = cvCollection.cvFeatures.length;
@@ -107,7 +107,7 @@ class DataModule {
         this.clf = buildFakeDataModel(this.featurePref);
         
         if (testClf(this.clf, this.featurePref)) {
-            gtag('event', 'test-userfeature-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
+            gtag('event', 'userfeature-model-successful', {'event_category': 'ml', 'event_label': 'model-training'});
             return;
         }
 
@@ -116,7 +116,7 @@ class DataModule {
         this.clf = buildFakeDataModel();
         
         if (testClf(this.clf, this.featurePref)) {
-            gtag('event', 'test-fullfake-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
+            gtag('event', 'fullfake-model-successful', {'event_category': 'ml', 'event_label': 'model-training'});
             return;
         }
     }
@@ -129,10 +129,10 @@ class DataModule {
 
         // measure ongoing performance and bias
         this.groundTruth.push(inputResume.empl);
-        this.acceptance.push(result);
+        this.acceptanceArrayByAlgo.push(result);
         this.colorArr.push(inputResume.color);
-        if (this.acceptance.length % 10 == 0) {
-            reportMetrics(this.acceptance, this.groundTruth, false, this.colorArr);
+        if (this.acceptanceArrayByAlgo.length % 10 == 0) {
+            reportMetrics(this.acceptanceArrayByAlgo, this.groundTruth, false, this.colorArr);
         }
         
         return result;
@@ -152,6 +152,10 @@ class DataModule {
 
     getAcceptedPeople() {
         return this.accepted;
+    }
+
+    getAcceptanceByTheAlgo() {
+        return this.acceptanceArrayByAlgo;
     }
 
     uploadUserDecisions() {

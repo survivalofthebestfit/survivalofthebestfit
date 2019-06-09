@@ -220,7 +220,7 @@ const english = {
             },
             {
                 // delay: 13,
-                delay: 4,
+                delay: 5,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -237,7 +237,7 @@ const english = {
             },
             {
                 // delay: 16,
-                delay: 5,
+                delay: 7,
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
@@ -248,6 +248,11 @@ const english = {
                     parent: 'scanray',
                     text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within gendered stereotypes and historical biases.',
                 },
+                inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
+                inspectResponses: [
+                    'I hired mostly yellow people in the past and the machine just copies it.',
+                    'The machine learnt that yellow people are better because of the past hires.',
+                ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
                     'The justice: Yellow privilege in the tech industry',

@@ -1,22 +1,21 @@
 import $ from 'jquery';
 import CLASSES from '~/public/game/controllers/constants/classes';
 import {clamp} from '~/public/game/controllers/common/utils';
-
+import {statistics} from '~/public/game/controllers/machine-learning/statistics.js';
 
 export default class {
     constructor(isManualStageStats) {
-        this.statsFeatures = ['HiredMakeup', 'RejectedMakeup', 'AverageYellow', 'AverageBlue'];
+        let cv;
         if (isManualStageStats) {
-            // const cv = getData('manual');
+            cv = statistics.getManualStats();
             this.$el = $('#statistics-card-manual');
         } else {
-            // const cv = getData('mllab');
+            cv = statistics.getMlLabStats();
             this.$el = $('#statistics-card-mllab');
         }
-        let cv = {qualifications: [1, 2, 3, 4]};
-
-        this.statsFeatures.forEach((feature, index) => {
-            const skillScore = cv.qualifications[index]*10;
+        console.log(cv);
+        statistics.getFeatures().forEach((feature, index) => {
+            const skillScore = cv[index];
             const skillClass = `.${feature}`;
             const $skillEl = this.$el.find(skillClass);
             $skillEl.find(`.${CLASSES.CV_CATEGORY}__progress`).css('width', `${clamp(skillScore, 5, 100)}%`);

@@ -21,8 +21,9 @@
     height: 50px;
     display: flex;
     justify-content: center;
+    flex-direction: column;
     align-items: center;
-    margin: margin(sm) 0 margin(sm) 0;
+    margin: margin(sm) 0 margin(md) 0;
   }
 
 }

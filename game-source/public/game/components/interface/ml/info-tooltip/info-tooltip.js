@@ -63,6 +63,7 @@ export default class extends UIBase {
 
     _removeEventListeners() {
         this.$el.off();
+        this.$dismissBtn.off();
     }
 
     show() {

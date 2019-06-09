@@ -22,10 +22,6 @@ export default class MlLabNarrator {
         this._addEventListeners();
 
         this.start();
-
-        // ToDo remove
-        this.animator.datasetView.swapToStatistics();
-        this.animator.datasetView.show();
     }
 
     start() {
@@ -58,7 +54,6 @@ export default class MlLabNarrator {
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
 
         if (msg.launchCVInspector) {
-
             let toInspectName = dataModule.getNameForPersonId(this.animator.getToInspectId());
             msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
             this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
@@ -110,11 +105,13 @@ export default class MlLabNarrator {
     // update schedule: pop the first timer value from the array
     updateTimeline() {
         this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
+        console.log(this.ML_TIMELINE[0])
     }
 
     _handleEmailReply() {
         this.animator.datasetView.hide();
         this.ML_TIMELINE[0].launchCVInspector = false;
+        this.ML_TIMELINE[0].launchMachineInspector = false;
         let callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
 
         new TextboxUI({
@@ -132,6 +129,7 @@ export default class MlLabNarrator {
         if (count === this.ML_TIMELINE[0].delay) {
             this.scheduleTimelineUpdate();
         }
+        console.log(count);
     }
 
     _addEventListeners() {

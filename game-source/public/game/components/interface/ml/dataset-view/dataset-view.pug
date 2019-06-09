@@ -3,6 +3,7 @@ include ../../ui-overlay/ui-overlay.pug
   div.DatasetOverlay__x-icon.js-x-icon
   div.DatasetOverlay__header
     h1.DatasetOverlay__title Dataset Inspector
+    h3#TaskDescription Task: Look for for Elvan Yang! Why was she rejected?
   div.ViewLayout#CvInspector
     div.ViewLayout-item
       h3.DatasetGrid-title Accepted Candidates
@@ -25,7 +26,12 @@ include ../../ui-overlay/ui-overlay.pug
   div.ViewLayout#StatsInspector.is-inactive
     include ../statistics-card/statistics-card.pug
     div.ViewLayout-item
-        +stats("Analysis of Your Hiring Decisions")(id="statistics-card-manual")
+        +stats("Your Hiring Decisions Analysis")(id="statistics-card-manual")
     div.ViewLayout-item
-      +stats("Analysis of the Algorithm's Hires")(id="statistics-card-mllab")
+      +stats("The Algorithm's Hiring Analysis")(id="statistics-card-mllab")
+    div.Email.ReplyButton.SecondReplyButton
+        p.Email_Notificaiton New Email
+        p.Email_Sender Peter Hoffman
+        p.Email_Subject Re: Done with analytics?
+        p.Email_Content Why are we disriminating?
 

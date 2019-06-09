@@ -37,7 +37,11 @@ export default class extends UIBase {
         this.$cvInspector.addClass(CLASSES.IS_INACTIVE);
         this.$el.find('.Email').addClass(CLASSES.IS_INACTIVE);
         new StatisticsCard(true);
+        new StatisticsCard(false);
+        this.$button = this.$el.find('.SecondReplyButton');
+        this.$el.find('#TaskDescription').html('Task: How did the talent pool and decisions change while switching to automation?');
         this.$statsInspector.removeClass(CLASSES.IS_INACTIVE);
+        this._showNewEmailNotification();
     }
 
     _buttonHandler() {
