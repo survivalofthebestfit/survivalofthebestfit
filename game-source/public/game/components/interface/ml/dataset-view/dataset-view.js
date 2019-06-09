@@ -15,14 +15,15 @@ export default class extends UIBase {
         this.$el = $('#dataset-overlay');
         this.$resume = $('#dataset-view-resume');
         this.$xIcon = this.$el.find('.js-x-icon');
+        this.$xIcon.addClass(CLASSES.IS_INACTIVE);
         this.$button = this.$el.find('.ReplyButton');
         this.$button.addClass(CLASSES.IS_INACTIVE);
         this.dataset = [];
         this.resumePreview = new DatasetResumePreview();
         this.scrollIsActive = false;
-        this._handleIconClick = this._handleIconClick.bind(this);
+        // this._handleIconClick = this._handleIconClick.bind(this);
         this._handleInspectButtonClick = this._handleInspectButtonClick.bind(this);
-        this._handlePersonCardHover = this._handlePersonCardHover.bind(this);
+        this._handlePersonCardClick = this._handlePersonCardClick.bind(this);
         this.activePerson = null;
         this._addEventListeners();
         if (options && options.show) {
@@ -36,15 +37,15 @@ export default class extends UIBase {
     }
 
     _addEventListeners() {
-        this.$xIcon.on('click', this._handleIconClick);
+        // this.$xIcon.on('click', this._handleIconClick);
         eventEmitter.on(EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
         const $resumeGrids = document.querySelectorAll('.DatasetGrid');
-        $resumeGrids.forEach((grid) => grid.addEventListener('mouseover', this._handlePersonCardHover));
+        $resumeGrids.forEach((grid) => grid.addEventListener('click', this._handlePersonCardClick));
         this.$button.click(this._buttonHandler.bind(this));
     }
 
     _removeEventListeners() {
-        this.$xIcon.off('click', this._handleIconClick);
+        // this.$xIcon.off('click', this._handleIconClick);
         eventEmitter.off(EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
     }
 
@@ -78,13 +79,13 @@ export default class extends UIBase {
 
     _showNewEmailNotification() {
         if (this.$button.hasClass(CLASSES.IS_INACTIVE)) {
-            waitForSeconds(8).then(() => {
+            waitForSeconds(5).then(() => {
                 this.$button.removeClass(CLASSES.IS_INACTIVE);
             })
         }
     }
 
-    _handlePersonCardHover(event) {
+    _handlePersonCardClick(event) {
         let personID;
         if (event.target.matches('.PersonCard.is-parent')) {
             personID = $(event.target).attr('data-id');
