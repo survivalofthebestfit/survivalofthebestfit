@@ -56,8 +56,6 @@ const english = {
             'I can do that!',
         ],
         hiringGoal: 5,
-        retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a better team by then',
-        retryResponses: ['I will this time.'],
         duration: 5
     },
 
@@ -69,7 +67,7 @@ const english = {
             'I\'m a bit overwhelmed.',
         ],
         hiringGoal: 8,
-        retryMessage: 'You ran out of time. The progress is not good enough. Try again.',
+        previousStageFailed: 'You ran out of time. The investors want to see results, you\'ll have to hire even more people next month!',
         retryResponses: ['I will grow aggressively this time.'],
         duration: 45
 
@@ -77,11 +75,12 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your engineers about a shiny solution? I heard AI can solve every problem nowadays',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your engineers about a shiny solution? I heard A.I. can solve every problem nowadays',
         responses: [
             'Sure, we can automate it all!',
             'Hmm, I will ask.',
         ],
+        previousStageFailed: 'This is getting out of hand. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution',
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
 
