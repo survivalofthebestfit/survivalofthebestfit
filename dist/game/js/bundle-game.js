@@ -104631,6 +104631,7 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
+      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT);
       this.stop();
       this.animator.destroy();
 
@@ -104836,11 +104837,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage'); //this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        //this.transition('gameBreakdown');
       }
     },
 
@@ -104899,14 +104900,10 @@ var gameFSM = new machina.Fsm({
         state.set('stage', _constants.STAGES.MANUAL_MEDIUM);
         currentStage = 1;
         state.set('hiring-stage-number', currentStage);
-        var _txt$mediumOfficeStag = txt.mediumOfficeStage,
-            successMessage = _txt$mediumOfficeStag.messageFromVc,
-            failMessage = _txt$mediumOfficeStag.retryMessage;
-        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mediumOfficeStage.subject,
-          content: previousStageSuccess ? successMessage : failMessage,
+          content: txt.mediumOfficeStage.messageFromVc,
           responses: txt.mediumOfficeStage.responses,
           show: true,
           overlay: true,
@@ -104929,7 +104926,7 @@ var gameFSM = new machina.Fsm({
         state.set('hiring-stage-number', currentStage);
         var _txt$largeOfficeStage = txt.largeOfficeStage,
             successMessage = _txt$largeOfficeStage.messageFromVc,
-            failMessage = _txt$largeOfficeStage.retryMessage;
+            failMessage = _txt$largeOfficeStage.previousStageFailed;
         var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
@@ -104950,10 +104947,14 @@ var gameFSM = new machina.Fsm({
         if (office) office["delete"]();
         state.set('stage', _constants.STAGES.TRANSITION);
         currentStage = 3;
+        var _txt$mlTransition = txt.mlTransition,
+            successMessage = _txt$mlTransition.messageFromVc,
+            failMessage = _txt$mlTransition.previousStageFailed;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mlTransition.subject,
-          content: txt.mlTransition.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.mlTransition.responses,
           show: true,
           overlay: true,
