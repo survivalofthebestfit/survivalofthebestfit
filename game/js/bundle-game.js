@@ -104628,15 +104628,6 @@ function () {
       if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
       var callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
       if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
-
-      if (msg.launchCVInspector) {
-        var toInspectName = _dataModule.dataModule.getNameForPersonId(this.animator.getToInspectId());
-
-        msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
-        this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
-      }
-
-      ;
       this.animator.pauseAnimation();
       this.newsFeed.stop();
       this.newsFeed.hide();
@@ -105367,11 +105358,6 @@ function () {
       // BE CAREFUL! IF DATASET IS REGENERATED ON THE PYTHON SIDE, THE INDICES STILL REFER TO THE OLD DB
       // function best called in the beginning of training
       return;
-    }
-  }, {
-    key: "getNameForPersonId",
-    value: function getNameForPersonId(personId) {
-      return _cvCollection.cvCollection.cvData[personId].name;
     }
   }]);
 

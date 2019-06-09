@@ -195,12 +195,12 @@ const english = {
             },
             {
                 launchCVInspector: true,
-                messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
+                messageFromVc: 'I just got a complaint from a past applicant named Elvan Yang asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                inspectQuestion: "So why did you reject the candidate?",
+                inspectQuestion: "So why did you reject Elvan?",
                 inspectResponses: [
                     "I have no idea.",
                     "Maybe because Elvan is blue?"
