@@ -14,21 +14,7 @@ float: right;
 
 h4.next-box:hover {
     color: black;
-  }
-
-
-.back-box {
-position: relative;
-@include buttonBox();
-@include boxColors($shadow-color: 'darkred');
-float: left;
-margin-right: 12%; 
-clear: left;
-  
-}
-
-h4.back-box:hover {
-    color: black;
+    cursor: pointer;
   }
 
 
@@ -47,7 +33,7 @@ h4.back-box:hover {
   margin-left: 7%;
 
   h1 {
-  margin-top: 3%;
+  margin-top: 5%;
   margin-bottom: 3%;
    text-align: center;
    width: auto;

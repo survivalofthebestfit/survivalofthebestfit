@@ -59,9 +59,6 @@ class Office {
         this.personContainer = new PIXI.Container();
         this.personContainer.name = OFFICE_PEOPLE_CONTAINER;
 
-        let acceptedAverageScore;
-        let candidatesAverageScore;
-
         // IMPORTANT: candidates ID refer to this array's index
         this.allPeople = [];
         this.hiredPeople = [];
