@@ -37,13 +37,20 @@
   padding-bottom: padding(md);
   
   &-item {
-      // background-color: pink;
       grid-column: span 1;
   }
   
   &-scroller {
     position: absolute;
     bottom: margin(sm);
+  }
+}
+
+#StatsInspector {
+  grid-template-columns: auto auto;
+  .ViewLayout-item {
+    display: flex;
+    justify-content: center;
   }
 }
 
@@ -81,6 +88,7 @@
 .CVPreview {
   margin-top: margin(md);
   display: flex;
+  flex-flow: row wrap;
   justify-content: center;
 }
 

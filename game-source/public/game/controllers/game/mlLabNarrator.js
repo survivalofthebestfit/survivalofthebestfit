@@ -22,6 +22,10 @@ export default class MlLabNarrator {
         this._addEventListeners();
 
         this.start();
+
+        // ToDo remove
+        this.animator.datasetView.swapToStatistics();
+        this.animator.datasetView.show();
     }
 
     start() {
@@ -79,7 +83,6 @@ export default class MlLabNarrator {
     }
 
     textAckCallback(msg, animator, newsFeed) {
-
         // not starting animation when we need to launch inspector
         // make sure we restart it elsewhere
         if (msg.launchCVInspector) {
@@ -88,21 +91,13 @@ export default class MlLabNarrator {
         }
 
         if (msg.launchMachineInspector) {
-            // TODO - link the second dataset inspector view
-            // this.animator.datasetview.show();
+            animator.datasetView.swapToStatistics();
+            animator.datasetView.show();
             return;
         }
         
         if (msg.isLastMessage) {
-            // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
-            gtag('event', 'test-game-completed', {
-                'event_category': 'default',
-                'event_label': 'how-far-do-ppl-get',
-            });
-
-            
             gameFSM.nextStage();
-
             return;
         } 
 

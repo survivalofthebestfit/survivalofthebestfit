@@ -5,6 +5,7 @@ import EVENTS from '~/public/game/controllers/constants/events';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import PersonCard from '~/public/game/components/interface/ml/person-card/person-card';
 import DatasetResumePreview from '~/public/game/components/interface/ml/dataset-resume-preview/dataset-resume-preview';
+import StatisticsCard from '~/public/game/components/interface/ml/statistics-card/statistics-card';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {waitForSeconds} from '~/public/game/controllers/common/utils.js';
 
@@ -14,6 +15,8 @@ export default class extends UIBase {
         this.options = options;
         this.$el = $('#dataset-overlay');
         this.$resume = $('#dataset-view-resume');
+        this.$cvInspector = $('#CvInspector');
+        this.$statsInspector = $('#StatsInspector');
         this.$xIcon = this.$el.find('.js-x-icon');
         this.$button = this.$el.find('.ReplyButton');
         this.$button.addClass(CLASSES.IS_INACTIVE);
@@ -28,6 +31,13 @@ export default class extends UIBase {
         if (options && options.show) {
             this.show();
         }
+    }
+
+    swapToStatistics() {
+        this.$cvInspector.addClass(CLASSES.IS_INACTIVE);
+        this.$el.find('.Email').addClass(CLASSES.IS_INACTIVE);
+        new StatisticsCard(true);
+        this.$statsInspector.removeClass(CLASSES.IS_INACTIVE);
     }
 
     _buttonHandler() {

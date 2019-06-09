@@ -45,7 +45,7 @@ export default class MlLabAnimator {
         this.resumeUI = new ResumeUI({
             type: 'ml',
             features: cvCollection.cvFeatures,
-            scores: cvCollection.cvData,
+            scores: cvCollection.cvDataEqual,
             candidateId: candidateClicked,
         });
         
@@ -157,7 +157,6 @@ export default class MlLabAnimator {
         } else {
             eventEmitter.emit(EVENTS.REJECTED, this.rejectedCount++);
             const person = this.people.getFirstPerson();
-            console.log("rejected id: " + person.id);
             dataModule.recordMLReject(person.id);
             this.dataServers[0].updateServerCounter(this.rejectedCount);
         };

@@ -4,7 +4,7 @@ import {SILENT, DEBUG_MODE} from '~/public/game/controllers/constants/mlConstant
 
 const badCvTestData = require('~/public/game/assets/text/badCvTestData.json').candidates;
 const goodCvTestData = require('~/public/game/assets/text/goodCvTestData.json').candidates;
-const equalCvTestData = require('~/public/game/assets/text/equalCvTestData.json').candidates;
+const equalCvTestData = require('~/public/game/assets/text/equalCvData.json').candidates;
 
 
 const testClf = (clf, featPref) => {

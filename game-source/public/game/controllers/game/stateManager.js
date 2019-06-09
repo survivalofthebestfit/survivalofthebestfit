@@ -50,6 +50,7 @@ const gameFSM = new machina.Fsm({
                 eventEmitter.on(EVENTS.TITLE_STAGE_COMPLETED, () => {
                     this.handle('nextStage');
                 });
+                gtag('event', 'enter-title-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'smallOfficeStage',
@@ -74,6 +75,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                 });
                 office = new Office();
+                gtag('event', 'enter-small-office', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mediumOfficeStage',
@@ -98,6 +100,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                     displayScore: true,
                 });
+                gtag('event', 'enter-medium-office', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'largeOfficeStage',
@@ -122,6 +125,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                     displayScore: true,
                 });
+                gtag('event', 'enter-large-office', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mlTransitionStage',
@@ -151,6 +155,7 @@ const gameFSM = new machina.Fsm({
                 eventEmitter.on(EVENTS.TRANSITION_INSTRUCTION_ACKED, () => {
                     transitionOverlay = new TransitionOverlay({show: true});
                 });
+                gtag('event', 'enter-transition-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mlTrainingStage',
@@ -164,6 +169,7 @@ const gameFSM = new machina.Fsm({
             _onEnter: function() {
                 if (office) office.delete();
                 trainingStageOverlay = new TrainingStageOverlay();
+                gtag('event', 'enter-training-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mlLabStage',
@@ -178,6 +184,7 @@ const gameFSM = new machina.Fsm({
                 if (office) office.delete();
 
                 mlLab = new MlLabNarrator();
+                gtag('event', 'enter-mllab', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'gameBreakdown',
@@ -188,6 +195,7 @@ const gameFSM = new machina.Fsm({
 
         gameBreakdown: {
             _onEnter: function() {
+                gtag('event', 'enter-game-end', {'event_category': 'progress', 'event_label': 'states'});
                 new EndGameOverlay();
                 if (mlLab) mlLab.destroy();
             },

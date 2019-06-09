@@ -24,7 +24,7 @@ export default class extends UIBase {
     _acceptClicked(e) {
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
         gtag('event', 'accept', {
-            'event_category': 'default',
+            'event_category': 'interaction',
             'event_label': 'accept/reject',
         });
         if (!this.hasBeenClicked) {
@@ -41,7 +41,7 @@ export default class extends UIBase {
     _rejectClicked(e) {
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
         gtag('event', 'reject', {
-            'event_category': 'default',
+            'event_category': 'interaction',
             'event_label': 'accept/reject',
         });
         this.$noButton.addClass(CLASSES.REJECTED);

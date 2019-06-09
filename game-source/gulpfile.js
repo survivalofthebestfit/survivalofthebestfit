@@ -13,7 +13,6 @@ const sourcemaps = require('gulp-sourcemaps');
 const source = require('vinyl-source-stream');
 const buffer = require('vinyl-buffer');
 const browserify = require('browserify');
-const watchify = require('watchify');
 const babel = require('babelify');
 
 // BrowserSync
@@ -80,53 +79,37 @@ function css() {
 
 
 // JS, browserify, babel, etc...
-function compileJs(done, watchFlag) {
+function compileJs(done) {
     let bundler = browserify('public/game/controllers/game/gameEntry.js', {debug: true}).transform(babel);
-    if (watchFlag) {
-        bundler = watchify(bundler);
-    }
-    function rebundle() {
-        bundler.bundle()
-            .on('error', function(err) {
-                console.error(err); 
-                this.emit('end');
-            })
-            .pipe(source('bundle-game.js'))
-            .pipe(buffer())
-            .pipe(sourcemaps.init({loadMaps: true}))
-            .pipe(sourcemaps.write('./'))
-            .pipe(gulp.dest('../dist/game/js'));
-    }
-  
-    if (watchFlag) {
-        bundler.on('update', function() {
-            console.log('-> bundling...');
-            rebundle();
-            // browserSyncReload(() => {
-            //     console.log('Refreshed js')
-            // });
-        });
-        rebundle();
-    } else {
-        rebundle();
-        done();
-    }
+    bundler.bundle()
+        .on('error', function(err) {
+            console.error(err); 
+            this.emit('end');
+        })
+        .pipe(source('bundle-game.js'))
+        .pipe(buffer())
+        .pipe(sourcemaps.init({loadMaps: true}))
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('../dist/game/js'));
+    
+    done();
 }
 
 // Watch files
 function watchFiles() {
     console.log('The watch starts');
-    gulp.watch('./public/game/**/*.scss', css).on('add', function(path, stats) {
-        console.log(`File ${path} was added`);
+    gulp.watch('./public/game/**/*.scss', css).on('change', function(path, stats) {
+        console.log(`File ${path} was changed`);
     });
-    gulp.watch('./views/**/*', gulp.series(pugCompile, browserSyncReload)).on('add', function(path, stats) {
-        console.log(`File ${path} was added`);
+    gulp.watch('./**/*.pug', gulp.series(pugCompile, browserSyncReload)).on('change', function(path, stats) {
+        console.log(`File ${path} was changed`);
     });
-    gulp.watch('./public/game/assets/**/*', browserSyncReload).on('add', function(path, stats) {
-        console.log(`File ${path} was added`);
+    gulp.watch('./public/game/assets/**/*', gulp.series(moveAssets, browserSyncReload)).on('change', function(path, stats) {
+        console.log(`File ${path} was changed`);
     });
-
-    compileJs(undefined, true);
+    gulp.watch('./public/game/**/*.js', gulp.series(compileJs, browserSyncReload)).on('change', function(path, stats) {
+        console.log(`File ${path} was changed`);
+    });
 }
 
 

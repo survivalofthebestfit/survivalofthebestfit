@@ -41,14 +41,13 @@ class DataModule {
         let averageScore = [0,0,0,0]
         let selectedIndexArray = [];
 
-        //this is for an array of all selected indices
+        // this is for an array of all selected indices
         if (options.selectedIndexArray && options.selectedIndexArray.length > 0) {
             selectedIndexArray = options.selectedIndexArray;
-        }
-    
-        //this is for an array of start and end range index
+        } 
+        // this is for an array of start and end range index
         else if (options.indexRange && options.indexRange.length == 2) {
-            for(let i = options.indexRange[0]; i <= options.indexRange[1]; i++){
+            for (let i = options.indexRange[0]; i <= options.indexRange[1]; i++) {
                 selectedIndexArray.push(i);
             }
         }
@@ -70,7 +69,6 @@ class DataModule {
     }
 
     _calculateScore() {
-
         let hiredAverage = this.getAverageScore({selectedIndexArray: this.accepted});
         let candidateAverage = this.getAverageScore({indexRange: [0, this.lastIndex]});
 
@@ -152,6 +150,10 @@ class DataModule {
         return rejected;
     }
 
+    getAcceptedPeople() {
+        return this.accepted;
+    }
+
     uploadUserDecisions() {
         // this.accepted has the indices of accepted candidates
         // _getRejectedPeople() returns indices of rejected people
@@ -163,6 +165,7 @@ class DataModule {
     getNameForPersonId(personId) {
         return cvCollection.cvData[personId].name;
     }
+
 }
 
 export const dataModule = new DataModule();
