@@ -24,6 +24,9 @@
     flex-direction: column;
     align-items: center;
     margin: margin(sm) 0 margin(md) 0;
+    @include mq($until: mobile-landscape) {
+      margin: margin(sm) 0 margin(sm) 0;
+    }
   }
 
 }
@@ -32,7 +35,7 @@
   width: 90%;
   margin: 0 auto;
   display: grid;
-  grid-display-rows: 1fr;
+  grid-template-rows: 1fr;
   grid-template-columns: 1fr 300px 1fr;
   grid-gap: 5px;
   padding-bottom: padding(md);
@@ -87,32 +90,38 @@
 }
 
 .CVPreview {
-  margin-top: margin(md);
+  margin-top: margin(sm);
+  @include mq($until: mobile-landscape) {
+    margin-top: margin(xs);
+  }
   display: flex;
   flex-flow: row wrap;
   justify-content: center;
+
 }
 
 .Email {
-  @include boxColors($bg-color: color(shadow-rose-light), $shadow-color: color(shadow-red-dark));
   @include textBox();
+  @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
 
   position: absolute;
-  width: 18%;
-  // bottom: 12%;
-  right: 8%;
-  padding: 1em;
-  text-align: left;
   top: 0;
-  overflow: hidden;
-  background-color: #000; color: #FFF;
-  transition: all 1s;
+  right: 8%;
+  padding: padding(xxs) padding(xs);
+  text-align: center;
+  transition: all 0.5s ease-in-out;
+
+  @include mq($until: mobile-landscape) {
+    @include buttonBox();
+    right: margin(md);
+    top: margin(sm);
+  }
 
   &_Notificaiton {
     color: white;
+    font-size: 1.25rem;
     text-transform: uppercase;
     letter-spacing: 2px;
-    padding-bottom: 0.4em;
   }
 
   &_Sender {
@@ -125,19 +134,22 @@
   &_Subject {
     font-size: 1.2em;
     color: #555;
-    padding-bottom: 0.5em;
+    padding-bottom: padding(xxs);
   }
 
   &_Content {
     color: #999;
   }
+
+  &:active {
+    transform: translateY(2px);
+  }
 }
 
 .ReplyButton {
-  cursor: pointer;
-  background: color(shadow-rose-light);
-  &:hover {
-    background: color(shadow-red-light);
-      // @include boxColors($txt-color: color(txt-light-grey), $bg-color: color(shadow-rose-light), $shadow-color: 'rose');
+  @include mq($from: desktop) {
+    &:hover {
+      cursor: pointer;
+    }
   }
 }

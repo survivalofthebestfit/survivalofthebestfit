@@ -19,19 +19,14 @@ include ../../ui-overlay/ui-overlay.pug
           div.PersonCard-item.PersonCard-cv.has-parent
           p.PersonCard-item.PersonCard-name.has-parent
       div.Email.ReplyButton
-        p.Email_Notificaiton New Email
-        p.Email_Sender Peter Hoffman
-        p.Email_Subject Re: Some rejected candidate
-        p.Email_Content I just got a complaint from...
+        p.Email_Notificaiton Respond to Email
+        p.Email_Subject Re: Candidate complaint
   div.ViewLayout#StatsInspector.is-inactive
     include ../statistics-card/statistics-card.pug
     div.ViewLayout-item
-        +stats("Your Hiring Decisions Analysis")(id="statistics-card-manual")
+        +stats("Your Hiring Decisions")(id="statistics-card-manual")
     div.ViewLayout-item
-      +stats("The Algorithm's Hiring Analysis")(id="statistics-card-mllab")
+      +stats("Algorithm's Hiring Decisions")(id="statistics-card-mllab")
     div.Email.ReplyButton.SecondReplyButton
-        p.Email_Notificaiton New Email
-        p.Email_Sender Peter Hoffman
-        p.Email_Subject Re: Done with analytics?
-        p.Email_Content Why are we disriminating?
-
+        p.Email_Notificaiton Respond to Email
+        p.Email_Subject Re: Why are we disriminating?

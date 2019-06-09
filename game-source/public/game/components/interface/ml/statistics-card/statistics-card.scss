@@ -2,11 +2,22 @@
     @include textBox();
     @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'grey');
     padding: padding(sm) padding(sm) padding(md) padding(sm);
+    @include mq($until: desktop) {
+      padding: padding(sm);
+    }
 
     min-width: 250px;
     min-height: 300px;
     max-height: 700px;
     max-width: 400px;
+
+    &-title {
+      @include mq($until: desktop) {
+        text-align: center;
+        font-size: 1.4rem;
+        text-decoration: underline;
+      }
+    }
 }
 .stats-category {
 
@@ -15,6 +26,7 @@
       margin-top: margin(sm);
       @include mq($until: mobile-landscape) {
         padding: padding(xxs) 0;
+        margin-top: 12px;
       }
     }
   
