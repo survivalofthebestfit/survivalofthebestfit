@@ -179,6 +179,7 @@ const english = {
         
         narration: [
             {
+                //delay: 3,
                 delay: 1,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
@@ -187,6 +188,7 @@ const english = {
                 ],
             },
             {
+                //delay: 7,
                 delay: 2,
                 messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working',
                 responses: [
@@ -198,6 +200,7 @@ const english = {
                 ],
             },
             {
+                //delay: 10,
                 delay: 3,
                 launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
@@ -216,7 +219,8 @@ const english = {
                 // },
             },
             {
-                delay: 4,
+                // delay: 13,
+                delay: 5,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -232,7 +236,8 @@ const english = {
                 ],
             },
             {
-                delay: 5,
+                // delay: 16,
+                delay: 7,
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
@@ -243,13 +248,18 @@ const english = {
                     parent: 'scanray',
                     text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within gendered stereotypes and historical biases.',
                 },
+                inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
+                inspectResponses: [
+                    'I hired mostly yellow people in the past and the machine just copies it.',
+                    'The machine learnt that yellow people are better because of the past hires.',
+                ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
                     'The justice: Yellow privilege in the tech industry',
                 ],
             },
             {
-                delay: 6,
+                delay: 20,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',
