@@ -98166,9 +98166,7 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../../controllers/constants/events"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
@@ -98181,6 +98179,10 @@ var _statisticsCard = _interopRequireDefault(require("../statistics-card/statist
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
 var _utils = require("../../../../controllers/common/utils.js");
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98224,11 +98226,11 @@ function (_UIBase) {
     _this.$statsInspector = (0, _jquery["default"])('#StatsInspector');
     _this.$xIcon = _this.$el.find('.js-x-icon');
 
-    _this.$xIcon.addClass(_classes["default"].IS_INACTIVE);
+    _this.$xIcon.addClass(_constants.CLASSES.IS_INACTIVE);
 
     _this.$button = _this.$el.find('.ReplyButton');
 
-    _this.$button.addClass(_classes["default"].IS_INACTIVE);
+    _this.$button.addClass(_constants.CLASSES.IS_INACTIVE);
 
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
@@ -98250,22 +98252,23 @@ function (_UIBase) {
   _createClass(_default, [{
     key: "swapToStatistics",
     value: function swapToStatistics() {
-      this.$cvInspector.addClass(_classes["default"].IS_INACTIVE);
-      this.$el.find('.Email').addClass(_classes["default"].IS_INACTIVE);
+      this.$cvInspector.addClass(_constants.CLASSES.IS_INACTIVE);
+      this.$el.find('.Email').addClass(_constants.CLASSES.IS_INACTIVE);
       new _statisticsCard["default"](true);
       new _statisticsCard["default"](false);
       this.$button = this.$el.find('.SecondReplyButton');
       this.$el.find('#TaskDescription').html('Task: How did the talent pool and decisions change while switching to automation?');
-      this.$statsInspector.removeClass(_classes["default"].IS_INACTIVE);
+      this.$statsInspector.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       this._showNewEmailNotification();
     }
   }, {
     key: "_buttonHandler",
     value: function _buttonHandler() {
-      this.$button.addClass(_classes["default"].BUTTON_CLICKED);
+      sound.play(_constants.SOUNDS.BUTTON_CLICK);
+      this.$button.addClass(_constants.CLASSES.BUTTON_CLICKED);
 
-      _gameSetup.eventEmitter.emit(_events["default"].EMAIL_REPLY, {});
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.EMAIL_REPLY, {});
     }
   }, {
     key: "_addEventListeners",
@@ -98273,7 +98276,7 @@ function (_UIBase) {
       var _this2 = this;
 
       // this.$xIcon.on('click', this._handleIconClick);
-      _gameSetup.eventEmitter.on(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
 
       var $resumeGrids = document.querySelectorAll('.DatasetGrid');
       $resumeGrids.forEach(function (grid) {
@@ -98285,7 +98288,7 @@ function (_UIBase) {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
       // this.$xIcon.off('click', this._handleIconClick);
-      _gameSetup.eventEmitter.off(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
     }
   }, {
     key: "_handleIconClick",
@@ -98295,7 +98298,7 @@ function (_UIBase) {
   }, {
     key: "_handleInspectButtonClick",
     value: function _handleInspectButtonClick() {
-      this.$el.hasClass(_classes["default"].IS_INACTIVE) ? this.show() : '';
+      this.$el.hasClass(_constants.CLASSES.IS_INACTIVE) ? this.show() : '';
     }
   }, {
     key: "handleNewResume",
@@ -98317,7 +98320,7 @@ function (_UIBase) {
         console.log(grid.scrollHeight - grid.clientHeight);
 
         if (grid.scrollHeight > grid.clientHeight) {
-          (0, _jquery["default"])('#dataset-scroller').removeClass(_classes["default"].IS_INACTIVE);
+          (0, _jquery["default"])('#dataset-scroller').removeClass(_constants.CLASSES.IS_INACTIVE);
           _this3.scrollIsActive = true;
         }
       });
@@ -98327,15 +98330,18 @@ function (_UIBase) {
     value: function _showNewEmailNotification() {
       var _this4 = this;
 
-      if (this.$button.hasClass(_classes["default"].IS_INACTIVE)) {
-        (0, _utils.waitForSeconds)(5).then(function () {
-          _this4.$button.removeClass(_classes["default"].IS_INACTIVE);
+      if (this.$button.hasClass(_constants.CLASSES.IS_INACTIVE)) {
+        (0, _utils.waitForSeconds)(3).then(function () {
+          sound.play(_constants.SOUNDS.NEW_MESSAGE);
+
+          _this4.$button.removeClass(_constants.CLASSES.IS_INACTIVE);
         });
       }
     }
   }, {
     key: "_handlePersonCardClick",
     value: function _handlePersonCardClick(event) {
+      sound.play(_constants.SOUNDS.BUTTON_CLICK);
       var personID;
 
       if (event.target.matches('.PersonCard.is-parent')) {
@@ -98361,7 +98367,7 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.set('#dataset-overlay', {
         y: 50,
@@ -98386,7 +98392,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this5.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this5.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
     }
   }, {
@@ -98407,7 +98413,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":588,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100815,7 +100821,7 @@ function (_UIBase) {
 
       if (!this.overlay) this.$el.addClass(_index.CLASSES.IS_TRANSPARENT);
 
-      if (this.$dateEl && state.get('stage' !== _index.STAGES.ML_LAB)) {
+      if (this.$dateEl && state.get('stage') !== _index.STAGES.ML_LAB) {
         this.$dateEl.removeClass(_index.CLASSES.IS_INACTIVE);
         this.$dateEl.html((0, _utils.getDateString)());
       }
@@ -104962,8 +104968,7 @@ var gameFSM = new machina.Fsm({
         // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        // this.transition('mlLabStage');
-        this.transition('gameBreakdown');
+        this.transition('mlLabStage'); // this.transition('gameBreakdown');
       }
     },
 
