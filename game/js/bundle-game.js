@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.9' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -98218,16 +98218,19 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#dataset-overlay');
     _this.$resume = (0, _jquery["default"])('#dataset-view-resume');
     _this.$xIcon = _this.$el.find('.js-x-icon');
+
+    _this.$xIcon.addClass(_classes["default"].IS_INACTIVE);
+
     _this.$button = _this.$el.find('.ReplyButton');
 
     _this.$button.addClass(_classes["default"].IS_INACTIVE);
 
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
-    _this.scrollIsActive = false;
-    _this._handleIconClick = _this._handleIconClick.bind(_assertThisInitialized(_this));
+    _this.scrollIsActive = false; // this._handleIconClick = this._handleIconClick.bind(this);
+
     _this._handleInspectButtonClick = _this._handleInspectButtonClick.bind(_assertThisInitialized(_this));
-    _this._handlePersonCardHover = _this._handlePersonCardHover.bind(_assertThisInitialized(_this));
+    _this._handlePersonCardClick = _this._handlePersonCardClick.bind(_assertThisInitialized(_this));
     _this.activePerson = null;
 
     _this._addEventListeners();
@@ -98251,21 +98254,19 @@ function (_UIBase) {
     value: function _addEventListeners() {
       var _this2 = this;
 
-      this.$xIcon.on('click', this._handleIconClick);
-
+      // this.$xIcon.on('click', this._handleIconClick);
       _gameSetup.eventEmitter.on(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
 
       var $resumeGrids = document.querySelectorAll('.DatasetGrid');
       $resumeGrids.forEach(function (grid) {
-        return grid.addEventListener('mouseover', _this2._handlePersonCardHover);
+        return grid.addEventListener('click', _this2._handlePersonCardClick);
       });
       this.$button.click(this._buttonHandler.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      this.$xIcon.off('click', this._handleIconClick);
-
+      // this.$xIcon.off('click', this._handleIconClick);
       _gameSetup.eventEmitter.off(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
     }
   }, {
@@ -98309,14 +98310,14 @@ function (_UIBase) {
       var _this4 = this;
 
       if (this.$button.hasClass(_classes["default"].IS_INACTIVE)) {
-        (0, _utils.waitForSeconds)(8).then(function () {
+        (0, _utils.waitForSeconds)(5).then(function () {
           _this4.$button.removeClass(_classes["default"].IS_INACTIVE);
         });
       }
     }
   }, {
-    key: "_handlePersonCardHover",
-    value: function _handlePersonCardHover(event) {
+    key: "_handlePersonCardClick",
+    value: function _handlePersonCardClick(event) {
       var personID;
 
       if (event.target.matches('.PersonCard.is-parent')) {
@@ -101570,9 +101571,7 @@ function () {
     this.takenDesks = 0;
     this.interiorContainer = new PIXI.Container();
     this.personContainer = new PIXI.Container();
-    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER;
-    var acceptedAverageScore;
-    var candidatesAverageScore; // IMPORTANT: candidates ID refer to this array's index
+    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER; // IMPORTANT: candidates ID refer to this array's index
 
     this.allPeople = [];
     this.hiredPeople = [];
@@ -102343,14 +102342,12 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      this.inspectButton.interactive = true;
-      this.inspectButton.buttonMode = true;
-      this.inspectButton.on('click', this._inspectButtonClickHandler);
+      this.inspectButton.interactive = false;
+      this.inspectButton.buttonMode = false; // this.inspectButton.on('click', this._inspectButtonClickHandler);
     }
   }, {
     key: "removeEventListeners",
-    value: function removeEventListeners() {
-      this.inspectButton.off('click', this._inspectButtonClickHandler);
+    value: function removeEventListeners() {// this.inspectButton.off('click', this._inspectButtonClickHandler);
     }
   }, {
     key: "_inspectButtonClickHandler",
@@ -104146,8 +104143,6 @@ var _people = _interopRequireDefault(require("../../components/pixi/ml-stage/peo
 
 var _dataModule = require("../machine-learning/dataModule.js");
 
-var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -104203,11 +104198,6 @@ function () {
     this._setupTweens();
 
     this.startAnimation();
-    this.task = new _uiTask["default"]({
-      showTimer: false,
-      placeLeft: true,
-      hires: txt.mlLabStage.narration[txt.mlLabStage.narration.length - 1].delay
-    });
     this.acceptedCount = 0;
     this.rejectedCount = 0;
   }
@@ -104406,7 +104396,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":553,"../../components/interface/ui-task/ui-task":554,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":573,"../constants/events.js":576,"../machine-learning/dataModule.js":592,"./gameSetup":587,"./gameSetup.js":587}],589:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":553,"../../components/pixi/manual-stage/door":558,"../../components/pixi/manual-stage/floor":559,"../../components/pixi/ml-stage/conveyor-belt":562,"../../components/pixi/ml-stage/data-server.js":563,"../../components/pixi/ml-stage/machine":564,"../../components/pixi/ml-stage/people.js":565,"../../components/pixi/ml-stage/resume-list":567,"../../components/pixi/ml-stage/scan-ray.js":569,"../common/utils.js":573,"../constants/events.js":576,"../machine-learning/dataModule.js":592,"./gameSetup":587,"./gameSetup.js":587}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104432,6 +104422,8 @@ var _dataModule = require("../machine-learning/dataModule");
 
 var sound = _interopRequireWildcard(require("./sound.js"));
 
+var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -104456,6 +104448,12 @@ function () {
     this.newsTimeOffset = 6;
     this.isActive = false;
     this.scheduleTimelineUpdate = this.scheduleTimelineUpdate.bind(this);
+    this.populateHiringGoals();
+    this.task = new _uiTask["default"]({
+      showTimer: false,
+      placeLeft: true,
+      hires: this.ML_TIMELINE[this.ML_TIMELINE.length - 1].delay
+    });
 
     this._addEventListeners();
 
@@ -104463,6 +104461,26 @@ function () {
   }
 
   _createClass(MlLabNarrator, [{
+    key: "populateHiringGoals",
+    value: function populateHiringGoals() {
+      // You can use this to debug so that ML lab stage progresses faster
+      var debugMode = true;
+      var hiringCount = 0;
+
+      if (debugMode) {
+        for (var i = 0; i < this.ML_TIMELINE.length; i++) {
+          this.ML_TIMELINE[i].delay = ++hiringCount;
+        }
+      } else {
+        var stageGoal = 3;
+
+        for (var _i = 0; _i < this.ML_TIMELINE.length; _i++) {
+          hiringCount += stageGoal;
+          this.ML_TIMELINE[_i].delay = hiringCount;
+        }
+      }
+    }
+  }, {
     key: "start",
     value: function start() {
       this.isActive = true; // DISPLAY THE FIRST NEWSFEED that happens before the first investor message
@@ -104627,7 +104645,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":555,"../constants":578,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./sound.js":590,"./stateManager.js":591}],590:[function(require,module,exports){
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-task/ui-task":554,"../../components/interface/ui-textbox/ui-textbox":555,"../constants":578,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./sound.js":590,"./stateManager.js":591}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104818,11 +104836,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); //this.transition('smallOfficeStage');
+        // this.transition('titleStage');
+        // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        //this.transition('mlLabStage');
-        //this.transition('gameBreakdown');
+        this.transition('mlLabStage'); //this.transition('gameBreakdown');
       }
     },
 
