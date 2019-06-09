@@ -23,14 +23,18 @@ function next2() {
     current.style.display = "none";
 	next.style.display = "block";
 	
-	window.open("https://survivalofthebestfit.com/resources/");
 } 
 
-function next3() {
-	window.open("https://survivalofthebestfit.github.io/survivalofthebestfit/resources/");
-} 
+function select() {
+	var buttons = document.getElementById("buttons");
+	var next = document.getElementById("part2");
 
+	console.log("function entered");
+	
+	buttons.style.display = "none";
+	next.style.display = "block";
 
+}
 
 //clean this into 1 function
 

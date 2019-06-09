@@ -32,7 +32,7 @@ const gameFSM = new machina.Fsm({
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 //this.transition('mlLabStage');
-                // this.transition('gameBreakdown');
+                //this.transition('gameBreakdown');
             },
         },
 

@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.8' };
+var core = module.exports = { version: '2.6.9' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -104822,7 +104822,7 @@ var gameFSM = new machina.Fsm({
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         //this.transition('mlLabStage');
-        // this.transition('gameBreakdown');
+        //this.transition('gameBreakdown');
       }
     },
 
