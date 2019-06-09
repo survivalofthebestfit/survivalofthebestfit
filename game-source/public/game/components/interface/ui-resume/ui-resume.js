@@ -1,14 +1,15 @@
 import {TweenLite} from 'gsap/TweenMax';
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {clamp} from '~/public/game/controllers/common/utils';
+import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class extends UIBase {
     constructor(options) {
         super();
         this._removeEventListeners();
-
+        this._addEventListeners();
         this.$el = $('#js-resume');
         this.$nameEl = this.$el.find('.Resume__title');
         this.$taglineEl = this.$el.find('.Resume__tagline');
@@ -88,9 +89,11 @@ export default class extends UIBase {
     }
 
     _addEventListeners() {
+        eventEmitter.on(EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
 
     _removeEventListeners() {
+        eventEmitter.off(EVENTS.MANUAL_STAGE_DONE, this.hide, this);
     }
 
     show() {

@@ -1,11 +1,12 @@
 import $ from 'jquery';
 import {TweenLite} from 'gsap/TweenMax';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {CLASSES, SOUNDS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import CircleGrid from '~/public/game/components/pixi/training-stage/circle-grid';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {waitForSeconds, setCanvasBackground, clamp} from '~/public/game/controllers/common/utils';
 import * as state from '~/public/game/controllers/common/state';
+import * as sound from '~/public/game/controllers/game/sound.js';
 import {ticker} from '~/public/game/controllers/game/gameSetup.js';
 
 export default class extends UIBase {
@@ -39,11 +40,13 @@ export default class extends UIBase {
                 return text;
             }
         });
+        sound.play(SOUNDS.TRAIN_ALGORITHM);
         waitForSeconds(1).then(() => {
             this.show();
             // this.showEndUI(); // debugging only
             this.updateProgressText();
             this.launchProgressBar();
+            sound.play(SOUNDS.TRAIN_ALGORITHM);
         });
     }
 
@@ -53,6 +56,7 @@ export default class extends UIBase {
         this.updateProgressStage();
         ticker.add(this.progressBarHandler.bind(this));
         ticker.start();
+        sound.play(SOUNDS.TRAINING_UPDATE);
     }
 
     progressBarHandler() {
@@ -70,9 +74,12 @@ export default class extends UIBase {
                 ticker.remove(this.progressBarHandler.bind(this));
                 this.grid.stopFlickering();
                 this.grid.lightDown();
+                sound.stop(SOUNDS.TRAIN_ALGORITHM);
+                sound.play(SOUNDS.STAGE_SUCCEEDED);
                 this.showEndUI();
             } else {
                 this.updateProgressStage();
+                sound.play(SOUNDS.TRAINING_UPDATE);
             }
         });
     }
@@ -94,6 +101,7 @@ export default class extends UIBase {
             this.$stageEndBtn.on('click', () => {
                 this.$stageEndBtn.find('.button').addClass('step-completed');
                 this.exit();
+                sound.play(SOUNDS.BUTTON_CLICK);
             });
         });
     }

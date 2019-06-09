@@ -1,9 +1,10 @@
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS, SOUNDS, STAGES} from '~/public/game/controllers/constants/index.js';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state';
 
 export default class extends UIBase {
     constructor(options) {
@@ -48,27 +49,29 @@ export default class extends UIBase {
             $responseButton.removeClass(CLASSES.IS_INACTIVE);
             $responseButton.find('.button__text').html(response);
         });
+        // play sound in only small office stage
+        if (state.get('stage') === STAGES.MANUAL_SMALL) sound.play(SOUNDS.NEW_MESSAGE);
     }
 
     _mlStageButtonHandler(e) {
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
+        sound.play(SOUNDS.BUTTON_CLICK);
         this.callback();
         this.destroy();
     }
 
     _manualStageButtonHandler(e) {
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
+        sound.play(SOUNDS.BUTTON_CLICK);
         if (this.isRetry) {
             eventEmitter.emit(EVENTS.RETRY_INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });
-        }
-        else if (this.isTransition) {
+        } else if (this.isTransition) {
             eventEmitter.emit(EVENTS.TRANSITION_INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });
-        }
-        else {
+        } else {
             eventEmitter.emit(EVENTS.INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });

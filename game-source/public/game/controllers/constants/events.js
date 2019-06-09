@@ -5,7 +5,7 @@ export default {
     INSTRUCTION_ACKED: 'instruction-acked',
     RETRY_INSTRUCTION_ACKED: 'retry-instruction-acked',
     TRANSITION_INSTRUCTION_ACKED: 'transition-instruction-acked',
-    MANUAL_STAGE_COMPLETE: 'manual-stage-complete',
+    MANUAL_STAGE_DONE: 'manual-stage-done',
     PLAY_DOOR_ANIMATION: 'play-door-animation',
     INSPECT_ALGORITHM: 'inspect-algorithm',
     DATASET_VIEW_INSPECT: 'inspect-dataset',

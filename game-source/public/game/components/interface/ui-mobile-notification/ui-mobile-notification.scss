@@ -6,7 +6,6 @@
   padding: padding(sm);
   @include mq($until: mobile, $and: '(orientation: portrait)') {
       display: flex;
-  
   }
 
   .phone-icon {

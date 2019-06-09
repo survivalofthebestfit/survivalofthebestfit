@@ -23,13 +23,20 @@ function next2() {
     current.style.display = "none";
 	next.style.display = "block";
 	
-	window.open("https://survivalofthebestfit.com/resources/");
 } 
 
-function next3() {
-	window.open("https://survivalofthebestfit.github.io/survivalofthebestfit/resources/");
-} 
+function select() {
+	var buttons = document.getElementById("buttons");
+	var next = document.getElementById("part2");
 
+	console.log("function entered");
+	
+	buttons.style.display = "none";
+	next.style.display = "block";
+
+}
+
+//clean this into 1 function
 
 function open1() {
 
@@ -51,5 +58,24 @@ function open2() {
 	current.style.display = "none";
 	next.style.display = "block";
 	
+} 
+
+
+function back() {
+
+	var text1 = document.getElementById("text1");
+	var text2 = document.getElementById("text2");
+	var text3 = document.getElementById("text3");
+	
+	if (text2.style.display === "block") {
+	text2.style.display = "none";
+	text1.style.display = "block";
+}
+
+if (text3.style.display === "block") {
+	text3.style.display = "none";
+	text2.style.display = "block";
+}
+
 } 
 

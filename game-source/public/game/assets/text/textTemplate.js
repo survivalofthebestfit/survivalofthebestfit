@@ -58,7 +58,7 @@ const english = {
         hiringGoal: 5,
         retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a better team by then',
         retryResponses: ['I will this time.'],
-        duration: 30
+        duration: 5
     },
 
     largeOfficeStage: {
@@ -179,7 +179,6 @@ const english = {
         
         narration: [
             {
-                delay: 3,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
@@ -187,7 +186,6 @@ const english = {
                 ],
             },
             {
-                delay: 7,
                 messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working',
                 responses: [
                     'Great to hear!',
@@ -198,7 +196,6 @@ const english = {
                 ],
             },
             {
-                delay: 10,
                 launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
                 responses: [
@@ -216,7 +213,6 @@ const english = {
                 // },
             },
             {
-                delay: 13,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -232,7 +228,6 @@ const english = {
                 ],
             },
             {
-                delay: 16,
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
@@ -249,7 +244,6 @@ const english = {
                 ],
             },
             {
-                delay: 6,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',

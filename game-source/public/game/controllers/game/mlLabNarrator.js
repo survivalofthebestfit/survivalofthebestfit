@@ -1,6 +1,5 @@
 
-import EVENTS from '~/public/game/controllers/constants/events';
-import CLASSES from '~/public/game/controllers/constants/classes';
+import {EVENTS, CLASSES, SOUNDS} from '~/public/game/controllers/constants';
 import TextboxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import InfoTooltip from '~/public/game/components/interface/ml/info-tooltip/info-tooltip';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
@@ -8,26 +7,57 @@ import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import NewsFeedUI from '~/public/game/components/interface/ml/news-feed/news-feed.js';
 import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import { dataModule } from '~/public/game/controllers/machine-learning/dataModule';
+import {dataModule} from '~/public/game/controllers/machine-learning/dataModule';
+import * as sound from '~/public/game/controllers/game/sound.js';
+import TaskUI from '~/public/game/components/interface/ui-task/ui-task';
 
 export default class MlLabNarrator {
     constructor() {
         this.animator = new MlLabAnimator();
         this.newsFeed = new NewsFeedUI({show: true});
-        
+
         this.ML_TIMELINE = txt.mlLabStage.narration;
         this.newsTimeOffset = 6;
         this.isActive = false;
         this.scheduleTimelineUpdate = this.scheduleTimelineUpdate.bind(this);
-        this._addEventListeners();
+        this.populateHiringGoals();
 
+        this.task = new TaskUI({
+            showTimer: false, 
+            placeLeft: true,
+            hires: this.ML_TIMELINE[this.ML_TIMELINE.length-1].delay
+        });
+
+        this._addEventListeners();
         this.start();
+    }
+
+    populateHiringGoals() {
+
+        // You can use this to debug so that ML lab stage progresses faster
+        let debugMode = true;
+        
+        let hiringCount = 0;
+
+        if (debugMode) {
+            for (let i = 0; i < this.ML_TIMELINE.length; i++) {
+                this.ML_TIMELINE[i].delay = ++hiringCount;
+            }
+        }
+        else {
+            let stageGoal = 3;
+            for (let i = 0; i < this.ML_TIMELINE.length; i++) {
+                hiringCount += stageGoal;
+                this.ML_TIMELINE[i].delay = hiringCount;
+            }
+        }
     }
 
     start() {
         this.isActive = true;
         // DISPLAY THE FIRST NEWSFEED that happens before the first investor message
         this.newsFeed.updateNewsFeed({news: this.ML_TIMELINE[0].news});
+        sound.schedule(SOUNDS.ML_LAB_AMBIENT, 1);
         if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
 
@@ -63,6 +93,8 @@ export default class MlLabNarrator {
         this.animator.pauseAnimation();
         this.newsFeed.stop();
         this.newsFeed.hide();
+        sound.fadeOut(SOUNDS.ML_LAB_AMBIENT, false);
+        sound.play(SOUNDS.NEW_MESSAGE);
 
         new TextboxUI({
             show: true,
@@ -87,11 +119,14 @@ export default class MlLabNarrator {
             return;
         }
 
+
         if (msg.launchMachineInspector) {
             // TODO - link the second dataset inspector view
             // this.animator.datasetview.show();
             return;
         }
+        // if we are not inspecting anything, continue playing the background sound
+        sound.play(SOUNDS.ML_LAB_AMBIENT);
         
         if (msg.isLastMessage) {
             // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names

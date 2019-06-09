@@ -17,6 +17,8 @@ import TaskUI from '../../interface/ui-task/ui-task';
 import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state';
+
 
 const candidatePoolSize = {
     smallOfficeStage: 7,
@@ -56,9 +58,6 @@ class Office {
         this.interiorContainer = new PIXI.Container();
         this.personContainer = new PIXI.Container();
         this.personContainer.name = OFFICE_PEOPLE_CONTAINER;
-
-        let acceptedAverageScore;
-        let candidatesAverageScore;
 
         // IMPORTANT: candidates ID refer to this array's index
         this.allPeople = [];
@@ -116,7 +115,7 @@ class Office {
         }
 
         this.draw(stageNum);
-        // sound.play(SOUNDS.MANUAL_AMBIENT);
+        sound.schedule(SOUNDS.MANUAL_AMBIENT, 1);
     }
 
     draw() {
@@ -171,29 +170,7 @@ class Office {
             this.resumeUI.showCV(cvCollection.cvData[candidateClicked]);
         });
 
-        this.stageResetHandler = () => {
-            waitForSeconds(0.5).then(() => {
-                sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                new TextBoxUI({
-                    isRetry: true,
-                    stageNumber: this.currentStage,
-                    subject: this.stageText.subject,
-                    content: this.stageText.retryMessage,
-                    responses: this.stageText.retryResponses,
-                    show: true,
-                    overlay: true,
-                });
-    
-                if (this.task) {
-                    this.task.reset();
-                }
-            });
-        };
-
-        eventEmitter.on(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
         this.acceptedHandler = () => {
-            // console.log('record accepted!');
             sound.play(SOUNDS.PERSON_ACCEPTED);
             dataModule.recordAccept(candidateInSpot);
             this.takenDesks += 1;
@@ -211,16 +188,15 @@ class Office {
                 this.personContainer.removeChild(hiredPerson);
                 this.doors[0].playAnimation({direction: 'reverse'});
             });
-
+            // STAGE SUCCESS
             if (this.takenDesks == this.stageText.hiringGoal) {
-                // console.log('stage complete!');
-                
+                state.set('hiring-in-progress', false);
+                state.set('hiring-stage-success', true);
+                sound.stop(SOUNDS.TIME_RUNNING_OUT);
                 waitForSeconds(1).then(() => {
-                    // console.log('next stage!');
                     sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                    eventEmitter.emit(EVENTS.MANUAL_STAGE_COMPLETE, {
-                        stageNumber: this.currentStage,
-                    });
+                    sound.play(SOUNDS.STAGE_SUCCEEDED);
+                    eventEmitter.emit(EVENTS.MANUAL_STAGE_DONE, {});
                     this.task.reset();
                     gameFSM.nextStage();
                 });
@@ -320,14 +296,13 @@ class Office {
         eventEmitter.off(EVENTS.ACCEPTED, this.acceptedHandler);
         eventEmitter.off(EVENTS.REJECTED, this.rejectedHandler);
         eventEmitter.off(EVENTS.RETURN_CANDIDATE, () => {});
-        eventEmitter.off(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
         eventEmitter.off(EVENTS.DISPLAY_THIS_CV, () => {});
         eventEmitter.off(EVENTS.RETRY_INSTRUCTION_ACKED, () => {});
         eventEmitter.off(EVENTS.INSTRUCTION_ACKED, () => {});
     }
 
     delete() {
-        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task, ...this.doors];
+        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.yesno, this.task, ...this.doors];
         officeStageContainer.removeChild(this.interiorContainer);
         officeStageContainer.removeChild(this.personContainer);
         this._removeEventListeners();

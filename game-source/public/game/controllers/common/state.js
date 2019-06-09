@@ -1,5 +1,9 @@
 const store = {
-    'big-tech-company': 'BIG COMPANY',
+    'big-tech-company': String('BIG COMPANY'),
+    'hiring-stage-number': Number(0),
+    'hiring-in-progress': Boolean(false),
+    'hiring-stage-success': Boolean(false),
+    'stage': String('pregame'),
 };
 
 

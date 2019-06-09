@@ -6,6 +6,7 @@ import ANIM from './pixi-animations.js';
 import COLORS from './pixi-colors.js';
 import CONTAINERS from './pixi-containers.js';
 import SCALES from './pixi-scales.js';
+import STAGES from './game-stages.js';
 import {SOUNDS, SOUND_MANIFEST} from './sounds.js';
 import {DEBUG_MODE, SILENT} from './mlConstants.js';
 
@@ -22,4 +23,5 @@ export {
     SILENT, 
     SOUNDS,
     SOUND_MANIFEST,
+    STAGES,
 };

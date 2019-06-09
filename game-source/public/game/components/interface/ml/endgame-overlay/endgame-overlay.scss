@@ -14,56 +14,40 @@
     float: left;
     margin-bottom: 3%;
 
-    p {
+    p, a {
     font-size: 1.0rem;
     }
   }
 
-
-
-  &__buttonContainer {
-    display: flex;
-  }
-
-  &__button {
-    display: flex;
-    margin: auto;
-    //font-size: 2em;
-    text-transform: uppercase;   
-
-    width: 5rem; 
-    height: 1rem; 
-    float: left;
-    margin-bottom: 5%;
-
-    p {
-    font-size: 1.0rem;
-    spacing: 0;
-    }
-  }
-
-  &__text {
-    text-align: center;
 
   p {
-    font-size: 1.6em;
+    font-size: 1.1em;
+    margin-bottom: 1%;
+    margin-top: 1%;
     }
-  }
-}
+
 
 h3 {
    font-size: 1.4rem;
 }
 
-#part2 {
-  clear: left;
+.conversation-container {
+  height: 100%;
+  overflow: auto;
 }
 
-
-#part3, #part4{
+#part2, #part3, #part4{
   display: none;
   clear: left;
 
 }
 
- 
+img {
+  width: 60%; 
+  margin-left: 0%; 
+  margin-right: auto; 
+  clear: right; 
+  margin-top: 3%;
+}
+
+}

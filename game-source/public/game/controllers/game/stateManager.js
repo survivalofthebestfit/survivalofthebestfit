@@ -6,8 +6,9 @@ import TitlePageUI from '~/public/game/components/interface/ui-title/ui-title';
 import TextBoxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {EVENTS, STAGES} from '~/public/game/controllers/constants';
 import EndGameOverlay from '~/public/game/components/interface/ml/endgame-overlay/endgame-overlay';
+import * as state from '~/public/game/controllers/common/state';
 
 let office;
 let currentStage;
@@ -31,7 +32,8 @@ const gameFSM = new machina.Fsm({
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
                 this.transition('mlLabStage');
-                // this.transition('gameBreakdown');
+                //this.transition('gameBreakdown');
+
             },
         },
 
@@ -40,6 +42,7 @@ const gameFSM = new machina.Fsm({
         */// /////////////////
         titleStage: {
             _onEnter: function() {
+                state.set('stage', STAGES.TITLE);
                 titlePageUI = new TitlePageUI({
                     headerText: txt.titleStage.header,
                     content: txt.titleStage.instruction,
@@ -64,6 +67,7 @@ const gameFSM = new machina.Fsm({
         */// /////////////////
         smallOfficeStage: {
             _onEnter: function() {
+                state.set('stage', STAGES.MANUAL_SMALL);
                 currentStage = 0;
                 new TextBoxUI({
                     subject: txt.smallOfficeStage.subject,
@@ -87,17 +91,21 @@ const gameFSM = new machina.Fsm({
         */// /////////////////
         mediumOfficeStage: {
             _onEnter: function() {
+                state.set('stage', STAGES.MANUAL_MEDIUM);
                 currentStage = 1;
-
+                state.set('hiring-stage-number', currentStage);
+                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.mediumOfficeStage;
+                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.mediumOfficeStage.subject,
-                    content: txt.mediumOfficeStage.messageFromVc,
+                    content: previousStageSuccess ? successMessage : failMessage,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
                     overlay: true,
                     displayScore: true,
                 });
+                state.set('hiring-stage-success', false);
             },
 
             nextStage: 'largeOfficeStage',
@@ -111,17 +119,21 @@ const gameFSM = new machina.Fsm({
         */// /////////////////
         largeOfficeStage: {
             _onEnter: function() {
+                state.set('stage', STAGES.MANUAL_LARGE);
                 currentStage = 2;
-
+                state.set('hiring-stage-number', currentStage);
+                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.largeOfficeStage;
+                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.largeOfficeStage.subject,
-                    content: txt.largeOfficeStage.messageFromVc,
+                    content: previousStageSuccess ? successMessage : failMessage,
                     responses: txt.largeOfficeStage.responses,
                     show: true,
                     overlay: true,
                     displayScore: true,
                 });
+                state.set('hiring-stage-success', false);
             },
 
             nextStage: 'mlTransitionStage',
@@ -134,7 +146,7 @@ const gameFSM = new machina.Fsm({
         mlTransitionStage: {
             _onEnter: function() {
                 if (office) office.delete();
-
+                state.set('stage', STAGES.TRANSITION);
                 currentStage = 3;
 
                 new TextBoxUI({
@@ -162,6 +174,7 @@ const gameFSM = new machina.Fsm({
 
         mlTrainingStage: {
             _onEnter: function() {
+                state.set('stage', STAGES.TRAINING);
                 if (office) office.delete();
                 trainingStageOverlay = new TrainingStageOverlay();
             },
@@ -176,7 +189,7 @@ const gameFSM = new machina.Fsm({
         mlLabStage: {
             _onEnter: function() {
                 if (office) office.delete();
-
+                state.set('stage', STAGES.ML_LAB);
                 mlLab = new MlLabNarrator();
             },
 
@@ -188,6 +201,7 @@ const gameFSM = new machina.Fsm({
 
         gameBreakdown: {
             _onEnter: function() {
+                state.set('stage', STAGES.GAME_END);
                 new EndGameOverlay();
                 if (mlLab) mlLab.destroy();
             },
