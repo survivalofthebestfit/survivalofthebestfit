@@ -56,7 +56,7 @@ const english = {
             'I can do that!',
         ],
         hiringGoal: 5,
-        duration: 5
+        duration: 45
     },
 
     largeOfficeStage: {
