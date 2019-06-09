@@ -82,12 +82,6 @@ export default class MlLabNarrator {
         if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
         let callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
-
-        if (msg.launchCVInspector) {
-            let toInspectName = dataModule.getNameForPersonId(this.animator.getToInspectId());
-            msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
-            this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
-        };
         
         this.animator.pauseAnimation();
         this.newsFeed.stop();

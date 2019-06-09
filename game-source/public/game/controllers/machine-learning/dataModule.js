@@ -165,11 +165,6 @@ class DataModule {
         // function best called in the beginning of training
         return;
     }
-
-    getNameForPersonId(personId) {
-        return cvCollection.cvData[personId].name;
-    }
-
 }
 
 export const dataModule = new DataModule();
