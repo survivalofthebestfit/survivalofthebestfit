@@ -56,32 +56,30 @@ const english = {
             'I can do that!',
         ],
         hiringGoal: 5,
-        retryMessage: 'You ran out of time. There\'s a board meeting next month. Have a better team by then',
-        retryResponses: ['I will this time.'],
-        duration: 30
+        duration: 45
     },
 
     largeOfficeStage: {
         subject: 'Next investment round...',
-        messageFromVc: 'Good effort, but you need to grow faster to secure their funding. Can you pull this off?',
+        messageFromVc: 'Good effort, but you need to hire ever faster in order to get more funding. Can you pull this off?',
         responses: [
             'Of course!',
             'I\'m a bit overwhelmed.',
         ],
         hiringGoal: 8,
-        retryMessage: 'You ran out of time. The progress is not good enough. Try again.',
-        retryResponses: ['I will grow aggressively this time.'],
+        previousStageFailed: 'You ran out of time. The investors want to see results, you\'ll have to hire even more people next month!',
         duration: 45
 
     },
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your engineers about a shiny solution? I heard AI can solve every problem nowadays',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays',
         responses: [
             'Sure, we can automate it all!',
             'Hmm, I will ask.',
         ],
+        previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution.',
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
 
@@ -118,7 +116,7 @@ const english = {
         },
         {
             dialogue_step: 3,
-            text: 'It’s impossible for the program to know good or bad candidates without human input - we first need to give it <u>a lot of data</u> to read and learn from.',
+            text: 'It’s impossible for the program to know good or bad candidates without human input - we first need to give it <u>a lot of data</u> to learn from.',
             answer_choice: [
                 {
                     text: 'Where do we get the data?',
@@ -132,13 +130,13 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all candidates you’ve evaluated so far? It should be on your desktop as <u><i>cv_all.zip</i></u>',
+            text: 'I need your help here: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
             file_drag: true,
             answer_choice: [],
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
@@ -179,8 +177,6 @@ const english = {
         
         narration: [
             {
-                //delay: 3,
-                delay: 1,
                 news: [
                     'Best way to cut costs: use machine learning in everything',
                     'Ambition said to be the most important trait in employees',
@@ -188,8 +184,6 @@ const english = {
                 ],
             },
             {
-                //delay: 7,
-                delay: 2,
                 messageFromVc: 'You’ve been able to hire at 10x the past rate AND cut costs! Great job, the algorithm seems to be working',
                 responses: [
                     'Great to hear!',
@@ -200,8 +194,6 @@ const english = {
                 ],
             },
             {
-                //delay: 10,
-                delay: 3,
                 launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
                 responses: [
@@ -219,8 +211,6 @@ const english = {
                 // },
             },
             {
-                // delay: 13,
-                delay: 5,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Yes, machine can’t be biased.',
@@ -236,8 +226,6 @@ const english = {
                 ],
             },
             {
-                // delay: 16,
-                delay: 7,
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
                 responses: [
@@ -259,7 +247,6 @@ const english = {
                 ],
             },
             {
-                delay: 20,
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
                     'Start learning about AI and bias',

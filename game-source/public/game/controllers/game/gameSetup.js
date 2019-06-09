@@ -54,8 +54,8 @@ window.addEventListener('orientationchange', resize);
 function resize() {
     console.log('resize the screen!');
     pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
+    pixiApp.renderer.render(pixiApp.stage);
     eventEmitter.emit(EVENTS.RESIZE, {});
-    // TODO redraw all the elements!
 }
 
 export {pixiApp, beltContainer, officeStageContainer, mlTrainingStageContainer, mlLabStageContainer, timerContainer, eventEmitter, startTweenManager, stopTweenManager, ticker};

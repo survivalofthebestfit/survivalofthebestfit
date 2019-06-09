@@ -99,10 +99,14 @@
 
   position: absolute;
   width: 18%;
-  bottom: 12%;
+  // bottom: 12%;
   right: 8%;
   padding: 1em;
   text-align: left;
+  top: 0;
+  overflow: hidden;
+  background-color: #000; color: #FFF;
+  transition: all 1s;
 
   &_Notificaiton {
     color: white;

@@ -1,12 +1,13 @@
 import $ from 'jquery';
 import {TweenLite} from 'gsap/TweenMax';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
+import * as state from '~/public/game/controllers/common/state';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {spotlight} from '~/public/game/components/pixi/manual-stage/office';
 import {eventEmitter, pixiApp, officeStageContainer} from '~/public/game/controllers/game/gameSetup.js';
 import {isMobile} from '~/public/game/controllers/common/utils.js';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -39,11 +40,16 @@ export default class extends UIBase {
     }
 
     _rejectClicked(e) {
+        sound.play(SOUNDS.BUTTON_CLICK);
         // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
         gtag('event', 'reject', {
             'event_category': 'interaction',
             'event_label': 'accept/reject',
         });
+        if (!this.hasBeenClicked) {
+            eventEmitter.emit(EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
+            this.hasBeenClicked = true;
+        };
         this.$noButton.addClass(CLASSES.REJECTED);
         if (candidateInSpot != null) {
             eventEmitter.emit(EVENTS.REJECTED, {});
@@ -54,22 +60,22 @@ export default class extends UIBase {
     _addEventListeners() {
         this.$yesButton.click(this._acceptClicked.bind(this));
         this.$noButton.click(this._rejectClicked.bind(this));
-
-        eventEmitter.on(EVENTS.MANUAL_STAGE_COMPLETE, (data) => {
-            if (data.stageNumber == 2) this.destroy();
-        });
-
-        eventEmitter.on(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+        eventEmitter.on(EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
+        eventEmitter.on(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
     };
 
     _removeEventListeners() {
         this.$yesButton.off();
         this.$noButton.off();
+        eventEmitter.off(EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
+        eventEmitter.off(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
+    }
 
-        eventEmitter.off(EVENTS.ACCEPTED, () => {});
-        eventEmitter.off(EVENTS.REJECTED, () => {});
-        eventEmitter.off(EVENTS.MANUAL_STAGE_COMPLETE, () => {});
-        eventEmitter.off(EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+    _stageEndHandler() {
+        if (state.get('hiring-stage-success') && state.get('hiring-stage-number') >= 2) {
+            console.log('we are done with manual hiring, destroy yes and no buttons');
+            this.destroy();
+        }
     }
 
     _spotlightStatusHandler({spotlightOccupied, spotlightFill}) {
@@ -106,5 +112,6 @@ export default class extends UIBase {
         super.dispose();
         this.hide();
         this._removeEventListeners();
+        this.$el.remove();
     }
 }

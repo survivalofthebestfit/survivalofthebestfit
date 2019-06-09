@@ -1,28 +1,22 @@
 include ../../ui-overlay/ui-overlay.pug
+include ../../ui-desktop/ui-desktop.pug
 include ../file/file.pug
 
 +overlay()(id="TransitionOverlay")
-  div(class="desktop__header")
-    div(class="header__name") HR Laptop #1
-    div(class="header__date") Sat 12:15, May 5 2019
-  div(class="screensaver")
+  +desktop()
   div(class="conversationBox")
     div(id="transition-conversation-log" class="conversationBox-inner")
       div(class="conversationBox__head")
-        p From: software-engineer@company.com
+        p From: software-engineer@bestfit.com
         p Subject: Hiring Algorithm
       each replica,index in conversation
         include ../replica/replica.pug
         +replica(index, replica, conversation.length)
     div(class="conversationBox-fadebox")
   div(class="file-grid")
-    +file('cv.xs')
+    +file('calendar.doc')
     +file('cv_all.zip')(id="js-cv-all-file" class="is-clickable")
-    +file('cv.xs')(class="offset")
-    +file('cv.xs')
-    +file('cv.xs')
-    +file('cv.xs')
-    +file('cv.xs')
+    +file('best-fit.pdf')(class="offset")
 
 
     

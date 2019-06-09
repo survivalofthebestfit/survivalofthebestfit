@@ -48,26 +48,26 @@
 
 }
 
-.desktop {
-    &__header {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        padding: 5px 20px;
-        border-bottom: solid 3px #b7b7b7;
-        color: #8B8888;
-        background-color: #F2F2F2;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 1.2rem;
+// .desktop {
+//     &__header {
+//         position: absolute;
+//         top: 0;
+//         left: 0;
+//         width: 100%;
+//         padding: 5px 20px;
+//         border-bottom: solid 3px #b7b7b7;
+//         color: color(txt-dark-grey);
+//         background-color: #F2F2F2;
+//         display: flex;
+//         justify-content: space-between;
+//         align-items: center;
+//         font-size: 1.2rem;
 
-        @include mq($until: mobile-landscape) {
-          padding: 5px 10px;
-        }
-    }
-}
+//         @include mq($until: mobile-landscape) {
+//           padding: 5px 10px;
+//         }
+//     }
+// }
 
 .screensaver {
   position: absolute;
@@ -99,6 +99,9 @@
 
 .datafile {
   margin: margin(sm) margin(sm);
+  @include mq($until: mobile-landscape) {
+    margin: margin(sm) margin(sm) margin(sm) margin(xs);
+  }
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -106,6 +109,7 @@
   &-svg {
     height: 50px;
     width:50px;
+    background: url(../assets/img/file-icon-alt.svg) center / contain no-repeat;
   }
 
   &.offset {
@@ -114,5 +118,27 @@
 
   &-shape {
     fill: color(rose-light);
+  }
+
+  &-pulse {
+    animation: pulse-file 1.2s infinite;
+  }
+}
+
+@keyframes pulse-file {
+  0% {
+    transform: scale(1);
+  }
+  49% {
+    transform: scale(1);
+  }
+  50%{
+    transform: scale(1.1);
+  }
+  70%{
+    transform: scale(1.1);
+  }
+  72%{
+    transform: scale(1);
   }
 }

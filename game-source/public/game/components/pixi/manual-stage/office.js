@@ -17,26 +17,36 @@ import TaskUI from '../../interface/ui-task/ui-task';
 import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state';
 
-const candidatePoolSize = {
-    smallOfficeStage: 7,
-    mediumOfficeStage: 10,
-    largeOfficeStage: isMobile() ? 10 : 15,
+
+function computeOfficeParams(type) {
+    switch (type) {
+    case 'candidate-pool':
+        return {
+            smallOfficeStage: 7,
+            mediumOfficeStage: 10,
+            largeOfficeStage: isMobile() ? 10 : 15,
+        };
+    case 'office-coordinates':
+        return {
+            entryDoorX: isMobile() ? 0.05 : 0.1,
+            exitDoorX: isMobile() ? 0.55 : 0.6,
+            personStartX: 0.2,
+            peoplePaddingX: 0.1,
+            personStartY: computePersonY(),
+            xOffset: 0.06,
+        };
+    case 'spotlight':
+        return computeSpotlight();
+    default:
+        throw new Error(`we cannot compute parameters for type ${type}`);
+    }
 };
 
-const officeCoordinates = {
-    entryDoorX: isMobile() ? 0.05 : 0.1,
-    exitDoorX: isMobile() ? 0.55 : 0.6,
-    personStartX: 0.2,
-    peoplePaddingX: 0.1,
-    // personStartY: 0.87, // should be dependent on the floot size
-    personStartY: computePersonY(),
-    xOffset: 0.06,
-};
-
-function computeSpotlight() {
+function computeSpotlight({entryDoor, exitDoor}) {
     return {
-        x: uv2px(space.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+        x: uv2px(space.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
         y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h'),
     };
 }
@@ -45,10 +55,11 @@ function computePersonY() {
     return 1 - px2uv(isMobile() ? 15 : 25, 'h');
 }
 
-const spotlight = computeSpotlight();
+let spotlight = {};
 
 class Office {
     constructor() {
+        console.log('construct office!');
         this.uniqueCandidateIndex = 0;
         this.currentStage = 0;
         this.scale = 1;
@@ -56,9 +67,12 @@ class Office {
         this.interiorContainer = new PIXI.Container();
         this.personContainer = new PIXI.Container();
         this.personContainer.name = OFFICE_PEOPLE_CONTAINER;
-
-        let acceptedAverageScore;
-        let candidatesAverageScore;
+        this.candidatePoolSize = computeOfficeParams('candidate-pool');
+        this.officeCoordinates = computeOfficeParams('office-coordinates');
+        spotlight = computeSpotlight({
+            entryDoor: this.officeCoordinates.entryDoorX,
+            exitDoor: this.officeCoordinates.exitDoorX,
+        });
 
         // IMPORTANT: candidates ID refer to this array's index
         this.allPeople = [];
@@ -88,13 +102,13 @@ class Office {
                 type: 'doorAccepted',
                 floor: 'first_floor',
                 floorParent: this.floors.first_floor,
-                xAnchorUV: officeCoordinates.entryDoorX,
+                xAnchorUV: this.officeCoordinates.entryDoorX,
             }),
             new Door({
                 type: 'doorRejected',
                 floor: 'first_floor',
                 floorParent: this.floors.first_floor,
-                xAnchorUV: officeCoordinates.exitDoorX,
+                xAnchorUV: this.officeCoordinates.exitDoorX,
             }),
         ];
         this.listenerSetup();
@@ -116,7 +130,7 @@ class Office {
         }
 
         this.draw(stageNum);
-        // sound.play(SOUNDS.MANUAL_AMBIENT);
+        sound.schedule(SOUNDS.MANUAL_AMBIENT, 1);
     }
 
     draw() {
@@ -133,7 +147,7 @@ class Office {
 
         if (this.currentStage == 0) {
             // SMALL STAGE - INITIAL SET UP
-            candidatesToAdd = candidatePoolSize.smallOfficeStage;
+            candidatesToAdd = this.candidatePoolSize.smallOfficeStage;
 
             for (const floor in this.floors) {
                 if (Object.prototype.hasOwnProperty.call(this.floors, floor)) {
@@ -148,8 +162,8 @@ class Office {
             this.peopleTalkManager.startTimeline();
         } else {
             showTimer = true;
-            candidatesToAdd = this.currentStage === 1 ? candidatePoolSize.mediumOfficeStage : candidatePoolSize.largeOfficeStage;
-
+            candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
+            this.yesno.hide();
             officeStageContainer.removeChild(this.personContainer);
             this.personContainer = new PIXI.Container();
             this.personContainer.name = OFFICE_PEOPLE_CONTAINER;
@@ -171,29 +185,7 @@ class Office {
             this.resumeUI.showCV(cvCollection.cvData[candidateClicked]);
         });
 
-        this.stageResetHandler = () => {
-            waitForSeconds(0.5).then(() => {
-                sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                new TextBoxUI({
-                    isRetry: true,
-                    stageNumber: this.currentStage,
-                    subject: this.stageText.subject,
-                    content: this.stageText.retryMessage,
-                    responses: this.stageText.retryResponses,
-                    show: true,
-                    overlay: true,
-                });
-    
-                if (this.task) {
-                    this.task.reset();
-                }
-            });
-        };
-
-        eventEmitter.on(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
         this.acceptedHandler = () => {
-            // console.log('record accepted!');
             sound.play(SOUNDS.PERSON_ACCEPTED);
             dataModule.recordAccept(candidateInSpot);
             this.takenDesks += 1;
@@ -202,7 +194,7 @@ class Office {
             this.toReplaceX = hiredPerson.uvX;
             this.placeCandidate(this.toReplaceX);
 
-            moveToDoor(hiredPerson, uv2px(officeCoordinates.entryDoorX + 0.04, 'w'));
+            moveToDoor(hiredPerson, uv2px(this.officeCoordinates.entryDoorX + 0.04, 'w'));
             candidateInSpot = null;
             this.doors[0].playAnimation({direction: 'forward'});
 
@@ -211,16 +203,15 @@ class Office {
                 this.personContainer.removeChild(hiredPerson);
                 this.doors[0].playAnimation({direction: 'reverse'});
             });
-
+            // STAGE SUCCESS
             if (this.takenDesks == this.stageText.hiringGoal) {
-                // console.log('stage complete!');
-                
+                state.set('hiring-in-progress', false);
+                state.set('hiring-stage-success', true);
+                sound.stop(SOUNDS.TIME_RUNNING_OUT);
                 waitForSeconds(1).then(() => {
-                    // console.log('next stage!');
                     sound.fadeOut(SOUNDS.MANUAL_AMBIENT);
-                    eventEmitter.emit(EVENTS.MANUAL_STAGE_COMPLETE, {
-                        stageNumber: this.currentStage,
-                    });
+                    sound.play(SOUNDS.STAGE_SUCCEEDED);
+                    eventEmitter.emit(EVENTS.MANUAL_STAGE_DONE, {});
                     this.task.reset();
                     gameFSM.nextStage();
                 });
@@ -233,7 +224,7 @@ class Office {
             this.placeCandidate(this.toReplaceX);
 
             rejectedPerson.scale.x *= -1;
-            moveToDoor(rejectedPerson, uv2px(officeCoordinates.exitDoorX + 0.04, 'w'));
+            moveToDoor(rejectedPerson, uv2px(this.officeCoordinates.exitDoorX + 0.04, 'w'));
 
             candidateInSpot = null;
             this.doors[1].playAnimation({direction: 'forward'});
@@ -248,7 +239,7 @@ class Office {
 
         eventEmitter.on(EVENTS.REJECTED, this.rejectedHandler);
 
-        eventEmitter.on(EVENTS.RESIZE, this.resizeHandler.bind(this));
+        eventEmitter.on(EVENTS.RESIZE, this.resizeHandler, this);
 
         eventEmitter.on(EVENTS.RETURN_CANDIDATE, () => {
             moveToFromSpotlight(this.allPeople[candidateInSpot], this.allPeople[candidateInSpot].originalX, this.allPeople[candidateInSpot].originalY);
@@ -266,7 +257,7 @@ class Office {
 
     placeCandidate(thisX) {
         const color = cvCollection.cvData[this.uniqueCandidateIndex].color;
-        const person = createPerson(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
+        const person = createPerson(thisX, this.officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
         this.personContainer.addChild(person);
         this.allPeople.push(person);
         this.uniqueCandidateIndex++;
@@ -283,9 +274,10 @@ class Office {
     
     resizeHandler() {
         // change spotlight position
-        const {x: spotNewX, y: spotNewY} = computeSpotlight();
-        spotlight.x = spotNewX;
-        spotlight.y = spotNewY;
+        spotlight = computeSpotlight({
+            entryDoor: this.officeCoordinates.entryDoorX,
+            exitDoor: this.officeCoordinates.exitDoorX,
+        });
         // reposition candidates
         const candidates = this.getCandidatePoolSize(this.currentStage);
         const {xClampedOffset, startX} = this.centerPeopleLine(candidates);
@@ -301,11 +293,11 @@ class Office {
 
     getCandidatePoolSize(currentStage) {
         const stages = ['smallOfficeStage', 'mediumOfficeStage', 'largeOfficeStage'];
-        return candidatePoolSize[stages[currentStage]];
+        return this.candidatePoolSize[stages[currentStage]];
     }
 
     centerPeopleLine(count) {
-        const {entryDoorX, exitDoorX, xOffset, peoplePaddingX} = officeCoordinates;
+        const {entryDoorX, exitDoorX, xOffset, peoplePaddingX} = this.officeCoordinates;
         const peopleCenterX = space.getRelativePoint(entryDoorX, exitDoorX, 1/2);
         const startX = Math.max(0.05, peopleCenterX - xOffset*(count-1)/2); // startX, starting from the center between two doors
         const maxOffset = (1-2*peoplePaddingX)/(count-1); // maximum offset between people
@@ -320,14 +312,13 @@ class Office {
         eventEmitter.off(EVENTS.ACCEPTED, this.acceptedHandler);
         eventEmitter.off(EVENTS.REJECTED, this.rejectedHandler);
         eventEmitter.off(EVENTS.RETURN_CANDIDATE, () => {});
-        eventEmitter.off(EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
         eventEmitter.off(EVENTS.DISPLAY_THIS_CV, () => {});
         eventEmitter.off(EVENTS.RETRY_INSTRUCTION_ACKED, () => {});
         eventEmitter.off(EVENTS.INSTRUCTION_ACKED, () => {});
     }
 
     delete() {
-        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task, ...this.doors];
+        const componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.yesno, this.task, ...this.doors];
         officeStageContainer.removeChild(this.interiorContainer);
         officeStageContainer.removeChild(this.personContainer);
         this._removeEventListeners();

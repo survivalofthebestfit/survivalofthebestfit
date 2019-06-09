@@ -14,7 +14,13 @@ float: right;
 
 h4.next-box:hover {
     color: black;
+    cursor: pointer;
   }
+
+
+#text1 {
+  style: block;
+}
 
 #text2, #text3 {
   display: none;
@@ -27,7 +33,7 @@ h4.next-box:hover {
   margin-left: 7%;
 
   h1 {
-  margin-top: 3%;
+  margin-top: 5%;
   margin-bottom: 3%;
    text-align: center;
    width: auto;

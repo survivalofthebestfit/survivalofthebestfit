@@ -1,15 +1,18 @@
 import $ from 'jquery';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, EVENTS, SOUNDS, STAGES} from '~/public/game/controllers/constants/index.js';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state';
+import {getDateString} from '~/public/game/controllers/common/utils';
 
 export default class extends UIBase {
     constructor(options) {
         super();
         this.$el = $('#js-textbox-overlay'); // This should be a single element
         this.$textEl = this.$el.find('.Textbox__content');
+        this.$dateEl = this.$el.find('.header__date');
         this.$subjectEl = this.$el.find('.Textbox__subject');
         this.$buttons = this.$el.find('.TextboxButton');
         this.setContent = this.setContent.bind(this);
@@ -36,6 +39,10 @@ export default class extends UIBase {
 
     setContent() {
         if (!this.overlay) this.$el.addClass(CLASSES.IS_TRANSPARENT);
+        if (this.$dateEl && state.get('stage' !== STAGES.ML_LAB)) {
+            this.$dateEl.removeClass(CLASSES.IS_INACTIVE);
+            this.$dateEl.html(getDateString());
+        }
         const scoreText = this.displayScore ? dataModule._calculateScore().concat(' ') : '';
         // only show score feedback after completing stage one
         const emailText = (this.stageNumber === 1 && !this.isRetry) ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
@@ -48,27 +55,29 @@ export default class extends UIBase {
             $responseButton.removeClass(CLASSES.IS_INACTIVE);
             $responseButton.find('.button__text').html(response);
         });
+        // play sound in only small office stage
+        if (state.get('stage') === STAGES.MANUAL_SMALL) sound.play(SOUNDS.NEW_MESSAGE);
     }
 
     _mlStageButtonHandler(e) {
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
+        sound.play(SOUNDS.BUTTON_CLICK);
         this.callback();
         this.destroy();
     }
 
     _manualStageButtonHandler(e) {
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
+        sound.play(SOUNDS.BUTTON_CLICK);
         if (this.isRetry) {
             eventEmitter.emit(EVENTS.RETRY_INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });
-        }
-        else if (this.isTransition) {
+        } else if (this.isTransition) {
             eventEmitter.emit(EVENTS.TRANSITION_INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });
-        }
-        else {
+        } else {
             eventEmitter.emit(EVENTS.INSTRUCTION_ACKED, {
                 stageNumber: this.stageNumber,
             });

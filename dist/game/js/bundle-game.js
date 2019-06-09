@@ -98057,7 +98057,7 @@ function (_Component) {
 
 exports["default"] = Footer;
 
-},{"../../../controllers/constants/classes":576,"../../../controllers/game/sound":590,"component-loader-js":14,"jquery":336,"screenfull":530}],539:[function(require,module,exports){
+},{"../../../controllers/constants/classes":576,"../../../controllers/game/sound":591,"component-loader-js":14,"jquery":336,"screenfull":530}],539:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98202,16 +98202,19 @@ function (_UIBase) {
     _this.$cvInspector = (0, _jquery["default"])('#CvInspector');
     _this.$statsInspector = (0, _jquery["default"])('#StatsInspector');
     _this.$xIcon = _this.$el.find('.js-x-icon');
+
+    _this.$xIcon.addClass(_classes["default"].IS_INACTIVE);
+
     _this.$button = _this.$el.find('.ReplyButton');
 
     _this.$button.addClass(_classes["default"].IS_INACTIVE);
 
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
-    _this.scrollIsActive = false;
-    _this._handleIconClick = _this._handleIconClick.bind(_assertThisInitialized(_this));
+    _this.scrollIsActive = false; // this._handleIconClick = this._handleIconClick.bind(this);
+
     _this._handleInspectButtonClick = _this._handleInspectButtonClick.bind(_assertThisInitialized(_this));
-    _this._handlePersonCardHover = _this._handlePersonCardHover.bind(_assertThisInitialized(_this));
+    _this._handlePersonCardClick = _this._handlePersonCardClick.bind(_assertThisInitialized(_this));
     _this.activePerson = null;
 
     _this._addEventListeners();
@@ -98248,21 +98251,19 @@ function (_UIBase) {
     value: function _addEventListeners() {
       var _this2 = this;
 
-      this.$xIcon.on('click', this._handleIconClick);
-
+      // this.$xIcon.on('click', this._handleIconClick);
       _gameSetup.eventEmitter.on(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
 
       var $resumeGrids = document.querySelectorAll('.DatasetGrid');
       $resumeGrids.forEach(function (grid) {
-        return grid.addEventListener('mouseover', _this2._handlePersonCardHover);
+        return grid.addEventListener('click', _this2._handlePersonCardClick);
       });
       this.$button.click(this._buttonHandler.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      this.$xIcon.off('click', this._handleIconClick);
-
+      // this.$xIcon.off('click', this._handleIconClick);
       _gameSetup.eventEmitter.off(_events["default"].DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
     }
   }, {
@@ -98306,14 +98307,14 @@ function (_UIBase) {
       var _this4 = this;
 
       if (this.$button.hasClass(_classes["default"].IS_INACTIVE)) {
-        (0, _utils.waitForSeconds)(8).then(function () {
+        (0, _utils.waitForSeconds)(5).then(function () {
           _this4.$button.removeClass(_classes["default"].IS_INACTIVE);
         });
       }
     }
   }, {
-    key: "_handlePersonCardHover",
-    value: function _handlePersonCardHover(event) {
+    key: "_handlePersonCardClick",
+    value: function _handlePersonCardClick(event) {
       var personID;
 
       if (event.target.matches('.PersonCard.is-parent')) {
@@ -98385,7 +98386,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":588,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98461,7 +98462,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"gsap/TweenMax":331,"jquery":336}],542:[function(require,module,exports){
+},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":588,"gsap/TweenMax":331,"jquery":336}],542:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98471,15 +98472,17 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../../controllers/constants/events"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
 var _gameSetup2 = require("../../../../controllers/game/gameSetup");
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -98550,19 +98553,20 @@ function (_UIBase) {
         'top': "".concat(y, "px"),
         'left': "".concat(x, "px")
       });
-      if (!this.$icon.hasClass(_classes["default"].PULSATE)) this.$icon.addClass(_classes["default"].PULSATE);
+      if (!this.$icon.hasClass(_constants.CLASSES.PULSATE)) this.$icon.addClass(_constants.CLASSES.PULSATE);
       this.$text.html(this.content);
-      this.$icon.removeClass(_classes["default"].IS_INACTIVE);
-      this.$tooltip.addClass(_classes["default"].IS_INACTIVE);
+      this.$icon.removeClass(_constants.CLASSES.IS_INACTIVE);
+      this.$tooltip.addClass(_constants.CLASSES.IS_INACTIVE);
+      sound.play(_constants.SOUNDS.WRITING_MESSAGE);
     }
   }, {
     key: "_handleIconHover",
     value: function _handleIconHover() {
       if (!this.isActive) {
         this.isActive = true;
-        this.$icon.removeClass(_classes["default"].PULSATE);
+        this.$icon.removeClass(_constants.CLASSES.PULSATE);
 
-        _gameSetup.eventEmitter.emit(_events["default"].RESUME_TIMELINE, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.RESUME_TIMELINE, {});
       }
 
       ;
@@ -98571,12 +98575,15 @@ function (_UIBase) {
     key: "_expandTooltip",
     value: function _expandTooltip() {
       this.isActive = true;
-      this.$icon.addClass(_classes["default"].IS_INACTIVE);
-      this.$tooltip.removeClass(_classes["default"].IS_INACTIVE);
+      this.$icon.addClass(_constants.CLASSES.IS_INACTIVE);
+      this.$tooltip.removeClass(_constants.CLASSES.IS_INACTIVE);
+      sound.stop(_constants.SOUNDS.WRITING_MESSAGE);
+      sound.play(_constants.SOUNDS.NEW_MESSAGE);
     }
   }, {
     key: "_dismissTooltip",
     value: function _dismissTooltip() {
+      sound.play(_constants.SOUNDS.BUTTON_CLICK);
       this.callback();
       this.destroy();
     }
@@ -98595,12 +98602,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.addClass(_classes["default"].IS_INACTIVE);
+      this.$el.addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -98618,7 +98625,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup":587,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"jquery":336}],543:[function(require,module,exports){
+},{"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup":588,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../ui-base/ui-base":552,"jquery":336}],543:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98802,7 +98809,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],544:[function(require,module,exports){
+},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":588,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],544:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98931,7 +98938,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/events":577,"../../../../controllers/constants/pixi-containers.js":583,"../../../../controllers/game/gameSetup.js":587,"../person-tooltip/person-tooltip":546}],545:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/events":577,"../../../../controllers/constants/pixi-containers.js":584,"../../../../controllers/game/gameSetup.js":588,"../person-tooltip/person-tooltip":546}],545:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99025,7 +99032,7 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
@@ -99145,7 +99152,7 @@ function (_UIBase) {
         opacity: 0
       });
 
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.to('#js-person-tooltip', 0.2, {
         y: 0,
@@ -99167,7 +99174,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this4.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
 
       this.isActive = false;
@@ -99186,7 +99193,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],547:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants":579,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],547:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99235,7 +99242,7 @@ var _default = function _default(isManualStageStats) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/machine-learning/statistics.js":595,"jquery":336}],548:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/machine-learning/statistics.js":596,"jquery":336}],548:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99247,7 +99254,7 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../../controllers/constants/classes"));
+var _constants = require("../../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../../ui-base/ui-base"));
 
@@ -99258,6 +99265,8 @@ var _stateManager = require("../../../../controllers/game/stateManager.js");
 var _utils = require("../../../../controllers/common/utils");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
 
@@ -99327,6 +99336,7 @@ function (_UIBase) {
           return text;
         }
       });
+      sound.play(_constants.SOUNDS.TRAIN_ALGORITHM);
       (0, _utils.waitForSeconds)(1).then(function () {
         _this2.show(); // this.showEndUI(); // debugging only
 
@@ -99334,6 +99344,8 @@ function (_UIBase) {
         _this2.updateProgressText();
 
         _this2.launchProgressBar();
+
+        sound.play(_constants.SOUNDS.TRAIN_ALGORITHM);
       });
     }
   }, {
@@ -99346,6 +99358,8 @@ function (_UIBase) {
       _gameSetup.ticker.add(this.progressBarHandler.bind(this));
 
       _gameSetup.ticker.start();
+
+      sound.play(_constants.SOUNDS.TRAINING_UPDATE);
     }
   }, {
     key: "progressBarHandler",
@@ -99372,9 +99386,14 @@ function (_UIBase) {
 
           _this3.grid.lightDown();
 
+          sound.stop(_constants.SOUNDS.TRAIN_ALGORITHM);
+          sound.play(_constants.SOUNDS.STAGE_SUCCEEDED);
+
           _this3.showEndUI();
         } else {
           _this3.updateProgressStage();
+
+          sound.play(_constants.SOUNDS.TRAINING_UPDATE);
         }
       });
     }
@@ -99393,12 +99412,12 @@ function (_UIBase) {
       var _this4 = this;
 
       // console.log('show end ui!');
-      this.$progressBox.addClass(_classes["default"].IS_INACTIVE);
+      this.$progressBox.addClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.delayedCall(1, function () {
         _this4.$el.addClass('pink-background');
 
-        _this4.$email.removeClass(_classes["default"].IS_INACTIVE);
+        _this4.$email.removeClass(_constants.CLASSES.IS_INACTIVE);
 
         _TweenMax.TweenLite.set('.js-email', {
           y: 10,
@@ -99416,6 +99435,8 @@ function (_UIBase) {
           _this4.$stageEndBtn.find('.button').addClass('step-completed');
 
           _this4.exit();
+
+          sound.play(_constants.SOUNDS.BUTTON_CLICK);
         });
       });
     }
@@ -99430,12 +99451,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE).removeClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -99453,7 +99474,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"../../../pixi/training-stage/circle-grid":571,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],549:[function(require,module,exports){
+},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../../../controllers/game/stateManager.js":592,"../../../pixi/training-stage/circle-grid":571,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],549:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99468,6 +99489,10 @@ var _constants = require("../../../../controllers/constants");
 var _stateManager = require("../../../../controllers/game/stateManager.js");
 
 var _gameSetup = require("../../../../controllers/game/gameSetup.js");
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -99521,7 +99546,8 @@ function (_Component) {
     key: "_onBtnClick",
     // on button click
     value: function _onBtnClick(e) {
-      if (this.clicked) return; // add 'chosen' styling to the button
+      if (this.clicked) return;
+      sound.play(_constants.SOUNDS.BUTTON_CLICK); // add 'chosen' styling to the button
 
       if (this._step + 1 === this._totalSteps) {
         _gameSetup.eventEmitter.emit(_constants.EVENTS.EXIT_TRANSITION_STAGE, {}); // gameFSM.nextStage();
@@ -99590,7 +99616,7 @@ function (_Component) {
 
 exports["default"] = ChoiceButton;
 
-},{"../../../../controllers/constants":578,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"component-loader-js":14}],550:[function(require,module,exports){
+},{"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../../../controllers/game/stateManager.js":592,"component-loader-js":14}],550:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99607,6 +99633,8 @@ var _utils = require("../../../../controllers/common/utils");
 var _constants = require("../../../../controllers/constants");
 
 var state = _interopRequireWildcard(require("../../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
@@ -99684,7 +99712,8 @@ function (_Component) {
 
         this._typeIcon.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-        this.scrollHandler();
+        this.scrollHandler(); // sound.schedule(SOUNDS.WRITING_MESSAGE, 0.3);
+
         (0, _utils.waitForSeconds)(Math.round((Math.random() + 1) * 15) / 10).then(function () {
           _this2._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
@@ -99700,6 +99729,10 @@ function (_Component) {
           _this2.publish(_constants.EVENTS.GREY_OUT_REPLICA, {
             step: _this2._step - 1
           });
+
+          console.log('play new message!'); // sound.stop(SOUNDS.WRITING_MESSAGE);
+
+          sound.play(_constants.SOUNDS.NEW_MESSAGE);
         });
       }
     }
@@ -99729,7 +99762,12 @@ function (_Component) {
     value: function _addFileClickListener() {
       var _this3 = this;
 
-      (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
+      var $datafile = (0, _jquery["default"])('#js-cv-all-file');
+      $datafile.addClass(_constants.CLASSES.FILE_PULSE); // sound.play(SOUNDS.WRITING_MESSAGE);
+
+      $datafile.on('click', function () {
+        sound.play(_constants.SOUNDS.BUTTON_CLICK);
+
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
 
         $fileInstructions.classList.add(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
@@ -99738,9 +99776,11 @@ function (_Component) {
         _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this3._step + 1
-        });
+        }); // sound.stop(SOUNDS.WRITING_MESSAGE);
 
-        (0, _jquery["default"])('#js-cv-all-file').off();
+
+        $datafile.off();
+        $datafile.remove();
       });
     }
   }, {
@@ -99760,6 +99800,7 @@ function (_Component) {
 
       // console.log('we added a choice listener!');
       (0, _jquery["default"])('.data-list__choice').on('click', function (e) {
+        sound.play(_constants.SOUNDS.BUTTON_CLICK);
         var $choice = (0, _jquery["default"])("#".concat(e.target.id));
         state.set('big-tech-company', $choice.text());
 
@@ -99785,7 +99826,7 @@ function (_Component) {
 
 exports["default"] = Replica;
 
-},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants":578,"component-loader-js":14,"jquery":336}],551:[function(require,module,exports){
+},{"../../../../controllers/common/state":572,"../../../../controllers/common/utils":574,"../../../../controllers/constants":579,"../../../../controllers/game/sound.js":591,"component-loader-js":14,"jquery":336}],551:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -99922,7 +99963,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":587,"../../../../controllers/game/stateManager.js":591,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],552:[function(require,module,exports){
+},{"../../../../controllers/common/utils":574,"../../../../controllers/constants/classes":576,"../../../../controllers/constants/events":577,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/stateManager.js":592,"../../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],552:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100186,7 +100227,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":574,"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],554:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],554:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100198,11 +100239,13 @@ var _TweenMax = require("gsap/TweenMax");
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _utils = require("../../../controllers/common/utils");
+
+var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100242,6 +100285,8 @@ function (_UIBase) {
 
     _this._removeEventListeners();
 
+    _this._addEventListeners();
+
     _this.$el = (0, _jquery["default"])('#js-resume');
     _this.$nameEl = _this.$el.find('.Resume__title');
     _this.$taglineEl = _this.$el.find('.Resume__tagline');
@@ -100256,11 +100301,11 @@ function (_UIBase) {
     _this.type = options.type || 'manual'; // this.setContent(); // set content
 
     if (_this.type === 'ml') {
-      _this.$el.addClass(_classes["default"].ML_RESUME);
+      _this.$el.addClass(_constants.CLASSES.ML_RESUME);
 
-      _this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
+      _this.$scanline.removeClass(_constants.CLASSES.IS_INACTIVE);
     } else {
-      _this.$el.addClass(_classes["default"].ANIMATE_RESUME_ATTRIBUTES);
+      _this.$el.addClass(_constants.CLASSES.ANIMATE_RESUME_ATTRIBUTES);
     }
 
     if (_this._resumes === undefined || _this._resumeFeatures === undefined) {
@@ -100282,23 +100327,23 @@ function (_UIBase) {
 
       this._resumeFeatures.forEach(function (feature, index) {
         var skillScore = cv.qualifications[index] * 10;
-        var skillClass = ".".concat(_classes["default"].CV_CATEGORY, "--").concat(feature["class"]);
+        var skillClass = ".".concat(_constants.CLASSES.CV_CATEGORY, "--").concat(feature["class"]);
 
         var $skillEl = _this2.$el.find(skillClass);
 
-        $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__name")).html(feature.name);
-        $skillEl.find(".".concat(_classes["default"].CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
+        $skillEl.find(".".concat(_constants.CLASSES.CV_CATEGORY, "__name")).html(feature.name);
+        $skillEl.find(".".concat(_constants.CLASSES.CV_CATEGORY, "__progress")).css('width', "".concat((0, _utils.clamp)(skillScore, 5, 100), "%"));
       });
 
-      if (this.$el.hasClass(_classes["default"].IS_INACTIVE)) this.show();
+      if (this.$el.hasClass(_constants.CLASSES.IS_INACTIVE)) this.show();
     }
   }, {
     key: "setColor",
     value: function setColor(color) {
       if (color === 'yellow') {
-        this.$el.addClass(_classes["default"].RESUME_YELLOW).removeClass(_classes["default"].RESUME_BLUE);
+        this.$el.addClass(_constants.CLASSES.RESUME_YELLOW).removeClass(_constants.CLASSES.RESUME_BLUE);
       } else {
-        this.$el.addClass(_classes["default"].RESUME_BLUE).removeClass(_classes["default"].RESUME_YELLOW);
+        this.$el.addClass(_constants.CLASSES.RESUME_BLUE).removeClass(_constants.CLASSES.RESUME_YELLOW);
       }
 
       ;
@@ -100322,27 +100367,31 @@ function (_UIBase) {
   }, {
     key: "showScanline",
     value: function showScanline() {
-      this.$scanline.removeClass(_classes["default"].IS_INACTIVE);
-      this.$mask.removeClass(_classes["default"].IS_INACTIVE);
+      this.$scanline.removeClass(_constants.CLASSES.IS_INACTIVE);
+      this.$mask.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hideScanline",
     value: function hideScanline() {
-      this.$scanline.addClass(_classes["default"].IS_INACTIVE);
+      this.$scanline.addClass(_constants.CLASSES.IS_INACTIVE);
       this.$scanline.css('top', '0');
-      this.$mask.addClass(_classes["default"].IS_INACTIVE);
+      this.$mask.addClass(_constants.CLASSES.IS_INACTIVE);
       this.$mask.css('height', '0');
     }
   }, {
     key: "_addEventListeners",
-    value: function _addEventListeners() {}
+    value: function _addEventListeners() {
+      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_DONE, this.hide, this);
+    }
   }, {
     key: "_removeEventListeners",
-    value: function _removeEventListeners() {}
+    value: function _removeEventListeners() {
+      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_DONE, this.hide, this);
+    }
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       if (this.type === 'ml') {
         _TweenMax.TweenLite.set('#js-resume', {
@@ -100369,10 +100418,10 @@ function (_UIBase) {
         });
 
         _TweenMax.TweenLite.delayedCall(0.4, function () {
-          _this3.$el.addClass(_classes["default"].IS_INACTIVE);
+          _this3.$el.addClass(_constants.CLASSES.IS_INACTIVE);
         });
       } else {
-        this.$el.addClass(_classes["default"].IS_INACTIVE);
+        this.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       }
     }
   }, {
@@ -100392,7 +100441,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":574,"../../../controllers/constants/classes":576,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],555:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],555:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100402,15 +100451,21 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 var _office = require("../../pixi/manual-stage/office");
+
+var _stateManager = require("../../../controllers/game/stateManager.js");
+
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100465,9 +100520,11 @@ function (_UIBase) {
     _this.show();
 
     if (options.showTimer) {
-      _this.$timer.removeClass(_classes["default"].IS_INACTIVE);
+      _this.$timer.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _this.startTimer();
+
+      sound.schedule(_constants.SOUNDS.TIME_RUNNING_OUT, _this._duration - 10);
     }
 
     if (options.placeLeft) {
@@ -100482,10 +100539,14 @@ function (_UIBase) {
         'left': "".concat(mlLabCoordinates.left, "%"),
         'min-width': "".concat(mlLabCoordinates.minWidth, "px")
       });
-    }
+    } // every stage in unsuccessful by default
+
+
+    state.set('hiring-in-progress', true);
 
     _this._addEventListeners();
 
+    sound.schedule(_constants.SOUNDS.STAGE_BEGIN, 0.5);
     return _this;
   }
 
@@ -100523,23 +100584,34 @@ function (_UIBase) {
   }, {
     key: "updateTimer",
     value: function updateTimer(elapsedMS) {
-      this._runningMS += elapsedMS;
+      this._runningMS += elapsedMS; // whil the task timer is running
 
       if (this._runningMS <= this._duration * 1000) {
         if (Math.floor(this._runningMS / 1000) > this._elapsedTime) {
           this._elapsedTime++;
           this.writeTime();
-        }
+        } // once the task timer runs out
+
       } else if (this._runningMS > this._duration * 1000) {
         this._elapsedTime = this._duration;
         this.writeTime();
-        this.timer.stop();
+        this.timer.stop(); // STAGE FAILED
 
-        _gameSetup.eventEmitter.emit(_events["default"].STAGE_INCOMPLETE, {});
+        if (state.get('hiring-in-progress', true)) {
+          this.showTaskFeedback({
+            stageCompleted: false
+          });
+          state.set('hiring-stage-success', false);
 
-        this.showTaskFeedback({
-          stageCompleted: false
-        });
+          _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_DONE, {});
+
+          sound.play(_constants.SOUNDS.STAGE_FAILED);
+          sound.stop(_constants.SOUNDS.TIME_RUNNING_OUT);
+          sound.stop(_constants.SOUNDS.MANUAL_AMBIENT);
+          this.reset();
+
+          _stateManager.gameFSM.nextStage();
+        }
       }
     }
   }, {
@@ -100548,18 +100620,18 @@ function (_UIBase) {
       var stageCompleted = _ref.stageCompleted;
       var feedbackText = stageCompleted ? 'Task completed' : 'Task failed';
       [this.$timer, this.$hireGoalEl].map(function (el) {
-        return el.addClass(_classes["default"].IS_INACTIVE);
+        return el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
-      this.$feedbackEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.removeClass(_constants.CLASSES.IS_INACTIVE);
       this.$feedbackEl.find('.TaskTimer-value').text(feedbackText);
-      this.$el.addClass(_classes["default"].HIRING_TASK_DONE);
+      this.$el.addClass(_constants.CLASSES.HIRING_TASK_DONE);
     }
   }, {
     key: "resetStyles",
     value: function resetStyles() {
-      this.$feedbackEl.addClass(_classes["default"].IS_INACTIVE);
-      this.$el.removeClass(_classes["default"].HIRING_TASK_DONE);
-      this.$hireGoalEl.removeClass(_classes["default"].IS_INACTIVE);
+      this.$feedbackEl.addClass(_constants.CLASSES.IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.HIRING_TASK_DONE);
+      this.$hireGoalEl.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "startTimer",
@@ -100586,12 +100658,12 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this.increaseCounter, this);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this.increaseCounter, this);
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this.increaseCounter, this);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this.increaseCounter, this);
     }
   }, {
     key: "show",
@@ -100599,12 +100671,12 @@ function (_UIBase) {
       this.$el.css({
         'left': "".concat(_office.spotlight.x, "px")
       });
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.FADE_IN).addClass(_constants.CLASSES.FADE_OUT).addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -100614,7 +100686,7 @@ function (_UIBase) {
       this._removeEventListeners();
 
       this.hide();
-      this.$timer.addClass(_classes["default"].IS_INACTIVE);
+      this.$timer.addClass(_constants.CLASSES.IS_INACTIVE);
     }
   }]);
 
@@ -100623,7 +100695,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],556:[function(require,module,exports){
+},{"../../../controllers/common/state":572,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"jquery":336}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100633,15 +100705,21 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
-
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var _index = require("../../../controllers/constants/index.js");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
+
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
+var _utils = require("../../../controllers/common/utils");
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -100681,6 +100759,7 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-textbox-overlay'); // This should be a single element
 
     _this.$textEl = _this.$el.find('.Textbox__content');
+    _this.$dateEl = _this.$el.find('.header__date');
     _this.$subjectEl = _this.$el.find('.Textbox__subject');
     _this.$buttons = _this.$el.find('.TextboxButton');
     _this.setContent = _this.setContent.bind(_assertThisInitialized(_this));
@@ -100713,42 +100792,53 @@ function (_UIBase) {
     value: function setContent() {
       var _this2 = this;
 
-      if (!this.overlay) this.$el.addClass(_classes["default"].IS_TRANSPARENT);
+      if (!this.overlay) this.$el.addClass(_index.CLASSES.IS_TRANSPARENT);
+
+      if (this.$dateEl && state.get('stage' !== _index.STAGES.ML_LAB)) {
+        this.$dateEl.removeClass(_index.CLASSES.IS_INACTIVE);
+        this.$dateEl.html((0, _utils.getDateString)());
+      }
+
       var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
       var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
       this.$textEl.html(emailText);
       this.$subjectEl.html(this.subject);
-      this.$buttons.addClass(_classes["default"].IS_INACTIVE);
+      this.$buttons.addClass(_index.CLASSES.IS_INACTIVE);
 
       this._responseContent.forEach(function (response, index) {
         var $responseButton = (0, _jquery["default"])(_this2.$buttons[index]);
-        $responseButton.removeClass(_classes["default"].IS_INACTIVE);
+        $responseButton.removeClass(_index.CLASSES.IS_INACTIVE);
         $responseButton.find('.button__text').html(response);
-      });
+      }); // play sound in only small office stage
+
+
+      if (state.get('stage') === _index.STAGES.MANUAL_SMALL) sound.play(_index.SOUNDS.NEW_MESSAGE);
     }
   }, {
     key: "_mlStageButtonHandler",
     value: function _mlStageButtonHandler(e) {
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_index.CLASSES.BUTTON_CLICKED);
+      sound.play(_index.SOUNDS.BUTTON_CLICK);
       this.callback();
       this.destroy();
     }
   }, {
     key: "_manualStageButtonHandler",
     value: function _manualStageButtonHandler(e) {
-      this.$buttons.addClass(_classes["default"].BUTTON_CLICKED);
+      this.$buttons.addClass(_index.CLASSES.BUTTON_CLICKED);
+      sound.play(_index.SOUNDS.BUTTON_CLICK);
 
       if (this.isRetry) {
-        _gameSetup.eventEmitter.emit(_events["default"].RETRY_INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.RETRY_INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       } else if (this.isTransition) {
-        _gameSetup.eventEmitter.emit(_events["default"].TRANSITION_INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.TRANSITION_INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       } else {
-        _gameSetup.eventEmitter.emit(_events["default"].INSTRUCTION_ACKED, {
+        _gameSetup.eventEmitter.emit(_index.EVENTS.INSTRUCTION_ACKED, {
           stageNumber: this.stageNumber
         });
       }
@@ -100758,7 +100848,7 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      if (this.type === _classes["default"].ML) {
+      if (this.type === _index.CLASSES.ML) {
         this.$buttons.click(this._mlStageButtonHandler.bind(this));
       } else {
         this.$buttons.click(this._manualStageButtonHandler.bind(this));
@@ -100773,12 +100863,12 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      this.$el.removeClass(_classes["default"].IS_INACTIVE).removeClass(_classes["default"].FADE_OUT).addClass(_classes["default"].FADE_IN);
+      this.$el.removeClass(_index.CLASSES.IS_INACTIVE).removeClass(_index.CLASSES.FADE_OUT).addClass(_index.CLASSES.FADE_IN);
     }
   }, {
     key: "hide",
     value: function hide() {
-      this.$el.removeClass(_classes["default"].FADE_IN).addClass(_classes["default"].FADE_OUT).addClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_index.CLASSES.FADE_IN).addClass(_index.CLASSES.FADE_OUT).addClass(_index.CLASSES.IS_INACTIVE);
     }
   }, {
     key: "destroy",
@@ -100796,7 +100886,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/game/gameSetup.js":587,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":552,"jquery":336}],557:[function(require,module,exports){
+},{"../../../controllers/common/state":572,"../../../controllers/common/utils":574,"../../../controllers/constants/index.js":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/machine-learning/dataModule.js":593,"../ui-base/ui-base":552,"jquery":336}],557:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100944,7 +101034,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
+},{"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -100956,9 +101046,9 @@ var _jquery = _interopRequireDefault(require("jquery"));
 
 var _TweenMax = require("gsap/TweenMax");
 
-var _classes = _interopRequireDefault(require("../../../controllers/constants/classes"));
+var _constants = require("../../../controllers/constants");
 
-var _events = _interopRequireDefault(require("../../../controllers/constants/events"));
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
@@ -100969,6 +101059,10 @@ var _gameSetup = require("../../../controllers/game/gameSetup.js");
 var _utils = require("../../../controllers/common/utils.js");
 
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
+
+var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -101029,16 +101123,16 @@ function (_UIBase) {
       });
 
       if (!this.hasBeenClicked) {
-        _gameSetup.eventEmitter.emit(_events["default"].HIDE_MANUAL_INSTRUCTIONS, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
 
         this.hasBeenClicked = true;
       }
 
       ;
-      this.$yesButton.addClass(_classes["default"].ACCEPTED);
+      this.$yesButton.addClass(_constants.CLASSES.ACCEPTED);
 
       if (candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].ACCEPTED, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.ACCEPTED, {});
 
         this.hide();
       }
@@ -101046,15 +101140,24 @@ function (_UIBase) {
   }, {
     key: "_rejectClicked",
     value: function _rejectClicked(e) {
-      // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+      sound.play(_constants.SOUNDS.BUTTON_CLICK); // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
+
       gtag('event', 'reject', {
         'event_category': 'interaction',
         'event_label': 'accept/reject'
       });
-      this.$noButton.addClass(_classes["default"].REJECTED);
+
+      if (!this.hasBeenClicked) {
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.HIDE_MANUAL_INSTRUCTIONS, {});
+
+        this.hasBeenClicked = true;
+      }
+
+      ;
+      this.$noButton.addClass(_constants.CLASSES.REJECTED);
 
       if (candidateInSpot != null) {
-        _gameSetup.eventEmitter.emit(_events["default"].REJECTED, {});
+        _gameSetup.eventEmitter.emit(_constants.EVENTS.REJECTED, {});
 
         this.hide();
       }
@@ -101062,16 +101165,12 @@ function (_UIBase) {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      var _this2 = this;
-
       this.$yesButton.click(this._acceptClicked.bind(this));
       this.$noButton.click(this._rejectClicked.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].MANUAL_STAGE_COMPLETE, function (data) {
-        if (data.stageNumber == 2) _this2.destroy();
-      });
+      _gameSetup.eventEmitter.on(_constants.EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
 
-      _gameSetup.eventEmitter.on(_events["default"].CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
     }
   }, {
     key: "_removeEventListeners",
@@ -101079,13 +101178,17 @@ function (_UIBase) {
       this.$yesButton.off();
       this.$noButton.off();
 
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, function () {});
+      _gameSetup.eventEmitter.off(_constants.EVENTS.MANUAL_STAGE_DONE, this._stageEndHandler, this);
 
-      _gameSetup.eventEmitter.off(_events["default"].REJECTED, function () {});
-
-      _gameSetup.eventEmitter.off(_events["default"].MANUAL_STAGE_COMPLETE, function () {});
-
-      _gameSetup.eventEmitter.off(_events["default"].CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.CHANGE_SPOTLIGHT_STATUS, this._spotlightStatusHandler, this);
+    }
+  }, {
+    key: "_stageEndHandler",
+    value: function _stageEndHandler() {
+      if (state.get('hiring-stage-success') && state.get('hiring-stage-number') >= 2) {
+        console.log('we are done with manual hiring, destroy yes and no buttons');
+        this.destroy();
+      }
     }
   }, {
     key: "_spotlightStatusHandler",
@@ -101107,7 +101210,7 @@ function (_UIBase) {
   }, {
     key: "show",
     value: function show() {
-      var _this3 = this;
+      var _this2 = this;
 
       this.$el.css({
         'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
@@ -101121,7 +101224,7 @@ function (_UIBase) {
         opacity: 0
       });
 
-      this.$el.removeClass(_classes["default"].IS_INACTIVE);
+      this.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
 
       _TweenMax.TweenLite.to(this.$id, 0.2, {
         y: 0,
@@ -101130,13 +101233,13 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this3.$el.removeClass(_classes["default"].IS_INACTIVE);
+        _this2.$el.removeClass(_constants.CLASSES.IS_INACTIVE);
       });
     }
   }, {
     key: "hide",
     value: function hide() {
-      var _this4 = this;
+      var _this3 = this;
 
       _TweenMax.TweenLite.to(this.$id, 0.3, {
         y: 5,
@@ -101145,7 +101248,7 @@ function (_UIBase) {
       });
 
       _TweenMax.TweenLite.delayedCall(0.4, function () {
-        _this4.$el.addClass(_classes["default"].IS_INACTIVE);
+        _this3.$el.addClass(_constants.CLASSES.IS_INACTIVE);
       });
     }
   }, {
@@ -101156,6 +101259,8 @@ function (_UIBase) {
       this.hide();
 
       this._removeEventListeners();
+
+      this.$el.remove();
     }
   }]);
 
@@ -101164,7 +101269,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":574,"../../../controllers/constants/classes":576,"../../../controllers/constants/events":577,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],559:[function(require,module,exports){
+},{"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../pixi/manual-stage/office":561,"../ui-base/ui-base":552,"gsap/TweenMax":331,"jquery":336}],559:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101302,7 +101407,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587}],560:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup":588,"../../../controllers/game/gameSetup.js":588}],560:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101420,7 +101525,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],561:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"pixi.js":482}],561:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101466,6 +101571,8 @@ var _pixiContainers = require("../../../controllers/constants/pixi-containers.js
 
 var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
 
+var state = _interopRequireWildcard(require("../../../controllers/common/state"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
@@ -101484,24 +101591,40 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var candidatePoolSize = {
-  smallOfficeStage: 7,
-  mediumOfficeStage: 10,
-  largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
-};
-var officeCoordinates = {
-  entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
-  exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
-  personStartX: 0.2,
-  peoplePaddingX: 0.1,
-  // personStartY: 0.87, // should be dependent on the floot size
-  personStartY: computePersonY(),
-  xOffset: 0.06
-};
+function computeOfficeParams(type) {
+  switch (type) {
+    case 'candidate-pool':
+      return {
+        smallOfficeStage: 7,
+        mediumOfficeStage: 10,
+        largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
+      };
 
-function computeSpotlight() {
+    case 'office-coordinates':
+      return {
+        entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
+        exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
+        personStartX: 0.2,
+        peoplePaddingX: 0.1,
+        personStartY: computePersonY(),
+        xOffset: 0.06
+      };
+
+    case 'spotlight':
+      return computeSpotlight();
+
+    default:
+      throw new Error("we cannot compute parameters for type ".concat(type));
+  }
+}
+
+;
+
+function computeSpotlight(_ref) {
+  var entryDoor = _ref.entryDoor,
+      exitDoor = _ref.exitDoor;
   return {
-    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
     y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
 }
@@ -101510,7 +101633,7 @@ function computePersonY() {
   return 1 - (0, _utils.px2uv)((0, _utils.isMobile)() ? 15 : 25, 'h');
 }
 
-var spotlight = computeSpotlight();
+var spotlight = {};
 exports.spotlight = spotlight;
 
 var Office =
@@ -101519,6 +101642,7 @@ function () {
   function Office() {
     _classCallCheck(this, Office);
 
+    console.log('construct office!');
     this.uniqueCandidateIndex = 0;
     this.currentStage = 0;
     this.scale = 1;
@@ -101526,8 +101650,12 @@ function () {
     this.interiorContainer = new PIXI.Container();
     this.personContainer = new PIXI.Container();
     this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER;
-    var acceptedAverageScore;
-    var candidatesAverageScore; // IMPORTANT: candidates ID refer to this array's index
+    this.candidatePoolSize = computeOfficeParams('candidate-pool');
+    this.officeCoordinates = computeOfficeParams('office-coordinates');
+    exports.spotlight = spotlight = computeSpotlight({
+      entryDoor: this.officeCoordinates.entryDoorX,
+      exitDoor: this.officeCoordinates.exitDoorX
+    }); // IMPORTANT: candidates ID refer to this array's index
 
     this.allPeople = [];
     this.hiredPeople = [];
@@ -101556,12 +101684,12 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.entryDoorX
+      xAnchorUV: this.officeCoordinates.entryDoorX
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.exitDoorX
+      xAnchorUV: this.officeCoordinates.exitDoorX
     })];
     this.listenerSetup();
   }
@@ -101585,7 +101713,8 @@ function () {
           break;
       }
 
-      this.draw(stageNum); // sound.play(SOUNDS.MANUAL_AMBIENT);
+      this.draw(stageNum);
+      sound.schedule(_constants.SOUNDS.MANUAL_AMBIENT, 1);
     }
   }, {
     key: "draw",
@@ -101604,7 +101733,7 @@ function () {
 
       if (this.currentStage == 0) {
         // SMALL STAGE - INITIAL SET UP
-        candidatesToAdd = candidatePoolSize.smallOfficeStage;
+        candidatesToAdd = this.candidatePoolSize.smallOfficeStage;
 
         for (var floor in this.floors) {
           if (Object.prototype.hasOwnProperty.call(this.floors, floor)) {
@@ -101625,7 +101754,8 @@ function () {
         this.peopleTalkManager.startTimeline();
       } else {
         showTimer = true;
-        candidatesToAdd = this.currentStage === 1 ? candidatePoolSize.mediumOfficeStage : candidatePoolSize.largeOfficeStage;
+        candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
+        this.yesno.hide();
 
         _gameSetup.officeStageContainer.removeChild(this.personContainer);
 
@@ -101654,29 +101784,7 @@ function () {
         _this2.resumeUI.showCV(_cvCollection.cvCollection.cvData[candidateClicked]);
       });
 
-      this.stageResetHandler = function () {
-        (0, _utils.waitForSeconds)(0.5).then(function () {
-          sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
-          new _uiTextbox["default"]({
-            isRetry: true,
-            stageNumber: _this2.currentStage,
-            subject: _this2.stageText.subject,
-            content: _this2.stageText.retryMessage,
-            responses: _this2.stageText.retryResponses,
-            show: true,
-            overlay: true
-          });
-
-          if (_this2.task) {
-            _this2.task.reset();
-          }
-        });
-      };
-
-      _gameSetup.eventEmitter.on(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
       this.acceptedHandler = function () {
-        // console.log('record accepted!');
         sound.play(_constants.SOUNDS.PERSON_ACCEPTED);
 
         _dataModule.dataModule.recordAccept(candidateInSpot);
@@ -101690,7 +101798,7 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(_this2.officeCoordinates.entryDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[0].playAnimation({
@@ -101703,17 +101811,17 @@ function () {
           _this2.doors[0].playAnimation({
             direction: 'reverse'
           });
-        });
+        }); // STAGE SUCCESS
 
         if (_this2.takenDesks == _this2.stageText.hiringGoal) {
-          // console.log('stage complete!');
+          state.set('hiring-in-progress', false);
+          state.set('hiring-stage-success', true);
+          sound.stop(_constants.SOUNDS.TIME_RUNNING_OUT);
           (0, _utils.waitForSeconds)(1).then(function () {
-            // console.log('next stage!');
             sound.fadeOut(_constants.SOUNDS.MANUAL_AMBIENT);
+            sound.play(_constants.SOUNDS.STAGE_SUCCEEDED);
 
-            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_COMPLETE, {
-              stageNumber: _this2.currentStage
-            });
+            _gameSetup.eventEmitter.emit(_constants.EVENTS.MANUAL_STAGE_DONE, {});
 
             _this2.task.reset();
 
@@ -101729,7 +101837,7 @@ function () {
         _this2.placeCandidate(_this2.toReplaceX);
 
         rejectedPerson.scale.x *= -1;
-        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(_this2.officeCoordinates.exitDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[1].playAnimation({
@@ -101749,7 +101857,7 @@ function () {
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler, this);
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
         (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
@@ -101768,7 +101876,7 @@ function () {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
       var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
-      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
+      var person = (0, _person.createPerson)(thisX, this.officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
       this.uniqueCandidateIndex++;
@@ -101791,12 +101899,10 @@ function () {
     key: "resizeHandler",
     value: function resizeHandler() {
       // change spotlight position
-      var _computeSpotlight = computeSpotlight(),
-          spotNewX = _computeSpotlight.x,
-          spotNewY = _computeSpotlight.y;
-
-      spotlight.x = spotNewX;
-      spotlight.y = spotNewY; // reposition candidates
+      exports.spotlight = spotlight = computeSpotlight({
+        entryDoor: this.officeCoordinates.entryDoorX,
+        exitDoor: this.officeCoordinates.exitDoorX
+      }); // reposition candidates
 
       var candidates = this.getCandidatePoolSize(this.currentStage);
 
@@ -101818,15 +101924,16 @@ function () {
     key: "getCandidatePoolSize",
     value: function getCandidatePoolSize(currentStage) {
       var stages = ['smallOfficeStage', 'mediumOfficeStage', 'largeOfficeStage'];
-      return candidatePoolSize[stages[currentStage]];
+      return this.candidatePoolSize[stages[currentStage]];
     }
   }, {
     key: "centerPeopleLine",
     value: function centerPeopleLine(count) {
-      var entryDoorX = officeCoordinates.entryDoorX,
-          exitDoorX = officeCoordinates.exitDoorX,
-          xOffset = officeCoordinates.xOffset,
-          peoplePaddingX = officeCoordinates.peoplePaddingX;
+      var _this$officeCoordinat = this.officeCoordinates,
+          entryDoorX = _this$officeCoordinat.entryDoorX,
+          exitDoorX = _this$officeCoordinat.exitDoorX,
+          xOffset = _this$officeCoordinat.xOffset,
+          peoplePaddingX = _this$officeCoordinat.peoplePaddingX;
 
       var peopleCenterX = _utils.spacingUtils.getRelativePoint(entryDoorX, exitDoorX, 1 / 2);
 
@@ -101850,8 +101957,6 @@ function () {
 
       _gameSetup.eventEmitter.off(_constants.EVENTS.RETURN_CANDIDATE, function () {});
 
-      _gameSetup.eventEmitter.off(_constants.EVENTS.STAGE_INCOMPLETE, this.stageResetHandler);
-
       _gameSetup.eventEmitter.off(_constants.EVENTS.DISPLAY_THIS_CV, function () {});
 
       _gameSetup.eventEmitter.off(_constants.EVENTS.RETRY_INSTRUCTION_ACKED, function () {});
@@ -101861,7 +101966,7 @@ function () {
   }, {
     key: "delete",
     value: function _delete() {
-      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.task].concat(_toConsumableArray(this.doors));
+      var componentsToDestroy = [this.resumeUI, this.instructions, this.peopleTalkManager, this.yesno, this.task].concat(_toConsumableArray(this.doors));
 
       _gameSetup.officeStageContainer.removeChild(this.interiorContainer);
 
@@ -101882,7 +101987,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/constants/pixi-containers.js":583,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/game/stateManager.js":591,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/ui-textbox/ui-textbox":556,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/ui-textbox/ui-textbox":556,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102060,7 +102165,7 @@ function repositionPerson(person, x, y) {
   }
 }
 
-},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"./office":561}],563:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"./office":561}],563:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102151,7 +102256,7 @@ function () {
 exports["default"] = _default;
 ;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],564:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup":588,"../../../controllers/game/gameSetup.js":588,"pixi.js":482}],564:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102261,7 +102366,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"jquery":336}],565:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"jquery":336}],565:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102321,14 +102426,12 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      this.inspectButton.interactive = true;
-      this.inspectButton.buttonMode = true;
-      this.inspectButton.on('click', this._inspectButtonClickHandler);
+      this.inspectButton.interactive = false;
+      this.inspectButton.buttonMode = false; // this.inspectButton.on('click', this._inspectButtonClickHandler);
     }
   }, {
     key: "removeEventListeners",
-    value: function removeEventListeners() {
-      this.inspectButton.off('click', this._inspectButtonClickHandler);
+    value: function removeEventListeners() {// this.inspectButton.off('click', this._inspectButtonClickHandler);
     }
   }, {
     key: "_inspectButtonClickHandler",
@@ -102354,7 +102457,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587}],566:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup":588}],566:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102533,7 +102636,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/machine-learning/dataModule.js":592,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102673,7 +102776,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":574,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587}],568:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants/index.js":579,"../../../controllers/game/gameSetup.js":588}],568:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102780,7 +102883,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup":587,"./resume":569,"pixi.js":482}],569:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup":588,"./resume":569,"pixi.js":482}],569:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102836,7 +102939,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"pixi.js":482}],570:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"pixi.js":482}],570:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102910,7 +103013,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/game/gameSetup.js":587}],571:[function(require,module,exports){
+},{"../../../controllers/common/textures.js":573,"../../../controllers/common/utils.js":574,"../../../controllers/game/gameSetup.js":588}],571:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103135,7 +103238,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":578,"../../../controllers/game/gameSetup.js":587,"pixi.js":482}],572:[function(require,module,exports){
+},{"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"pixi.js":482}],572:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103143,7 +103246,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.get = exports.set = void 0;
 var store = {
-  'big-tech-company': 'BIG COMPANY'
+  'big-tech-company': String('BIG COMPANY'),
+  'hiring-stage-number': Number(0),
+  'hiring-in-progress': Boolean(false),
+  'hiring-stage-success': Boolean(false),
+  'stage': String('pregame')
 };
 
 var set = function set(prop, value) {
@@ -103253,7 +103360,7 @@ var cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
 exports.cvTexture = cvTexture;
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-},{"../constants/pixi-scales.js":584,"./utils.js":574}],574:[function(require,module,exports){
+},{"../constants/pixi-scales.js":585,"./utils.js":574}],574:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103268,6 +103375,10 @@ var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
+var state = _interopRequireWildcard(require("./state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -103280,10 +103391,18 @@ var screenSizeDetector = function screenSizeDetector() {
 exports.screenSizeDetector = screenSizeDetector;
 
 var isMobile = function isMobile() {
-  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE);
+  return window.screen.width < 1025 || getDevice.android() || getDevice.iOS();
 };
 
 exports.isMobile = isMobile;
+var getDevice = {
+  android: function android() {
+    return navigator.userAgent.match(/Android/i);
+  },
+  iOS: function iOS() {
+    return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+  }
+};
 var spacingUtils = {
   getRelativePoint: function getRelativePoint(val1, val2, ratio) {
     var min = Math.min(val1, val2);
@@ -103384,12 +103503,33 @@ var clamp = function clamp(val, minVal, maxVal) {
 
 exports.clamp = clamp;
 
+var getGameProgressInMonths = function getGameProgressInMonths(month) {
+  switch (state.get('stage')) {
+    case _index.STAGES.MANUAL_MEDIUM:
+      return 1;
+
+    case _index.STAGES.MANUAL_LARGE:
+      return 2;
+
+    case _index.STAGES.TRANSITION:
+      return 3;
+
+    case _index.STAGES.ML_LAB:
+      return 3;
+
+    default:
+      return 0;
+  }
+};
+
 var getDateString = function getDateString() {
   var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
   var d = new Date();
+  var gameMonth = (d.getMonth() + getGameProgressInMonths(d.getMonth())) % months.length;
+  console.log("game month is ".concat(months[gameMonth]));
   var hourString = "".concat(d.getHours() > 0 ? d.getHours() : "0".concat(d.getHours()), ":").concat(d.getMinutes() > 0 ? d.getMinutes() : "0".concat(d.getMinutes()));
-  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[d.getMonth()], " ").concat(d.getDate(), " ").concat(d.getFullYear());
+  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[gameMonth], " ").concat(d.getDate(), " ").concat(d.getFullYear());
 }; // convenience function to animate object, parameter default to not moving anywhere
 
 
@@ -103492,7 +103632,7 @@ var getPersonByColor = function getPersonByColor(color) {
   }
 };
 
-},{"../constants/index.js":578,"../game/gameSetup.js":587,"browsernizr/lib/mq":10}],575:[function(require,module,exports){
+},{"../constants/index.js":579,"../game/gameSetup.js":588,"./state":572,"browsernizr/lib/mq":10}],575:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103500,7 +103640,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  PHONE_LANDSCAPE: 'only screen and (max-width:815px)' // includes iPhoneX
+  PHONE_LANDSCAPE: 'only screen and (max-width:815px)',
+  // includes iPhoneX
+  PHONE_AND_TABLET: 'screen and (min-width: 1024px)' // includes iPad
 
 };
 exports["default"] = _default;
@@ -103535,6 +103677,7 @@ var _default = {
   VOLUME_ICON_OFF: 'VolumeIcon--off',
   ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
   HIRING_TASK_DONE: 'hiring-task-done',
+  FILE_PULSE: 'datafile-pulse',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -103556,7 +103699,7 @@ var _default = {
   INSTRUCTION_ACKED: 'instruction-acked',
   RETRY_INSTRUCTION_ACKED: 'retry-instruction-acked',
   TRANSITION_INSTRUCTION_ACKED: 'transition-instruction-acked',
-  MANUAL_STAGE_COMPLETE: 'manual-stage-complete',
+  MANUAL_STAGE_DONE: 'manual-stage-done',
   PLAY_DOOR_ANIMATION: 'play-door-animation',
   INSPECT_ALGORITHM: 'inspect-algorithm',
   DATASET_VIEW_INSPECT: 'inspect-dataset',
@@ -103586,6 +103729,25 @@ var _default = {
 exports["default"] = _default;
 
 },{}],578:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+var _default = {
+  TITLE: 'title',
+  MANUAL_SMALL: 'manual-small',
+  MANUAL_MEDIUM: 'manual-medium',
+  MANUAL_LARGE: 'manual-large',
+  TRANSITION: 'transition',
+  TRAINING: 'training',
+  ML_LAB: 'ml-lab',
+  GAME_END: 'game-end'
+};
+exports["default"] = _default;
+
+},{}],579:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103639,6 +103801,12 @@ Object.defineProperty(exports, "SCALES", {
     return _pixiScales["default"];
   }
 });
+Object.defineProperty(exports, "STAGES", {
+  enumerable: true,
+  get: function get() {
+    return _gameStages["default"];
+  }
+});
 Object.defineProperty(exports, "SOUNDS", {
   enumerable: true,
   get: function get() {
@@ -103680,13 +103848,15 @@ var _pixiContainers = _interopRequireDefault(require("./pixi-containers.js"));
 
 var _pixiScales = _interopRequireDefault(require("./pixi-scales.js"));
 
+var _gameStages = _interopRequireDefault(require("./game-stages.js"));
+
 var _sounds = require("./sounds.js");
 
 var _mlConstants = require("./mlConstants.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-},{"./breakpoints.js":575,"./classes.js":576,"./events.js":577,"./mlConstants.js":579,"./pixi-anchors.js":580,"./pixi-animations.js":581,"./pixi-colors.js":582,"./pixi-containers.js":583,"./pixi-scales.js":584,"./sounds.js":585}],579:[function(require,module,exports){
+},{"./breakpoints.js":575,"./classes.js":576,"./events.js":577,"./game-stages.js":578,"./mlConstants.js":580,"./pixi-anchors.js":581,"./pixi-animations.js":582,"./pixi-colors.js":583,"./pixi-containers.js":584,"./pixi-scales.js":585,"./sounds.js":586}],580:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103698,7 +103868,7 @@ exports.DEBUG_MODE = DEBUG_MODE;
 var SILENT = true;
 exports.SILENT = SILENT;
 
-},{}],580:[function(require,module,exports){
+},{}],581:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103723,7 +103893,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],581:[function(require,module,exports){
+},{}],582:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103739,7 +103909,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],582:[function(require,module,exports){
+},{}],583:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103752,7 +103922,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],583:[function(require,module,exports){
+},{}],584:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103765,7 +103935,7 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],584:[function(require,module,exports){
+},{}],585:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103810,26 +103980,86 @@ var _default = {
 };
 exports["default"] = _default;
 
-},{}],585:[function(require,module,exports){
+},{}],586:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.SOUND_MANIFEST = exports.SOUNDS = void 0;
-var SOUNDS_DIR = './assets/sound';
+var SOUNDS_DIR = './assets/sound'; // values should match mp3 files in the assets folder! they should also all be mp3 files
+
 var SOUNDS = {
+  BUTTON_CLICK: 'button-click',
+  NEW_MESSAGE: 'new-message',
+  WRITING_MESSAGE: 'writing-message',
   MANUAL_AMBIENT: 'manual-stage-ambient',
-  PERSON_ACCEPTED: 'person-accepted'
+  TIME_RUNNING_OUT: 'time-running-out',
+  PERSON_ACCEPTED: 'person-accepted',
+  STAGE_BEGIN: 'stage-begin',
+  STAGE_SUCCEEDED: 'stage-succeeded',
+  STAGE_FAILED: 'stage-failed',
+  TRAIN_ALGORITHM: 'train-algorithm',
+  TRAINING_UPDATE: 'training-update',
+  ML_LAB_AMBIENT: 'ml-lab-ambient'
 };
 exports.SOUNDS = SOUNDS;
 var SOUND_MANIFEST = [{
+  name: SOUNDS.TRAIN_ALGORITHM,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TRAIN_ALGORITHM, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 0.8
+}, {
+  name: SOUNDS.TRAINING_UPDATE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TRAINING_UPDATE, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 0.5
+}, {
+  name: SOUNDS.BUTTON_CLICK,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.BUTTON_CLICK, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.WRITING_MESSAGE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.WRITING_MESSAGE, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 0.3
+}, {
+  name: SOUNDS.NEW_MESSAGE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.NEW_MESSAGE, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
   name: SOUNDS.MANUAL_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.MANUAL_AMBIENT, ".mp3"),
   player: null,
   loop: true,
   playerID: null,
-  volume: 0.3
+  volume: 0.8
+}, {
+  name: SOUNDS.ML_LAB_AMBIENT,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_LAB_AMBIENT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.TIME_RUNNING_OUT,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TIME_RUNNING_OUT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 1.0
 }, {
   name: SOUNDS.PERSON_ACCEPTED,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.PERSON_ACCEPTED, ".mp3"),
@@ -103837,10 +104067,31 @@ var SOUND_MANIFEST = [{
   loop: false,
   playerID: null,
   volume: 1.0
+}, {
+  name: SOUNDS.STAGE_BEGIN,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_BEGIN, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.STAGE_FAILED,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_FAILED, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.STAGE_SUCCEEDED,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.STAGE_SUCCEEDED, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
 }];
 exports.SOUND_MANIFEST = SOUND_MANIFEST;
 
-},{}],586:[function(require,module,exports){
+},{}],587:[function(require,module,exports){
 "use strict";
 
 require("@babel/polyfill");
@@ -103883,7 +104134,7 @@ Promise.all([sound.load(), textures.loadAssets()]).then(function () {
   console.log(err);
 });
 
-},{"../../components/interface/footer/footer":538,"../../components/interface/transition/choice-button/choice-button":549,"../../components/interface/transition/replica/replica":550,"../common/textures.js":573,"../game/sound.js":590,"./gameSetup.js":587,"./stateManager.js":591,"@babel/polyfill":1,"component-loader-js":14}],587:[function(require,module,exports){
+},{"../../components/interface/footer/footer":538,"../../components/interface/transition/choice-button/choice-button":549,"../../components/interface/transition/replica/replica":550,"../common/textures.js":573,"../game/sound.js":591,"./gameSetup.js":588,"./stateManager.js":592,"@babel/polyfill":1,"component-loader-js":14}],588:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103959,10 +104210,11 @@ window.addEventListener('orientationchange', resize);
 function resize() {
   console.log('resize the screen!');
   pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
-  eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
+  pixiApp.renderer.render(pixiApp.stage);
+  eventEmitter.emit(_events["default"].RESIZE, {});
 }
 
-},{"../constants/events":577,"debounce":319,"pixi-tween":366,"pixi.js":482}],588:[function(require,module,exports){
+},{"../constants/events":577,"debounce":319,"pixi-tween":366,"pixi.js":482}],589:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104001,8 +104253,6 @@ var _dataServer = _interopRequireDefault(require("../../components/pixi/ml-stage
 var _people = _interopRequireDefault(require("../../components/pixi/ml-stage/people.js"));
 
 var _dataModule = require("../machine-learning/dataModule.js");
-
-var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -104059,11 +104309,6 @@ function () {
     this._setupTweens();
 
     this.startAnimation();
-    this.task = new _uiTask["default"]({
-      showTimer: false,
-      placeLeft: true,
-      hires: txt.mlLabStage.narration[txt.mlLabStage.narration.length - 1].delay
-    });
     this.acceptedCount = 0;
     this.rejectedCount = 0;
   }
@@ -104261,7 +104506,7 @@ function () {
 
 exports["default"] = MlLabAnimator;
 
-},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":554,"../../components/interface/ui-task/ui-task":555,"../../components/pixi/manual-stage/door":559,"../../components/pixi/manual-stage/floor":560,"../../components/pixi/ml-stage/conveyor-belt":563,"../../components/pixi/ml-stage/data-server.js":564,"../../components/pixi/ml-stage/machine":565,"../../components/pixi/ml-stage/people.js":566,"../../components/pixi/ml-stage/resume-list":568,"../../components/pixi/ml-stage/scan-ray.js":570,"../common/utils.js":574,"../constants/events.js":577,"../machine-learning/dataModule.js":592,"./gameSetup":587,"./gameSetup.js":587}],589:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../../components/interface/ml/dataset-view/dataset-view":540,"../../components/interface/ui-resume/ui-resume":554,"../../components/pixi/manual-stage/door":559,"../../components/pixi/manual-stage/floor":560,"../../components/pixi/ml-stage/conveyor-belt":563,"../../components/pixi/ml-stage/data-server.js":564,"../../components/pixi/ml-stage/machine":565,"../../components/pixi/ml-stage/people.js":566,"../../components/pixi/ml-stage/resume-list":568,"../../components/pixi/ml-stage/scan-ray.js":570,"../common/utils.js":574,"../constants/events.js":577,"../machine-learning/dataModule.js":593,"./gameSetup":588,"./gameSetup.js":588}],590:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104269,9 +104514,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
-var _events = _interopRequireDefault(require("../constants/events"));
-
-var _classes = _interopRequireDefault(require("../constants/classes"));
+var _constants = require("../constants");
 
 var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-textbox/ui-textbox"));
 
@@ -104286,6 +104529,12 @@ var _mlLabAnimator = _interopRequireDefault(require("./mlLabAnimator.js"));
 var _gameSetup = require("./gameSetup.js");
 
 var _dataModule = require("../machine-learning/dataModule");
+
+var sound = _interopRequireWildcard(require("./sound.js"));
+
+var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -104309,6 +104558,12 @@ function () {
     this.newsTimeOffset = 6;
     this.isActive = false;
     this.scheduleTimelineUpdate = this.scheduleTimelineUpdate.bind(this);
+    this.populateHiringGoals();
+    this.task = new _uiTask["default"]({
+      showTimer: false,
+      placeLeft: true,
+      hires: this.ML_TIMELINE[this.ML_TIMELINE.length - 1].delay
+    });
 
     this._addEventListeners();
 
@@ -104316,6 +104571,26 @@ function () {
   }
 
   _createClass(MlLabNarrator, [{
+    key: "populateHiringGoals",
+    value: function populateHiringGoals() {
+      // You can use this to debug so that ML lab stage progresses faster
+      var debugMode = true;
+      var hiringCount = 0;
+
+      if (debugMode) {
+        for (var i = 0; i < this.ML_TIMELINE.length; i++) {
+          this.ML_TIMELINE[i].delay = ++hiringCount;
+        }
+      } else {
+        var stageGoal = 3;
+
+        for (var _i = 0; _i < this.ML_TIMELINE.length; _i++) {
+          hiringCount += stageGoal;
+          this.ML_TIMELINE[_i].delay = hiringCount;
+        }
+      }
+    }
+  }, {
     key: "start",
     value: function start() {
       this.isActive = true; // DISPLAY THE FIRST NEWSFEED that happens before the first investor message
@@ -104323,6 +104598,7 @@ function () {
       this.newsFeed.updateNewsFeed({
         news: this.ML_TIMELINE[0].news
       });
+      sound.schedule(_constants.SOUNDS.ML_LAB_AMBIENT, 1);
       if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
   }, {
@@ -104364,9 +104640,11 @@ function () {
       this.animator.pauseAnimation();
       this.newsFeed.stop();
       this.newsFeed.hide();
+      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT, false);
+      sound.play(_constants.SOUNDS.NEW_MESSAGE);
       new _uiTextbox["default"]({
         show: true,
-        type: _classes["default"].ML,
+        type: _constants.CLASSES.ML,
         content: msg.messageFromVc,
         responses: msg.responses,
         callback: callback
@@ -104392,7 +104670,10 @@ function () {
         animator.datasetView.swapToStatistics();
         animator.datasetView.show();
         return;
-      }
+      } // if we are not inspecting anything, continue playing the background sound
+
+
+      sound.play(_constants.SOUNDS.ML_LAB_AMBIENT);
 
       if (msg.isLastMessage) {
         _stateManager.gameFSM.nextStage();
@@ -104420,7 +104701,7 @@ function () {
       var callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
       new _uiTextbox["default"]({
         show: true,
-        type: _classes["default"].ML,
+        type: _constants.CLASSES.ML,
         content: this.ML_TIMELINE[0].inspectQuestion,
         responses: this.ML_TIMELINE[0].inspectResponses,
         callback: callback,
@@ -104440,24 +104721,25 @@ function () {
   }, {
     key: "_addEventListeners",
     value: function _addEventListeners() {
-      _gameSetup.eventEmitter.on(_events["default"].EMAIL_REPLY, this._handleEmailReply.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
 
-      _gameSetup.eventEmitter.on(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
-      _gameSetup.eventEmitter.on(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      _gameSetup.eventEmitter.off(_events["default"].EMAIL_REPLY, this._handleEmailReply.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
 
-      _gameSetup.eventEmitter.off(_events["default"].RESUME_TIMELINE, this.scheduleTimelineUpdate);
+      _gameSetup.eventEmitter.off(_constants.EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
 
-      _gameSetup.eventEmitter.off(_events["default"].ACCEPTED, this._triggerTimelineUpdate.bind(this));
+      _gameSetup.eventEmitter.off(_constants.EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
     }
   }, {
     key: "destroy",
     value: function destroy() {
+      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT);
       this.stop();
       this.animator.destroy();
 
@@ -104472,19 +104754,20 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-textbox/ui-textbox":556,"../constants/classes":576,"../constants/events":577,"../machine-learning/dataModule":592,"./gameSetup.js":587,"./mlLabAnimator.js":588,"./stateManager.js":591}],590:[function(require,module,exports){
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-task/ui-task":555,"../../components/interface/ui-textbox/ui-textbox":556,"../constants":579,"../machine-learning/dataModule":593,"./gameSetup.js":588,"./mlLabAnimator.js":589,"./sound.js":591,"./stateManager.js":592}],591:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.loadSound = exports.play = exports.fadeOut = exports.stop = exports.toggleVolume = exports.load = exports.init = void 0;
+exports.loadSound = exports.play = exports.schedule = exports.fadeOut = exports.stop = exports.toggleVolume = exports.load = exports.init = void 0;
 
 var _howler = require("howler");
 
 var _constants = require("../constants");
 
 var soundMuted = false;
+var soundTimeouts = {};
 
 var init = function init() {
   window.addEventListener('click', resumeAudioContext);
@@ -104523,6 +104806,11 @@ var resumeAudioContext = function resumeAudioContext() {
 };
 
 var stop = function stop(name) {
+  if (soundTimeouts[name]) {
+    console.log("clear timeout for sound ".concat(name));
+    clearTimeout(soundTimeouts[name]);
+  }
+
   var _findSoundByName = findSoundByName(name),
       player = _findSoundByName.player,
       playerID = _findSoundByName.playerID;
@@ -104535,23 +104823,38 @@ var stop = function stop(name) {
 exports.stop = stop;
 
 var fadeOut = function fadeOut(name) {
-  var _findSoundByName2 = findSoundByName(name),
-      player = _findSoundByName2.player,
-      _findSoundByName2$vol = _findSoundByName2.volume,
-      volume = _findSoundByName2$vol === void 0 ? 1.0 : _findSoundByName2$vol,
-      playerID = _findSoundByName2.playerID;
+  var resetPlayback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+  var sound = findSoundByName(name);
+  if (!sound) return;
+  var player = sound.player,
+      _sound$volume = sound.volume,
+      volume = _sound$volume === void 0 ? 1.0 : _sound$volume,
+      playerID = sound.playerID;
 
   if (player && player.playing(playerID)) {
     player.fade(volume, 0.0, 1000, playerID);
     setTimeout(function () {
-      return player.stop(playerID);
+      console.log("".concat(resetPlayback ? 'stop' : 'pause', " the player"));
+      resetPlayback ? player.stop(playerID) : player.pause(playerID);
+      console.log("play ".concat(name, " at volume ").concat(sound.volume));
+      player.volume(sound.volume, playerID);
     }, 1000);
   }
 };
 
 exports.fadeOut = fadeOut;
 
+var schedule = function schedule(name, waitForSeconds) {
+  console.log("schedule a playback for sound ".concat(name, " in ").concat(waitForSeconds, " seconds"));
+  soundTimeouts[name] = setTimeout(function () {
+    return play(name);
+  }, waitForSeconds * 1000);
+};
+
+exports.schedule = schedule;
+
 var play = function play(name) {
+  console.log("play the sound by name ".concat(name));
   var sound = findSoundByName(name);
   var player = sound.player;
 
@@ -104591,7 +104894,7 @@ var findSoundByName = function findSoundByName(name) {
   });
 };
 
-},{"../constants":578,"howler":333}],591:[function(require,module,exports){
+},{"../constants":579,"howler":333}],592:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -104615,9 +104918,11 @@ var _transitionOverlay = _interopRequireDefault(require("../../components/interf
 
 var _trainingOverlay = _interopRequireDefault(require("../../components/interface/training-stage/training-overlay/training-overlay"));
 
-var _events = _interopRequireDefault(require("../constants/events"));
+var _constants = require("../constants");
 
 var _endgameOverlay = _interopRequireDefault(require("../../components/interface/ml/endgame-overlay/endgame-overlay"));
+
+var state = _interopRequireWildcard(require("../common/state"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -104640,11 +104945,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage'); // this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        // this.transition('gameBreakdown');
       }
     },
 
@@ -104656,6 +104961,7 @@ var gameFSM = new machina.Fsm({
       _onEnter: function _onEnter() {
         var _this = this;
 
+        state.set('stage', _constants.STAGES.TITLE);
         titlePageUI = new _uiTitle["default"]({
           headerText: txt.titleStage.header,
           content: txt.titleStage.instruction,
@@ -104663,7 +104969,7 @@ var gameFSM = new machina.Fsm({
           show: true
         });
 
-        _gameSetup.eventEmitter.on(_events["default"].TITLE_STAGE_COMPLETED, function () {
+        _gameSetup.eventEmitter.on(_constants.EVENTS.TITLE_STAGE_COMPLETED, function () {
           _this.handle('nextStage');
         });
 
@@ -104682,6 +104988,7 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     smallOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_SMALL);
         currentStage = 0;
         new _uiTextbox["default"]({
           subject: txt.smallOfficeStage.subject,
@@ -104707,7 +105014,9 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     mediumOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_MEDIUM);
         currentStage = 1;
+        state.set('hiring-stage-number', currentStage);
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mediumOfficeStage.subject,
@@ -104721,6 +105030,7 @@ var gameFSM = new machina.Fsm({
           'event_category': 'progress',
           'event_label': 'states'
         });
+        state.set('hiring-stage-success', false);
       },
       nextStage: 'largeOfficeStage',
       _onExit: function _onExit() {}
@@ -104732,11 +105042,17 @@ var gameFSM = new machina.Fsm({
     // /////////////////
     largeOfficeStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.MANUAL_LARGE);
         currentStage = 2;
+        state.set('hiring-stage-number', currentStage);
+        var _txt$largeOfficeStage = txt.largeOfficeStage,
+            successMessage = _txt$largeOfficeStage.messageFromVc,
+            failMessage = _txt$largeOfficeStage.previousStageFailed;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.largeOfficeStage.subject,
-          content: txt.largeOfficeStage.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.largeOfficeStage.responses,
           show: true,
           overlay: true,
@@ -104746,6 +105062,7 @@ var gameFSM = new machina.Fsm({
           'event_category': 'progress',
           'event_label': 'states'
         });
+        state.set('hiring-stage-success', false);
       },
       nextStage: 'mlTransitionStage',
       _onExit: function _onExit() {}
@@ -104753,11 +105070,16 @@ var gameFSM = new machina.Fsm({
     mlTransitionStage: {
       _onEnter: function _onEnter() {
         if (office) office["delete"]();
+        state.set('stage', _constants.STAGES.TRANSITION);
         currentStage = 3;
+        var _txt$mlTransition = txt.mlTransition,
+            successMessage = _txt$mlTransition.messageFromVc,
+            failMessage = _txt$mlTransition.previousStageFailed;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mlTransition.subject,
-          content: txt.mlTransition.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.mlTransition.responses,
           show: true,
           overlay: true,
@@ -104765,7 +105087,7 @@ var gameFSM = new machina.Fsm({
           displayScore: false
         });
 
-        _gameSetup.eventEmitter.on(_events["default"].TRANSITION_INSTRUCTION_ACKED, function () {
+        _gameSetup.eventEmitter.on(_constants.EVENTS.TRANSITION_INSTRUCTION_ACKED, function () {
           transitionOverlay = new _transitionOverlay["default"]({
             show: true
           });
@@ -104783,6 +105105,7 @@ var gameFSM = new machina.Fsm({
     },
     mlTrainingStage: {
       _onEnter: function _onEnter() {
+        state.set('stage', _constants.STAGES.TRAINING);
         if (office) office["delete"]();
         trainingStageOverlay = new _trainingOverlay["default"]();
         gtag('event', 'enter-training-stage', {
@@ -104798,6 +105121,7 @@ var gameFSM = new machina.Fsm({
     mlLabStage: {
       _onEnter: function _onEnter() {
         if (office) office["delete"]();
+        state.set('stage', _constants.STAGES.ML_LAB);
         mlLab = new _mlLabNarrator["default"]();
         gtag('event', 'enter-mllab', {
           'event_category': 'progress',
@@ -104813,6 +105137,7 @@ var gameFSM = new machina.Fsm({
           'event_category': 'progress',
           'event_label': 'states'
         });
+        state.set('stage', _constants.STAGES.GAME_END);
         new _endgameOverlay["default"]();
         if (mlLab) mlLab.destroy();
       }
@@ -104830,7 +105155,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title":557,"../../components/pixi/manual-stage/office.js":561,"../constants/events":577,"./gameSetup.js":587,"./mlLabNarrator":589,"machina":338}],592:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title":557,"../../components/pixi/manual-stage/office.js":561,"../common/state":572,"../constants":579,"./gameSetup.js":588,"./mlLabNarrator":590,"machina":338}],593:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105056,7 +105381,7 @@ function () {
 var dataModule = new DataModule();
 exports.dataModule = dataModule;
 
-},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting":593,"./modelTraining.js":594}],593:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":580,"./modelTesting":594,"./modelTraining.js":595}],594:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105217,7 +105542,7 @@ var round = function round(num) {
   return Math.round(num * 100) / 100;
 };
 
-},{"../../assets/text/badCvTestData.json":533,"../../assets/text/cvCollection.js":534,"../../assets/text/equalCvData.json":536,"../../assets/text/goodCvTestData.json":537,"../constants/mlConstants.js":579,"./modelTraining.js":594}],594:[function(require,module,exports){
+},{"../../assets/text/badCvTestData.json":533,"../../assets/text/cvCollection.js":534,"../../assets/text/equalCvData.json":536,"../../assets/text/goodCvTestData.json":537,"../constants/mlConstants.js":580,"./modelTraining.js":595}],595:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105444,7 +105769,7 @@ var _shuffle = function _shuffle(b) {
   return a;
 };
 
-},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":579,"./modelTesting.js":593,"ml-cart":344}],595:[function(require,module,exports){
+},{"../../assets/text/cvCollection.js":534,"../constants/mlConstants.js":580,"./modelTesting.js":594,"ml-cart":344}],596:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105541,6 +105866,6 @@ function () {
 var statistics = new Statistics();
 exports.statistics = statistics;
 
-},{"../../assets/text/cvCollection.js":534,"./dataModule.js":592}]},{},[586])
+},{"../../assets/text/cvCollection.js":534,"./dataModule.js":593}]},{},[587])
 
 //# sourceMappingURL=bundle-game.js.map

@@ -29,13 +29,13 @@ export default class {
     }
 
     _addEventListeners() {
-        this.inspectButton.interactive = true;
-        this.inspectButton.buttonMode = true;
-        this.inspectButton.on('click', this._inspectButtonClickHandler);
+        this.inspectButton.interactive = false;
+        this.inspectButton.buttonMode = false;
+        // this.inspectButton.on('click', this._inspectButtonClickHandler);
     }
 
     removeEventListeners() {
-        this.inspectButton.off('click', this._inspectButtonClickHandler);
+        // this.inspectButton.off('click', this._inspectButtonClickHandler);
     }
 
     _inspectButtonClickHandler() {

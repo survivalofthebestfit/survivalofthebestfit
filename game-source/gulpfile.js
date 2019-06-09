@@ -82,7 +82,6 @@ function css() {
 // JS, browserify, babel, etc...
 function compileJs(done) {
     let bundler = browserify('public/game/controllers/game/gameEntry.js', {debug: true}).transform(babel);
-    console.log('Bundle starting');
     bundler.bundle()
         .on('error', function(err) {
             console.error(err); 
@@ -93,7 +92,7 @@ function compileJs(done) {
         .pipe(sourcemaps.init({loadMaps: true}))
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('../dist/game/js'));
-    console.log('Bundle done');
+    
     done();
 }
 
