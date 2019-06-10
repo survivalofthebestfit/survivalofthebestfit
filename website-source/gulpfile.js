@@ -25,7 +25,7 @@ const banner = ['/*!\n',
 
 // Pug
 function pugCompile() {
-    return gulp.src('./views/pages/*.pug') 
+    return gulp.src('./views/*.pug') 
       .pipe(pug())
       .pipe(gulp.dest('../dist/')); 
 };
@@ -170,9 +170,9 @@ function watchFiles() {
     console.log(`File ${path} was changed`);
   });
 
-  // gulp.watch(["./**/*.html"], gulp.series(copyHtml, browserSyncReload)).on('change', function(path, stats) {
-  //   console.log(`File ${path} was changed`);
-  // });
+  gulp.watch(["./**/*.html"], gulp.series(copyHtml, browserSyncReload)).on('change', function(path, stats) {
+    console.log(`File ${path} was changed`);
+  });
 
 }
 
