@@ -92,8 +92,8 @@ export default class MlLabAnimator {
         const firstPerson = this.people.getFirstPerson();
         let status = dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected';
 
-        // make sure to always reject the first person
-        if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+        // make sure to always reject the person to be inspected
+        if (firstPerson.id == this.people.toInspectId) {
             status = 'rejected';
         }
 
