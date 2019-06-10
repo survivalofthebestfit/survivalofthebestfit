@@ -40,12 +40,12 @@ export default class {
     }
 
     _recomputeParams() {
-        const positionOfRay = 0.5;
-        const repetition = 1/positionOfRay;
+        const positionOfRay = 0.5 - 0.175;
+        const repetition = Math.ceil(1/positionOfRay);
         this.scale = SCALES.RESUME[screenSizeDetector()];
         this.resumeWidth = cvTexture.width * this.scale;
         const halfOfBeltWidth = uv2px(positionOfRay, 'w');
-        const halfOfNumOfResumes = Math.floor( halfOfBeltWidth / (repetition * this.resumeWidth));
+        const halfOfNumOfResumes = Math.floor( halfOfBeltWidth / (2 * this.resumeWidth));
         this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes-1);
         this.numOfResumes = halfOfNumOfResumes * repetition;
         this.resumeContainer.x = -1 * this.resumeWidth/repetition;

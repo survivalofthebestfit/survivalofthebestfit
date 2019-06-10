@@ -12,16 +12,16 @@ script(src='../scripts-website.min.js')
 				p As a recruiter, which of these attributes did you value the most?
 
 				#buttons
-					.button(onclick="select()")
+					div(class="button button__choice" onclick="select()")
 						p Education
 
-					.button(onclick="select()" style="margin-left: 1%")
+					div(class="button button__choice" onclick="select()")
 						p Experience
 
-					.button(onclick="select()" style="margin-left: 1%" )
+					div(class="button button__choice" onclick="select()")
 						p Ambition
 
-					.button(onclick="select()" style="margin-left: 1%; clear: right")
+					div(class="button button__choice" onclick="select()")
 						p Skills
 
 
@@ -34,7 +34,7 @@ script(src='../scripts-website.min.js')
 
 				p(style="float: left") Our data says you valued [ATTRIBUTE] the most - intentionally or unintentionally. Hiring is subjective, and can also often invoke biases and stereotypes; something many people are aware of. Maybe machines can fix that? <br>
 
-				.button(onClick="next1()" style="height: 1.2rem; width: 8rem; color: white; background-color: black;")
+				div(class="button button__proceed" onClick="next1()")
 					p(style="font-size: 1.2rem") NEXT
 
 			
@@ -50,7 +50,7 @@ script(src='../scripts-website.min.js')
 
 				p What if you ask your algorithm to disregard looking at these differentiators? <br>
 
-				.button(onClick="next2()" style="height: 1.2rem; width: 8rem; color: white; background-color: black;")
+				div(class="button button__proceed" onClick="next2()")
 					p(style="font-size: 1.2rem; color: white") NEXT
 
 			
@@ -66,5 +66,5 @@ script(src='../scripts-website.min.js')
 
 				p For more information, visit our resources section! <br>
 
-				.button(style="height: 1.2rem; width: 8.5rem; color: white; background-color: black;")
+				div(class="button button__proceed")
 					a(href='../resources/index.html') GO TO WEBSITE

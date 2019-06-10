@@ -1,12 +1,13 @@
 import $ from 'jquery';
 import {TweenLite} from 'gsap/TweenMax';
-import CLASSES from '~/public/game/controllers/constants/classes';
-import EVENTS from '~/public/game/controllers/constants/events';
+import {CLASSES, SOUNDS, EVENTS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import PersonCard from '~/public/game/components/interface/ml/person-card/person-card';
 import DatasetResumePreview from '~/public/game/components/interface/ml/dataset-resume-preview/dataset-resume-preview';
+import StatisticsCard from '~/public/game/components/interface/ml/statistics-card/statistics-card';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {waitForSeconds} from '~/public/game/controllers/common/utils.js';
+import * as sound from '~/public/game/controllers/game/sound.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -14,6 +15,8 @@ export default class extends UIBase {
         this.options = options;
         this.$el = $('#dataset-overlay');
         this.$resume = $('#dataset-view-resume');
+        this.$cvInspector = $('#CvInspector');
+        this.$statsInspector = $('#StatsInspector');
         this.$xIcon = this.$el.find('.js-x-icon');
         this.$xIcon.addClass(CLASSES.IS_INACTIVE);
         this.$button = this.$el.find('.ReplyButton');
@@ -31,7 +34,19 @@ export default class extends UIBase {
         }
     }
 
+    swapToStatistics() {
+        this.$cvInspector.addClass(CLASSES.IS_INACTIVE);
+        this.$el.find('.Email').addClass(CLASSES.IS_INACTIVE);
+        new StatisticsCard(true);
+        new StatisticsCard(false);
+        this.$button = this.$el.find('.SecondReplyButton');
+        this.$el.find('#TaskDescription').html('Task: How did the talent pool and decisions change while switching to automation?');
+        this.$statsInspector.removeClass(CLASSES.IS_INACTIVE);
+        this._showNewEmailNotification();
+    }
+
     _buttonHandler() {
+        sound.play(SOUNDS.BUTTON_CLICK);
         this.$button.addClass(CLASSES.BUTTON_CLICKED);
         eventEmitter.emit(EVENTS.EMAIL_REPLY, {});
     }
@@ -79,13 +94,15 @@ export default class extends UIBase {
 
     _showNewEmailNotification() {
         if (this.$button.hasClass(CLASSES.IS_INACTIVE)) {
-            waitForSeconds(5).then(() => {
+            waitForSeconds(3).then(() => {
+                sound.play(SOUNDS.NEW_MESSAGE);
                 this.$button.removeClass(CLASSES.IS_INACTIVE);
-            })
+            });
         }
     }
 
     _handlePersonCardClick(event) {
+        sound.play(SOUNDS.BUTTON_CLICK);
         let personID;
         if (event.target.matches('.PersonCard.is-parent')) {
             personID = $(event.target).attr('data-id');

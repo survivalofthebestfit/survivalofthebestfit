@@ -13,7 +13,7 @@ class DataModule {
         this.mlRejected = [];
         this.lastIndex = 0;
         this.groundTruth = [];
-        this.acceptance = [];
+        this.acceptanceArrayByAlgo = [];
         this.colorArr = [];
         this.averageScore = [0, 0, 0, 0];
         this.skillFeatureSize = cvCollection.cvFeatures.length;
@@ -41,14 +41,13 @@ class DataModule {
         let averageScore = [0,0,0,0]
         let selectedIndexArray = [];
 
-        //this is for an array of all selected indices
+        // this is for an array of all selected indices
         if (options.selectedIndexArray && options.selectedIndexArray.length > 0) {
             selectedIndexArray = options.selectedIndexArray;
-        }
-    
-        //this is for an array of start and end range index
+        } 
+        // this is for an array of start and end range index
         else if (options.indexRange && options.indexRange.length == 2) {
-            for(let i = options.indexRange[0]; i <= options.indexRange[1]; i++){
+            for (let i = options.indexRange[0]; i <= options.indexRange[1]; i++) {
                 selectedIndexArray.push(i);
             }
         }
@@ -70,7 +69,6 @@ class DataModule {
     }
 
     _calculateScore() {
-
         let hiredAverage = this.getAverageScore({selectedIndexArray: this.accepted});
         let candidateAverage = this.getAverageScore({indexRange: [0, this.lastIndex]});
 
@@ -109,7 +107,7 @@ class DataModule {
         this.clf = buildFakeDataModel(this.featurePref);
         
         if (testClf(this.clf, this.featurePref)) {
-            gtag('event', 'test-userfeature-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
+            gtag('event', 'userfeature-model-successful', {'event_category': 'ml', 'event_label': 'model-training'});
             return;
         }
 
@@ -118,7 +116,7 @@ class DataModule {
         this.clf = buildFakeDataModel();
         
         if (testClf(this.clf, this.featurePref)) {
-            gtag('event', 'test-fullfake-model-successful', {'event_category': 'default', 'event_label': 'model-training'});
+            gtag('event', 'fullfake-model-successful', {'event_category': 'ml', 'event_label': 'model-training'});
             return;
         }
     }
@@ -131,10 +129,10 @@ class DataModule {
 
         // measure ongoing performance and bias
         this.groundTruth.push(inputResume.empl);
-        this.acceptance.push(result);
+        this.acceptanceArrayByAlgo.push(result);
         this.colorArr.push(inputResume.color);
-        if (this.acceptance.length % 10 == 0) {
-            reportMetrics(this.acceptance, this.groundTruth, false, this.colorArr);
+        if (this.acceptanceArrayByAlgo.length % 10 == 0) {
+            reportMetrics(this.acceptanceArrayByAlgo, this.groundTruth, false, this.colorArr);
         }
         
         return result;
@@ -152,16 +150,20 @@ class DataModule {
         return rejected;
     }
 
+    getAcceptedPeople() {
+        return this.accepted;
+    }
+
+    getAcceptanceByTheAlgo() {
+        return this.acceptanceArrayByAlgo;
+    }
+
     uploadUserDecisions() {
         // this.accepted has the indices of accepted candidates
         // _getRejectedPeople() returns indices of rejected people
         // BE CAREFUL! IF DATASET IS REGENERATED ON THE PYTHON SIDE, THE INDICES STILL REFER TO THE OLD DB
         // function best called in the beginning of training
         return;
-    }
-
-    getNameForPersonId(personId) {
-        return cvCollection.cvData[personId].name;
     }
 }
 

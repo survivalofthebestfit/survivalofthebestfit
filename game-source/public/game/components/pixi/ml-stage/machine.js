@@ -17,7 +17,7 @@ export default class {
     draw() {
         this.scale = SCALES.MACHINE[screenSizeDetector()];
         this.machine.scale.set(this.scale);
-        this.machine.x = space.screenCenterX(this.machine.width) - uv2px(0.175, 'h');
+        this.machine.x = space.screenCenterX(this.machine.width) - uv2px(0.175, 'w');
         const serverHeight = SPRITES.dataServerRejected.height / SPRITES.dataServerRejected.scale.x * SCALES.DATA_SERVER[screenSizeDetector()];
         this.machine.y = uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - serverHeight*1.1;
         this.inspectButton.scale.set(this.scale);

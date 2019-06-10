@@ -19,7 +19,7 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill venturesto build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -195,12 +195,12 @@ const english = {
             },
             {
                 launchCVInspector: true,
-                messageFromVc: 'I just got a complaint from a past applicant named {name} asking why they were rejected. Can you look into it?',
+                messageFromVc: 'I just got a complaint from a past applicant named Elvan Yang asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                inspectQuestion: "So why did you reject the candidate?",
+                inspectQuestion: "So why did you reject Elvan?",
                 inspectResponses: [
                     "I have no idea.",
                     "Maybe because Elvan is blue?"
@@ -236,6 +236,11 @@ const english = {
                     parent: 'scanray',
                     text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within gendered stereotypes and historical biases.',
                 },
+                inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
+                inspectResponses: [
+                    'I hired mostly yellow people in the past and the machine just copies it.',
+                    'The machine learnt that yellow people are better because of the past hires.',
+                ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
                     'The justice: Yellow privilege in the tech industry',

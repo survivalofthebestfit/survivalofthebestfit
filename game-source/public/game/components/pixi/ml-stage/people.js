@@ -41,12 +41,12 @@ export default class {
     _addNewPerson() {
         let currentX = (this.mlLastIndex-this.mlStartIndex);
 
-        let thisColor = cvCollection.cvData[this.mlLastIndex].color;
+        let thisColor = cvCollection.cvDataEqual[this.mlLastIndex].color;
         if (!this.toInspectId && thisColor == "blue") {
             
             // the candidate to inspect will be the first blue candidate in ML line
                 // overwrite that person's CV data with the special rejected perfect blue candidate's cv
-                cvCollection.cvData[this.mlLastIndex] = cvCollection.specialCandidate;
+                cvCollection.cvDataEqual[this.mlLastIndex] = cvCollection.specialCandidate;
                 this.toInspectId = this.mlLastIndex;
                 console.log("special" + this.toInspectId);
         }
@@ -54,7 +54,7 @@ export default class {
         const person = new MLPerson({
             parent: this.container,
             x: currentX*this.personXoffset,
-            personData: cvCollection.cvData[this.mlLastIndex],
+            personData: cvCollection.cvDataEqual[this.mlLastIndex],
             id: this.mlLastIndex,
         });
 
@@ -107,8 +107,8 @@ export default class {
         //overwrite that person's CV data with the special rejected perfect blue candidate's cv
         // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
 
-        let resultId = this.mlLabRejected.find( personId => cvCollection.cvData[personId].color == "blue" ) || 10;
-        cvCollection.cvData[resultId] = cvCollection.specialCandidate;
+        let resultId = this.mlLabRejected.find( personId => cvCollection.cvDataEqual[personId].color == "blue" ) || 10;
+        cvCollection.cvDataEqual[resultId] = cvCollection.specialCandidate;
 
         return resultId;
     }

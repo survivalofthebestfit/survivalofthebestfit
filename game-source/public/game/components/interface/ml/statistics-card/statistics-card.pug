@@ -1,0 +1,19 @@
+mixin stats(title)
+    div.StatisticsCard&attributes(attributes)
+        h1.StatisticsCard-title= title
+        div.HiredMakeup
+            h3.stats-category__name Accepted Yellow/Blue Makeup
+            div.stats-category__skillbar
+                div.stats-category__progress
+        div.RejectedMakeup
+            h3.stats-category__name Rejected Yellow/Blue Makeup
+            div.stats-category__skillbar
+                div.stats-category__progress
+        div.AverageYellow
+            h3.stats-category__name Average Yellow Person Performance
+            div.stats-category__skillbar
+                div.stats-category__progress
+        div.AverageBlue
+            h3.stats-category__name Average Blue Person Performance
+            div.stats-category__skillbar
+                div.stats-category__progress

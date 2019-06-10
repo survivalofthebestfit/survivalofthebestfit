@@ -82,13 +82,6 @@ export default class MlLabNarrator {
         if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
         let callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
-
-        if (msg.launchCVInspector) {
-
-            let toInspectName = dataModule.getNameForPersonId(this.animator.getToInspectId());
-            msg.messageFromVc = msg.messageFromVc.replace('{name}', "<u>" + toInspectName + "</u>");
-            this.ML_TIMELINE[0].messageFromVc = msg.messageFromVc;
-        };
         
         this.animator.pauseAnimation();
         this.newsFeed.stop();
@@ -111,7 +104,6 @@ export default class MlLabNarrator {
     }
 
     textAckCallback(msg, animator, newsFeed) {
-
         // not starting animation when we need to launch inspector
         // make sure we restart it elsewhere
         if (msg.launchCVInspector) {
@@ -121,23 +113,15 @@ export default class MlLabNarrator {
 
 
         if (msg.launchMachineInspector) {
-            // TODO - link the second dataset inspector view
-            // this.animator.datasetview.show();
+            animator.datasetView.swapToStatistics();
+            animator.datasetView.show();
             return;
         }
         // if we are not inspecting anything, continue playing the background sound
         sound.play(SOUNDS.ML_LAB_AMBIENT);
         
         if (msg.isLastMessage) {
-            // whenever you want to log an event in Google Analytics, just call one of these functions with appropriate names
-            gtag('event', 'test-game-completed', {
-                'event_category': 'default',
-                'event_label': 'how-far-do-ppl-get',
-            });
-
-            
             gameFSM.nextStage();
-
             return;
         } 
 
@@ -150,11 +134,13 @@ export default class MlLabNarrator {
     // update schedule: pop the first timer value from the array
     updateTimeline() {
         this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
+        console.log(this.ML_TIMELINE[0])
     }
 
     _handleEmailReply() {
         this.animator.datasetView.hide();
         this.ML_TIMELINE[0].launchCVInspector = false;
+        this.ML_TIMELINE[0].launchMachineInspector = false;
         let callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
 
         new TextboxUI({
@@ -172,6 +158,7 @@ export default class MlLabNarrator {
         if (count === this.ML_TIMELINE[0].delay) {
             this.scheduleTimelineUpdate();
         }
+        console.log(count);
     }
 
     _addEventListeners() {

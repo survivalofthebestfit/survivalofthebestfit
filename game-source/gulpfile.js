@@ -23,6 +23,7 @@ function browserSync(done) {
         },
         port: 4000,
         open: false,
+        watch: true,
     });
     done();
 }
@@ -30,7 +31,7 @@ function browserSync(done) {
 // BrowserSync reload
 function browserSyncReload(done) {
     console.log('-> reloading browser...');
-    browsersync.reload();
+    setTimeout(browsersync.reload, 5000);
     done();
 }   
 

@@ -3,10 +3,10 @@ include ../../ui-overlay/ui-overlay.pug
   div.DatasetOverlay__x-icon.js-x-icon
   div.DatasetOverlay__header
     h1.DatasetOverlay__title Dataset Inspector
-  div.ViewLayout
+    h3#TaskDescription Task: Look for for Elvan Yang! Why was she rejected?
+  div.ViewLayout#CvInspector
     div.ViewLayout-item
       h3.DatasetGrid-title Accepted Candidates
-      //- h3.DatasetGrid-scroller Scroll for more
       div.DatasetGrid#dataset-accepted
     div.ViewLayout-item.CVPreview
       include ../../ui-resume/ui-resume.pug
@@ -19,8 +19,14 @@ include ../../ui-overlay/ui-overlay.pug
           div.PersonCard-item.PersonCard-cv.has-parent
           p.PersonCard-item.PersonCard-name.has-parent
       div.Email.ReplyButton
-        p.Email_Notificaiton New Email
-        p.Email_Sender Peter Hoffman
-        p.Email_Subject Re: Some rejected candidate
-        p.Email_Content I just got a complaint from...
-
+        p.Email_Notificaiton Respond to Email
+        p.Email_Subject Re: Candidate complaint
+  div.ViewLayout#StatsInspector.is-inactive
+    include ../statistics-card/statistics-card.pug
+    div.ViewLayout-item
+        +stats("Your Hiring Decisions")(id="statistics-card-manual")
+    div.ViewLayout-item
+      +stats("Algorithm's Hiring Decisions")(id="statistics-card-mllab")
+    div.Email.ReplyButton.SecondReplyButton
+        p.Email_Notificaiton Respond to Email
+        p.Email_Subject Re: Why are we disriminating?

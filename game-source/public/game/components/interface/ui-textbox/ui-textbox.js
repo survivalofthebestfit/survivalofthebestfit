@@ -39,7 +39,7 @@ export default class extends UIBase {
 
     setContent() {
         if (!this.overlay) this.$el.addClass(CLASSES.IS_TRANSPARENT);
-        if (this.$dateEl && state.get('stage' !== STAGES.ML_LAB)) {
+        if (this.$dateEl && state.get('stage') !== STAGES.ML_LAB) {
             this.$dateEl.removeClass(CLASSES.IS_INACTIVE);
             this.$dateEl.html(getDateString());
         }

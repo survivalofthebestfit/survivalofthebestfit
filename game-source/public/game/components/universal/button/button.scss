@@ -7,6 +7,9 @@
   
   font-size: font(base);
   padding: 3px padding(sm);
+  @include mq($until: mobile-landscape) {
+    padding: 3px 15px;
+  }
   
   &__wrapper {
     padding-right: padding(sm);

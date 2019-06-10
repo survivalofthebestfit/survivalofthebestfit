@@ -27,12 +27,12 @@ const gameFSM = new machina.Fsm({
     states: {
         uninitialized: {
             startGame: function() {
-                this.transition('titleStage');
+                // this.transition('titleStage');
                 // this.transition('smallOfficeStage');
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
-                // this.transition('mlLabStage');
-                //this.transition('gameBreakdown');
+                this.transition('mlLabStage');
+                // this.transition('gameBreakdown');
             },
         },
 
@@ -52,6 +52,7 @@ const gameFSM = new machina.Fsm({
                 eventEmitter.on(EVENTS.TITLE_STAGE_COMPLETED, () => {
                     this.handle('nextStage');
                 });
+                gtag('event', 'enter-title-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'smallOfficeStage',
@@ -77,6 +78,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                 });
                 office = new Office();
+                gtag('event', 'enter-small-office', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mediumOfficeStage',
@@ -102,6 +104,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                     displayScore: true,
                 });
+                gtag('event', 'enter-medium-office', {'event_category': 'progress', 'event_label': 'states'});
                 state.set('hiring-stage-success', false);
             },
 
@@ -130,6 +133,7 @@ const gameFSM = new machina.Fsm({
                     overlay: true,
                     displayScore: true,
                 });
+                gtag('event', 'enter-large-office', {'event_category': 'progress', 'event_label': 'states'});
                 state.set('hiring-stage-success', false);
             },
 
@@ -161,6 +165,7 @@ const gameFSM = new machina.Fsm({
                 eventEmitter.on(EVENTS.TRANSITION_INSTRUCTION_ACKED, () => {
                     transitionOverlay = new TransitionOverlay({show: true});
                 });
+                gtag('event', 'enter-transition-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mlTrainingStage',
@@ -175,6 +180,7 @@ const gameFSM = new machina.Fsm({
                 state.set('stage', STAGES.TRAINING);
                 if (office) office.delete();
                 trainingStageOverlay = new TrainingStageOverlay();
+                gtag('event', 'enter-training-stage', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'mlLabStage',
@@ -189,6 +195,7 @@ const gameFSM = new machina.Fsm({
                 if (office) office.delete();
                 state.set('stage', STAGES.ML_LAB);
                 mlLab = new MlLabNarrator();
+                gtag('event', 'enter-mllab', {'event_category': 'progress', 'event_label': 'states'});
             },
 
             nextStage: 'gameBreakdown',
@@ -199,6 +206,7 @@ const gameFSM = new machina.Fsm({
 
         gameBreakdown: {
             _onEnter: function() {
+                gtag('event', 'enter-game-end', {'event_category': 'progress', 'event_label': 'states'});
                 state.set('stage', STAGES.GAME_END);
                 new EndGameOverlay();
                 if (mlLab) mlLab.destroy();
