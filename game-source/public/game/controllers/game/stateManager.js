@@ -27,13 +27,12 @@ const gameFSM = new machina.Fsm({
     states: {
         uninitialized: {
             startGame: function() {
-                // this.transition('titleStage');
+                this.transition('titleStage');
                 // this.transition('smallOfficeStage');
                 // this.transition('mlTransitionStage');
                 // this.transition('mlTrainingStage');
-                this.transition('mlLabStage');
+                // this.transition('mlLabStage');
                 //this.transition('gameBreakdown');
-
             },
         },
 
@@ -94,12 +93,10 @@ const gameFSM = new machina.Fsm({
                 state.set('stage', STAGES.MANUAL_MEDIUM);
                 currentStage = 1;
                 state.set('hiring-stage-number', currentStage);
-                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.mediumOfficeStage;
-                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.mediumOfficeStage.subject,
-                    content: previousStageSuccess ? successMessage : failMessage,
+                    content: txt.mediumOfficeStage.messageFromVc,
                     responses: txt.mediumOfficeStage.responses,
                     show: true,
                     overlay: true,
@@ -122,7 +119,7 @@ const gameFSM = new machina.Fsm({
                 state.set('stage', STAGES.MANUAL_LARGE);
                 currentStage = 2;
                 state.set('hiring-stage-number', currentStage);
-                const {messageFromVc: successMessage, retryMessage: failMessage} = txt.largeOfficeStage;
+                const {messageFromVc: successMessage, previousStageFailed: failMessage} = txt.largeOfficeStage;
                 const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
@@ -148,11 +145,12 @@ const gameFSM = new machina.Fsm({
                 if (office) office.delete();
                 state.set('stage', STAGES.TRANSITION);
                 currentStage = 3;
-
+                const {messageFromVc: successMessage, previousStageFailed: failMessage} = txt.mlTransition;
+                const previousStageSuccess = state.get('hiring-stage-success');
                 new TextBoxUI({
                     stageNumber: currentStage,
                     subject: txt.mlTransition.subject,
-                    content: txt.mlTransition.messageFromVc,
+                    content: previousStageSuccess ? successMessage : failMessage,
                     responses: txt.mlTransition.responses,
                     show: true,
                     overlay: true,

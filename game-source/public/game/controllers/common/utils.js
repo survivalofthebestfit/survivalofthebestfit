@@ -1,6 +1,8 @@
 import mq from 'browsernizr/lib/mq';
-import {BREAKPOINTS} from '~/public/game/controllers/constants/index.js';
+import {BREAKPOINTS, STAGES} from '~/public/game/controllers/constants/index.js';
 import {pixiApp} from '~/public/game/controllers/game/gameSetup.js';
+import * as state from '~/public/game/controllers/common/state';
+
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 
@@ -108,12 +110,29 @@ const clamp = (val, minVal, maxVal) => {
     return Math.max(minVal, Math.min(maxVal, val));
 };
 
+const getGameProgressInMonths = (month) => {
+    switch (state.get('stage')) {
+    case STAGES.MANUAL_MEDIUM:
+        return 1;
+    case STAGES.MANUAL_LARGE:
+        return 2;
+    case STAGES.TRANSITION:
+        return 3;
+    case STAGES.ML_LAB:
+        return 3;
+    default:
+        return 0;
+    }
+};
+
 const getDateString = () => {
     const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
     const d = new Date();
+    const gameMonth = (d.getMonth() + getGameProgressInMonths(d.getMonth())) % months.length;
+    console.log(`game month is ${months[gameMonth]}`);
     const hourString = `${d.getHours() > 0 ? d.getHours() : `0${d.getHours()}`}:${d.getMinutes() > 0 ? d.getMinutes() : `0${d.getMinutes()}`}`;
-    return `${days[d.getDay()]} ${hourString}, ${months[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
+    return `${days[d.getDay()]} ${hourString}, ${months[gameMonth]} ${d.getDate()} ${d.getFullYear()}`;
 };
 
 // convenience function to animate object, parameter default to not moving anywhere

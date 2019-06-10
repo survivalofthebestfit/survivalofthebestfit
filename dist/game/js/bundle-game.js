@@ -99715,7 +99715,10 @@ function (_Component) {
     value: function _addFileClickListener() {
       var _this3 = this;
 
-      (0, _jquery["default"])('#js-cv-all-file').on('click', function () {
+      var $datafile = (0, _jquery["default"])('#js-cv-all-file');
+      $datafile.addClass(_constants.CLASSES.FILE_PULSE); // sound.play(SOUNDS.WRITING_MESSAGE);
+
+      $datafile.on('click', function () {
         sound.play(_constants.SOUNDS.BUTTON_CLICK);
 
         var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
@@ -99726,9 +99729,11 @@ function (_Component) {
         _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
           step: _this3._step + 1
-        });
+        }); // sound.stop(SOUNDS.WRITING_MESSAGE);
 
-        (0, _jquery["default"])('#js-cv-all-file').off();
+
+        $datafile.off();
+        $datafile.remove();
       });
     }
   }, {
@@ -100665,6 +100670,8 @@ var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"
 
 var state = _interopRequireWildcard(require("../../../controllers/common/state"));
 
+var _utils = require("../../../controllers/common/utils");
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -100705,6 +100712,7 @@ function (_UIBase) {
     _this.$el = (0, _jquery["default"])('#js-textbox-overlay'); // This should be a single element
 
     _this.$textEl = _this.$el.find('.Textbox__content');
+    _this.$dateEl = _this.$el.find('.header__date');
     _this.$subjectEl = _this.$el.find('.Textbox__subject');
     _this.$buttons = _this.$el.find('.TextboxButton');
     _this.setContent = _this.setContent.bind(_assertThisInitialized(_this));
@@ -100738,6 +100746,12 @@ function (_UIBase) {
       var _this2 = this;
 
       if (!this.overlay) this.$el.addClass(_index.CLASSES.IS_TRANSPARENT);
+
+      if (this.$dateEl && state.get('stage' !== _index.STAGES.ML_LAB)) {
+        this.$dateEl.removeClass(_index.CLASSES.IS_INACTIVE);
+        this.$dateEl.html((0, _utils.getDateString)());
+      }
+
       var scoreText = this.displayScore ? _dataModule.dataModule._calculateScore().concat(' ') : ''; // only show score feedback after completing stage one
 
       var emailText = this.stageNumber === 1 && !this.isRetry ? 'Good job! '.concat(scoreText, this._mainContent) : this._mainContent;
@@ -100825,7 +100839,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/state":571,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
+},{"../../../controllers/common/state":571,"../../../controllers/common/utils":573,"../../../controllers/constants/index.js":578,"../../../controllers/game/gameSetup.js":587,"../../../controllers/game/sound.js":590,"../../../controllers/machine-learning/dataModule.js":592,"../ui-base/ui-base":551,"jquery":336}],556:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -101530,24 +101544,40 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-var candidatePoolSize = {
-  smallOfficeStage: 7,
-  mediumOfficeStage: 10,
-  largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
-};
-var officeCoordinates = {
-  entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
-  exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
-  personStartX: 0.2,
-  peoplePaddingX: 0.1,
-  // personStartY: 0.87, // should be dependent on the floot size
-  personStartY: computePersonY(),
-  xOffset: 0.06
-};
+function computeOfficeParams(type) {
+  switch (type) {
+    case 'candidate-pool':
+      return {
+        smallOfficeStage: 7,
+        mediumOfficeStage: 10,
+        largeOfficeStage: (0, _utils.isMobile)() ? 10 : 15
+      };
 
-function computeSpotlight() {
+    case 'office-coordinates':
+      return {
+        entryDoorX: (0, _utils.isMobile)() ? 0.05 : 0.1,
+        exitDoorX: (0, _utils.isMobile)() ? 0.55 : 0.6,
+        personStartX: 0.2,
+        peoplePaddingX: 0.1,
+        personStartY: computePersonY(),
+        xOffset: 0.06
+      };
+
+    case 'spotlight':
+      return computeSpotlight();
+
+    default:
+      throw new Error("we cannot compute parameters for type ".concat(type));
+  }
+}
+
+;
+
+function computeSpotlight(_ref) {
+  var entryDoor = _ref.entryDoor,
+      exitDoor = _ref.exitDoor;
   return {
-    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(officeCoordinates.entryDoorX, officeCoordinates.exitDoorX, 0.6), 'w'),
+    x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
     y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
   };
 }
@@ -101556,7 +101586,7 @@ function computePersonY() {
   return 1 - (0, _utils.px2uv)((0, _utils.isMobile)() ? 15 : 25, 'h');
 }
 
-var spotlight = computeSpotlight();
+var spotlight = {};
 exports.spotlight = spotlight;
 
 var Office =
@@ -101565,13 +101595,20 @@ function () {
   function Office() {
     _classCallCheck(this, Office);
 
+    console.log('construct office!');
     this.uniqueCandidateIndex = 0;
     this.currentStage = 0;
     this.scale = 1;
     this.takenDesks = 0;
     this.interiorContainer = new PIXI.Container();
     this.personContainer = new PIXI.Container();
-    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER; // IMPORTANT: candidates ID refer to this array's index
+    this.personContainer.name = _pixiContainers.OFFICE_PEOPLE_CONTAINER;
+    this.candidatePoolSize = computeOfficeParams('candidate-pool');
+    this.officeCoordinates = computeOfficeParams('office-coordinates');
+    exports.spotlight = spotlight = computeSpotlight({
+      entryDoor: this.officeCoordinates.entryDoorX,
+      exitDoor: this.officeCoordinates.exitDoorX
+    }); // IMPORTANT: candidates ID refer to this array's index
 
     this.allPeople = [];
     this.hiredPeople = [];
@@ -101600,12 +101637,12 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.entryDoorX
+      xAnchorUV: this.officeCoordinates.entryDoorX
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: officeCoordinates.exitDoorX
+      xAnchorUV: this.officeCoordinates.exitDoorX
     })];
     this.listenerSetup();
   }
@@ -101649,7 +101686,7 @@ function () {
 
       if (this.currentStage == 0) {
         // SMALL STAGE - INITIAL SET UP
-        candidatesToAdd = candidatePoolSize.smallOfficeStage;
+        candidatesToAdd = this.candidatePoolSize.smallOfficeStage;
 
         for (var floor in this.floors) {
           if (Object.prototype.hasOwnProperty.call(this.floors, floor)) {
@@ -101670,7 +101707,8 @@ function () {
         this.peopleTalkManager.startTimeline();
       } else {
         showTimer = true;
-        candidatesToAdd = this.currentStage === 1 ? candidatePoolSize.mediumOfficeStage : candidatePoolSize.largeOfficeStage;
+        candidatesToAdd = this.currentStage === 1 ? this.candidatePoolSize.mediumOfficeStage : this.candidatePoolSize.largeOfficeStage;
+        this.yesno.hide();
 
         _gameSetup.officeStageContainer.removeChild(this.personContainer);
 
@@ -101713,7 +101751,7 @@ function () {
 
         _this2.placeCandidate(_this2.toReplaceX);
 
-        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(officeCoordinates.entryDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(hiredPerson, (0, _utils.uv2px)(_this2.officeCoordinates.entryDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[0].playAnimation({
@@ -101752,7 +101790,7 @@ function () {
         _this2.placeCandidate(_this2.toReplaceX);
 
         rejectedPerson.scale.x *= -1;
-        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(officeCoordinates.exitDoorX + 0.04, 'w'));
+        (0, _person.moveToDoor)(rejectedPerson, (0, _utils.uv2px)(_this2.officeCoordinates.exitDoorX + 0.04, 'w'));
         candidateInSpot = null;
 
         _this2.doors[1].playAnimation({
@@ -101772,7 +101810,7 @@ function () {
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.REJECTED, this.rejectedHandler);
 
-      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler.bind(this));
+      _gameSetup.eventEmitter.on(_constants.EVENTS.RESIZE, this.resizeHandler, this);
 
       _gameSetup.eventEmitter.on(_constants.EVENTS.RETURN_CANDIDATE, function () {
         (0, _person.moveToFromSpotlight)(_this2.allPeople[candidateInSpot], _this2.allPeople[candidateInSpot].originalX, _this2.allPeople[candidateInSpot].originalY);
@@ -101791,7 +101829,7 @@ function () {
     key: "placeCandidate",
     value: function placeCandidate(thisX) {
       var color = _cvCollection.cvCollection.cvData[this.uniqueCandidateIndex].color;
-      var person = (0, _person.createPerson)(thisX, officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
+      var person = (0, _person.createPerson)(thisX, this.officeCoordinates.personStartY, this.uniqueCandidateIndex, color);
       this.personContainer.addChild(person);
       this.allPeople.push(person);
       this.uniqueCandidateIndex++;
@@ -101814,12 +101852,10 @@ function () {
     key: "resizeHandler",
     value: function resizeHandler() {
       // change spotlight position
-      var _computeSpotlight = computeSpotlight(),
-          spotNewX = _computeSpotlight.x,
-          spotNewY = _computeSpotlight.y;
-
-      spotlight.x = spotNewX;
-      spotlight.y = spotNewY; // reposition candidates
+      exports.spotlight = spotlight = computeSpotlight({
+        entryDoor: this.officeCoordinates.entryDoorX,
+        exitDoor: this.officeCoordinates.exitDoorX
+      }); // reposition candidates
 
       var candidates = this.getCandidatePoolSize(this.currentStage);
 
@@ -101841,15 +101877,16 @@ function () {
     key: "getCandidatePoolSize",
     value: function getCandidatePoolSize(currentStage) {
       var stages = ['smallOfficeStage', 'mediumOfficeStage', 'largeOfficeStage'];
-      return candidatePoolSize[stages[currentStage]];
+      return this.candidatePoolSize[stages[currentStage]];
     }
   }, {
     key: "centerPeopleLine",
     value: function centerPeopleLine(count) {
-      var entryDoorX = officeCoordinates.entryDoorX,
-          exitDoorX = officeCoordinates.exitDoorX,
-          xOffset = officeCoordinates.xOffset,
-          peoplePaddingX = officeCoordinates.peoplePaddingX;
+      var _this$officeCoordinat = this.officeCoordinates,
+          entryDoorX = _this$officeCoordinat.entryDoorX,
+          exitDoorX = _this$officeCoordinat.exitDoorX,
+          xOffset = _this$officeCoordinat.xOffset,
+          peoplePaddingX = _this$officeCoordinat.peoplePaddingX;
 
       var peopleCenterX = _utils.spacingUtils.getRelativePoint(entryDoorX, exitDoorX, 1 / 2);
 
@@ -103291,6 +103328,10 @@ var _index = require("../constants/index.js");
 
 var _gameSetup = require("../game/gameSetup.js");
 
+var state = _interopRequireWildcard(require("./state"));
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -103415,12 +103456,33 @@ var clamp = function clamp(val, minVal, maxVal) {
 
 exports.clamp = clamp;
 
+var getGameProgressInMonths = function getGameProgressInMonths(month) {
+  switch (state.get('stage')) {
+    case _index.STAGES.MANUAL_MEDIUM:
+      return 1;
+
+    case _index.STAGES.MANUAL_LARGE:
+      return 2;
+
+    case _index.STAGES.TRANSITION:
+      return 3;
+
+    case _index.STAGES.ML_LAB:
+      return 3;
+
+    default:
+      return 0;
+  }
+};
+
 var getDateString = function getDateString() {
   var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'];
   var d = new Date();
+  var gameMonth = (d.getMonth() + getGameProgressInMonths(d.getMonth())) % months.length;
+  console.log("game month is ".concat(months[gameMonth]));
   var hourString = "".concat(d.getHours() > 0 ? d.getHours() : "0".concat(d.getHours()), ":").concat(d.getMinutes() > 0 ? d.getMinutes() : "0".concat(d.getMinutes()));
-  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[d.getMonth()], " ").concat(d.getDate(), " ").concat(d.getFullYear());
+  return "".concat(days[d.getDay()], " ").concat(hourString, ", ").concat(months[gameMonth], " ").concat(d.getDate(), " ").concat(d.getFullYear());
 }; // convenience function to animate object, parameter default to not moving anywhere
 
 
@@ -103523,7 +103585,7 @@ var getPersonByColor = function getPersonByColor(color) {
   }
 };
 
-},{"../constants/index.js":578,"../game/gameSetup.js":587,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
+},{"../constants/index.js":578,"../game/gameSetup.js":587,"./state":571,"browsernizr/lib/mq":10}],574:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -103568,6 +103630,7 @@ var _default = {
   VOLUME_ICON_OFF: 'VolumeIcon--off',
   ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
   HIRING_TASK_DONE: 'hiring-task-done',
+  FILE_PULSE: 'datafile-pulse',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -103935,14 +103998,14 @@ var SOUND_MANIFEST = [{
   player: null,
   loop: true,
   playerID: null,
-  volume: 0.5
+  volume: 0.8
 }, {
   name: SOUNDS.ML_LAB_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_LAB_AMBIENT, ".mp3"),
   player: null,
   loop: true,
   playerID: null,
-  volume: 1
+  volume: 1.0
 }, {
   name: SOUNDS.TIME_RUNNING_OUT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.TIME_RUNNING_OUT, ".mp3"),
@@ -104100,7 +104163,8 @@ window.addEventListener('orientationchange', resize);
 function resize() {
   console.log('resize the screen!');
   pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
-  eventEmitter.emit(_events["default"].RESIZE, {}); // TODO redraw all the elements!
+  pixiApp.renderer.render(pixiApp.stage);
+  eventEmitter.emit(_events["default"].RESIZE, {});
 }
 
 },{"../constants/events":576,"debounce":319,"pixi-tween":366,"pixi.js":482}],588:[function(require,module,exports){
@@ -104631,6 +104695,7 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
+      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT);
       this.stop();
       this.animator.destroy();
 
@@ -104836,11 +104901,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage'); //this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        //this.transition('gameBreakdown');
       }
     },
 
@@ -104899,14 +104964,10 @@ var gameFSM = new machina.Fsm({
         state.set('stage', _constants.STAGES.MANUAL_MEDIUM);
         currentStage = 1;
         state.set('hiring-stage-number', currentStage);
-        var _txt$mediumOfficeStag = txt.mediumOfficeStage,
-            successMessage = _txt$mediumOfficeStag.messageFromVc,
-            failMessage = _txt$mediumOfficeStag.retryMessage;
-        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mediumOfficeStage.subject,
-          content: previousStageSuccess ? successMessage : failMessage,
+          content: txt.mediumOfficeStage.messageFromVc,
           responses: txt.mediumOfficeStage.responses,
           show: true,
           overlay: true,
@@ -104929,7 +104990,7 @@ var gameFSM = new machina.Fsm({
         state.set('hiring-stage-number', currentStage);
         var _txt$largeOfficeStage = txt.largeOfficeStage,
             successMessage = _txt$largeOfficeStage.messageFromVc,
-            failMessage = _txt$largeOfficeStage.retryMessage;
+            failMessage = _txt$largeOfficeStage.previousStageFailed;
         var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
@@ -104950,10 +105011,14 @@ var gameFSM = new machina.Fsm({
         if (office) office["delete"]();
         state.set('stage', _constants.STAGES.TRANSITION);
         currentStage = 3;
+        var _txt$mlTransition = txt.mlTransition,
+            successMessage = _txt$mlTransition.messageFromVc,
+            failMessage = _txt$mlTransition.previousStageFailed;
+        var previousStageSuccess = state.get('hiring-stage-success');
         new _uiTextbox["default"]({
           stageNumber: currentStage,
           subject: txt.mlTransition.subject,
-          content: txt.mlTransition.messageFromVc,
+          content: previousStageSuccess ? successMessage : failMessage,
           responses: txt.mlTransition.responses,
           show: true,
           overlay: true,

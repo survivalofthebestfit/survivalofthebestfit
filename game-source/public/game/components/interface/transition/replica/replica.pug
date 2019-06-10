@@ -5,7 +5,7 @@ mixin replica(index, replica, totalSteps)
       p(class="replica__paragraph")!=replica.text
       div(class="replica__buttons")
         if replica.file_drag
-          p(class="replica__send-instructions") Click cv_all.zip to send data
+          p(class="replica__send-instructions") Status: no attachments
         else if replica.dataset_choice
           ul(class="data-list")
             li(id="choice-google" class="data-list__choice")

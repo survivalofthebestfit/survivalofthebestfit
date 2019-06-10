@@ -187,6 +187,7 @@ export default class MlLabNarrator {
     }
 
     destroy() {
+        sound.fadeOut(SOUNDS.ML_LAB_AMBIENT);
         this.stop();
         this.animator.destroy();
         this._removeEventListeners();
