@@ -23,23 +23,12 @@ const banner = ['/*!\n',
   'SotBF\n*/'
 ].join('');
 
-
-
-
 // Pug
 function pugCompile() {
-    return gulp.src('resources/index.pug') 
-        .pipe(pug())
-        // .pipe(rename('game.html'))
-        .pipe(gulp.dest('../dist/resources/')); 
+    return gulp.src('./views/pages/*.pug') 
+      .pipe(pug())
+      .pipe(gulp.dest('../dist/')); 
 };
-
-// function pugComp() {
-//     return gulp.src('conclusion/*') 
-//         .pipe(pug())
-//         // .pipe(rename('game.html'))
-//         .pipe(gulp.dest('../dist/conclusion')); 
-// };
 
 // Copy image files
 function copyImg() {
@@ -50,7 +39,6 @@ function copyImg() {
     .pipe(imagemin())
     .pipe(gulp.dest('../dist/img-website/'));
 }
-
 
 // BrowserSync
 function browserSync(done) {
@@ -146,7 +134,8 @@ function copyHtml() {
       './**/*.html',
       '!./node_modules/**/*'
     ])
-    .pipe(gulp.dest('../dist/'));
+    .pipe(gulp.dest('../dist/'))
+    // .pipe(browsersync.stream());
 }
 
 // Copy image files
@@ -164,20 +153,28 @@ function watchFiles() {
   gulp.watch("./scss/**/*", css).on('add', function(path, stats) {
     console.log(`File ${path} was added`);
   });
+
   gulp.watch("./js/**/*", js).on('add', function(path, stats) {
     console.log(`File ${path} was added`);
   });
-  gulp.watch('./resources/*', gulp.series(pugCompile,browserSyncReload)).on('add', function(path, stats) {
+
+  gulp.watch('./**/*.pug', gulp.series(pugCompile, browserSyncReload)).on('add', function(path, stats) {
         console.log(`File ${path} was added`);
     });
 
-
-
-  gulp.watch(["!./node_modules", "./**/*.html"], browserSyncReload).on('add', function(path, stats) {
+  gulp.watch(["!./node_modules", "./**/*.html"], gulp.series(copyHtml, browserSyncReload)).on('add', function(path, stats) {
     console.log(`File ${path} was added`);
   });
-}
 
+  gulp.watch('./**/*.pug', gulp.series(pugCompile, browserSyncReload)).on('change', function(path, stats) {
+    console.log(`File ${path} was changed`);
+  });
+
+  // gulp.watch(["./**/*.html"], gulp.series(copyHtml, browserSyncReload)).on('change', function(path, stats) {
+  //   console.log(`File ${path} was changed`);
+  // });
+
+}
 
 // Define complex tasks
 const vendor = gulp.series(clean, modules);

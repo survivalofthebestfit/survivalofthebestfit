@@ -11,14 +11,57 @@
 
 body {
   font-family: 'Roboto Mono';
-  letter-spacing: 0.0625em;
   background-color: $yellow-washed;
-  
 }
 
 .cute-box {
   position: relative;
-  @include textBox();
+  margin-top:3rem;
+  margin-bottom:9rem;
+
+  font-style: normal;
+  font-weight: normal;
+  padding:2rem 1rem!important;
+  background: white;
+  
+
+  h2 {
+    background: linear-gradient(180deg,rgba(255,255,255,0) 50%, #FECCC7 50%);
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+    font-size: 2.3rem
+  }
+
+  h3 {
+    font-size: 1rem;
+    margin-top: 1.5rem;
+  }
+
+  p {
+    line-height: 2rem;
+  }
+
+  @media(min-width: 768px) {
+    padding: 4rem!important;
+    @include textBox();
+
+    h1 {
+      font-size: 3rem;
+      line-height: 3rem;
+      width: 60%;
+      margin-top: 1rem;
+    }
+
+    h2 {
+      font-size: 2.5rem
+    }
+    
+    h3 {
+      font-size: 1.2rem;
+
+    }
+  }
+
 }
 
 
@@ -138,15 +181,17 @@ h4.next-box:hover {
     background: #B9B9B9; }
 
   p {
-  font-size: .98rem;
-  text-align: justify;
-  clear: left;
-  margin-left: 5%;
-  margin-right: 12%;
-  padding-top: 1rem;
-  padding-bottom: 2rem;
-  font-family: 'Inconsolata', monospace;
+    font-size: .98rem;
+    clear: left;
+    margin-left: 5%;
+    margin-right: 12%;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+    font-family: 'Inconsolata', monospace;
+  }
 }
 
-
+.table-scan {
+  margin-top: 2rem;
+  max-height: 10rem;
 }

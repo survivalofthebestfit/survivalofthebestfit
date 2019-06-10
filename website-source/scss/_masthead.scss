@@ -2,38 +2,49 @@
   position: relative;
   width: 100%;
   height: auto;
-  min-height: 35rem;
-  margin-top: 4rem;
-  padding: 15rem 0;
-  background: url("../img-website/landing2x.png");
-  background-position: center;
+  min-height: 30rem;
+  padding: 2rem;
+  background: url("../img-website/header-asset.png");
+  background-position: bottom;
   background-repeat: no-repeat;
   background-attachment: scroll;
-  background-size: cover;
+  background-size: contain;
   max-height: 90vh;
 
   h1 {
-    font-size: 4rem;
-    line-height: 3rem;
-    color: $rose-dark;
-    margin-top: -5rem !important;
+    font-size: 5rem;
+    line-height: 4rem;
+    text-transform: uppercase;
+    margin-top: 4rem;
+    text-align: center;
+    display: block;
   }
   
   @media(min-width: 768px) {
+    background-position: center;
+    min-height: 25rem;
+
     h1 {
-      font-size: 3rem;
-      line-height: 6rem;
+      font-size: 4rem;
+      line-height: 4rem;
+      width: 60%;
+      margin-top: 8rem;
+      font-weight: 700;
+      text-align: left;
     }
   }
   @media(min-width: 992px) {
     height: 90vh;
     padding: 0;
+
     h1 {
-      font-size: 5rem;
+      font-size: 6rem;
       line-height: 6rem;
-      margin-top: -8rem !important;
+      margin-top: 6rem;
+      margin-left: -2rem;
     }
   }
+
   @media(min-device-aspect-ratio: 15/9) {
     background-size: contain;
   }
