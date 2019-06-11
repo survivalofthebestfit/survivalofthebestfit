@@ -19,7 +19,7 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -34,7 +34,7 @@ const english = {
     instructions: {
         manual: {
             click: 'Click on candidates to see their CVs',
-            eval: 'Click Hire or reject each candidate. Reject to see more new applicants.',
+            eval: 'Click Accept to hire a candidate, or Reject to see more new applicants.',
         },
         ml: {
 
@@ -50,7 +50,7 @@ const english = {
 
     mediumOfficeStage: {
         subject: 'Good start',
-        messageFromVc: 'However, if you want more funding you\’ll need to hire more and faster, so pay attention to the clock!',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire faster, so pay attention to the clock!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
@@ -61,7 +61,7 @@ const english = {
 
     largeOfficeStage: {
         subject: 'Next investment round...',
-        messageFromVc: 'Good effort, but you need to hire ever faster in order to get more funding. Can you pull this off?',
+        messageFromVc: 'Good effort, but you need to hire even faster to get more funding. Can you pull this off?',
         responses: [
             'Of course!',
             'I\'m a bit overwhelmed.',
@@ -74,7 +74,7 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays.',
         responses: [
             'Sure, we can automate it all!',
             'Hmm, I will ask.',
@@ -136,7 +136,7 @@ const english = {
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies\' data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
@@ -234,7 +234,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within gendered stereotypes and historical biases.',
+                    text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within historical stereoytpes and biases.',
                 },
                 inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
                 inspectResponses: [
@@ -249,7 +249,7 @@ const english = {
             {
                 messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
                 responses: [
-                    'Start learning about AI and bias',
+                    'Wrap-up what happened',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
