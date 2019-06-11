@@ -102563,7 +102563,7 @@ function () {
       var currentX = this.mlLastIndex - this.mlStartIndex;
       var thisColor = _cvCollection.cvCollection.cvDataEqual[this.mlLastIndex].color;
 
-      if (!this.toInspectId && thisColor == "blue") {
+      if (this.toInspectId == undefined && thisColor == "blue") {
         // the candidate to inspect will be the first blue candidate in ML line
         // overwrite that person's CV data with the special rejected perfect blue candidate's cv
         _cvCollection.cvCollection.cvDataEqual[this.mlLastIndex] = _cvCollection.cvCollection.specialCandidate;
@@ -102635,26 +102635,6 @@ function () {
       this.peopleLine = this.peopleLine.slice(1);
 
       this._addNewPerson();
-    }
-  }, {
-    key: "chooseCandidateToInspect",
-    value: function chooseCandidateToInspect() {
-      //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
-      var getAverage = function getAverage(array) {
-        return array.reduce(function (a, b) {
-          return a + parseInt(b);
-        }, 0) / array.length;
-      }; //find the first blue candidate in the ML lab rejected 
-      //this ID has to be dynamic since we dont know how many candidates were previously populated
-      //overwrite that person's CV data with the special rejected perfect blue candidate's cv
-      // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-
-
-      var resultId = this.mlLabRejected.find(function (personId) {
-        return _cvCollection.cvCollection.cvDataEqual[personId].color == "blue";
-      }) || 10;
-      _cvCollection.cvCollection.cvDataEqual[resultId] = _cvCollection.cvCollection.specialCandidate;
-      return resultId;
     }
   }]);
 
@@ -103690,7 +103670,7 @@ var _default = {
   FADE_OUT: 'u-fade-out',
   BUTTON_CLICKED: 'is-clicked',
   CV_CATEGORY: 'cv-category',
-  STAS_CATEGORY: 'stats-category',
+  STATS_CATEGORY: 'stats-category',
   CV_SKILL: 'skill',
   CV_WORK: 'work',
   CV_AMBITION: 'ambition',
@@ -104379,9 +104359,9 @@ function () {
     key: "evalFirstPerson",
     value: function evalFirstPerson() {
       var firstPerson = this.people.getFirstPerson();
-      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the first person
+      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the person to be inspected
 
-      if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+      if (firstPerson.id == this.people.toInspectId) {
         status = 'rejected';
       }
 
@@ -104602,7 +104582,7 @@ function () {
     key: "populateHiringGoals",
     value: function populateHiringGoals() {
       // You can use this to debug so that ML lab stage progresses faster
-      var debugMode = true;
+      var debugMode = false;
       var hiringCount = 0;
 
       if (debugMode) {
@@ -104968,7 +104948,7 @@ var gameFSM = new machina.Fsm({
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
         //this.transition('mlLabStage');
-        // this.transition('gameBreakdown');
+        //this.transition('gameBreakdown');
       }
     },
 
