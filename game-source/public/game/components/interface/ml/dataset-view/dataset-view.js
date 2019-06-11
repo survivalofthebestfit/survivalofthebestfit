@@ -25,7 +25,6 @@ export default class extends UIBase {
         this.resumePreview = new DatasetResumePreview();
         this.scrollIsActive = false;
         // this._handleIconClick = this._handleIconClick.bind(this);
-        this._handleInspectButtonClick = this._handleInspectButtonClick.bind(this);
         this._handlePersonCardClick = this._handlePersonCardClick.bind(this);
         this.activePerson = null;
         this._addEventListeners();
@@ -53,7 +52,6 @@ export default class extends UIBase {
 
     _addEventListeners() {
         // this.$xIcon.on('click', this._handleIconClick);
-        eventEmitter.on(EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
         const $resumeGrids = document.querySelectorAll('.DatasetGrid');
         $resumeGrids.forEach((grid) => grid.addEventListener('click', this._handlePersonCardClick));
         this.$button.click(this._buttonHandler.bind(this));
@@ -66,10 +64,6 @@ export default class extends UIBase {
 
     _handleIconClick() {
         this.hide();
-    }
-
-    _handleInspectButtonClick() {
-        this.$el.hasClass(CLASSES.IS_INACTIVE) ? this.show() : '';
     }
 
     handleNewResume(resume) {
