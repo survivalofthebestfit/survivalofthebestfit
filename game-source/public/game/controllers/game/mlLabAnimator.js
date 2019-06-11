@@ -1,4 +1,4 @@
- import {uv2px, waitForSeconds} from '~/public/game/controllers/common/utils.js';
+import {uv2px, waitForSeconds} from '~/public/game/controllers/common/utils.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
