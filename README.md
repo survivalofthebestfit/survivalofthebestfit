@@ -16,9 +16,6 @@ We would also like to share the survey of the connection of society and algorith
 * [Projects that inspired us to use interactive games to raise awareness.](https://github.com/AliaElKattan/survivalofthebestfit/wiki/Projects)
 * [Our references. Inspiring research papers that fundamentally shaped our views.](https://github.com/AliaElKattan/survivalofthebestfit/wiki/Research-&-Writing)
 
-## Mockups
-Visit our [wiki page](https://github.com/AliaElKattan/survivalofthebestfit/wiki/User-Experience) for an in-depth explanation and to follow the development of the project.
-
 ## Authors
 * **Alia ElKattan** - alia.elkattan@nyu.edu
 * **Miha Klasinc** - mk4908@nyu.edu
@@ -29,5 +26,5 @@ Visit our [wiki page](https://github.com/AliaElKattan/survivalofthebestfit/wiki/
 If you'd like to join the team or can contribute with ideas/feedback, please feel free to shoot any of us an email.
 
 ## Acknowledgements
-* Politics of Code class for bringing us together
-* Moz://a foundation for its inspiring mission & support through the Creative Media Award
+* NYUAD Interactive Media and the Politics of Code class for educating us and bringing us together
+* Moz://a foundation for its continuous support through the Creative Media Award
