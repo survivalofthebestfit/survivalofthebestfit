@@ -2,6 +2,20 @@
 @import 'mixins.scss';
 @import 'buttons.scss';
 
+#select {
+
+a {
+      text-decoration-line: underline;
+      color: #BE5E5E;
+      font-weight: 700;
+      &:hover {
+        background-color: #BE5E5E;
+        color: white;      
+      }
+      }
+
+}
+
 .next-box {
 position: relative;
  @include buttonBox();
@@ -28,6 +42,7 @@ h4.next-box:hover {
 
 .resources {
 
+
   background-color: $rose-light-2;
   letter-spacing: 0;
   margin-left: 7%;
@@ -39,6 +54,8 @@ h4.next-box:hover {
    width: auto;
    font-family: 'VT323', monospace;
   }
+
+
 
   h4 {
   font-family: 'VT323', monospace;
@@ -101,6 +118,8 @@ h4.next-box:hover {
   padding-top: 1rem;
   padding-bottom: 2rem;
   font-family: 'Inconsolata', monospace;
+
+
 }
 
 

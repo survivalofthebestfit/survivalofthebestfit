@@ -8,18 +8,10 @@ const english = {
         aboutBody: 'Survival of the Best Fit is a game to demonstrate how blind use of AI in hiring can further perpetuate human bias. In this simulation, users will act as recruiters at a fast-growing company. To reduce costs and maximize output, they would use a new, obscure AI system to replace human recruiters, only to realize that this creates a snowball of problems.\nThis is a project by Gabor Csapo, Jihyun Kim, Miha Klasinc, and Alia ElKattan',
     },
 
-    //resources page
-
-    resources: {
-        title: 'Machines, Bias, and Fairness',
-        aboutBiasTitle: 'How does \'machine bias\' work?',
-        aboutBias: 'xx\n xxx',
-    },
-
     // texts displayed during the game
     titleStage: {
         header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the ever more competitive Yellow Valley?',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -34,7 +26,7 @@ const english = {
     instructions: {
         manual: {
             click: 'Click on candidates to see their CVs',
-            eval: 'Click Hire or reject each candidate. Reject to see more new applicants.',
+            eval: 'Click Accept to hire a candidate, or Reject to see more applicants.',
         },
         ml: {
 
@@ -43,14 +35,14 @@ const english = {
 
     smallOfficeStage: {
         subject: 'Our investment in Bestfit',
-        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers',
+        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire, only the best. I\'ve worked with some great Yellow Valley engineers.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
 
     mediumOfficeStage: {
         subject: 'Good start',
-        messageFromVc: 'However, if you want more funding you\’ll need to hire more and faster, so pay attention to the clock!',
+        messageFromVc: 'However, if you want more funding you\’ll need to hire faster, so pay attention to the clock!',
         responses: [
             'I\'ll do my best',
             'I can do that!',
@@ -61,7 +53,7 @@ const english = {
 
     largeOfficeStage: {
         subject: 'Next investment round...',
-        messageFromVc: 'Good effort, but you need to hire ever faster in order to get more funding. Can you pull this off?',
+        messageFromVc: 'Good effort, but you need to hire even faster to get more funding. Can you pull this off?',
         responses: [
             'Of course!',
             'I\'m a bit overwhelmed.',
@@ -74,7 +66,7 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays.',
         responses: [
             'Sure, we can automate it all!',
             'Hmm, I will ask.',
@@ -136,7 +128,7 @@ const english = {
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values and that will do the trick!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies\' data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values!',
             dataset_choice: true,
             answer_choice: [
                 'Google',
@@ -200,7 +192,7 @@ const english = {
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                inspectQuestion: "So why did you reject Elvan?",
+                inspectQuestion: "So why was Elvan rejected?",
                 inspectResponses: [
                     "I have no idea.",
                     "Maybe because Elvan is blue?"
@@ -218,7 +210,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data',
+                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data.',
                 },
                 news: [
                     'Techountability: Research shows hiring algorithms may be biased against minorities',
@@ -234,7 +226,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within gendered stereotypes and historical biases.',
+                    text: 'Bias could originate with the metrics we use to evaluate applicants, which can fit within historical stereotypes and inequalities.',
                 },
                 inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
                 inspectResponses: [
