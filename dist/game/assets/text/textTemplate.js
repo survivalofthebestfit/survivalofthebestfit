@@ -43,17 +43,17 @@ const english = {
 
     smallOfficeStage: {
         subject: 'Our investment in Bestfit',
-        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers',
+        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
 
     mediumOfficeStage: {
         subject: 'Good start',
-        messageFromVc: 'However, if you want more funding you\’ll need to hire faster, so pay attention to the clock!',
+        messageFromVc: 'However, for more funding you\’ll need to hire faster, so pay attention to the clock!',
         responses: [
-            'I\'ll do my best',
-            'I can do that!',
+            'I\'ll hire faster',
+            'I\'ll pay attention to the clock!',
         ],
         hiringGoal: 5,
         duration: 45
@@ -74,10 +74,10 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays.',
+        messageFromVc: 'Solid work, but it\'s just too competitive in Yellow Valley... Talk to your software engineers to speed things up! I heard artificial intelligence can solve every problem nowadays.',
         responses: [
             'Sure, we can automate it all!',
-            'Hmm, I will ask.',
+            'Hmm, I will email the engineers.',
         ],
         previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution.',
     },
@@ -87,7 +87,7 @@ const english = {
     conversation: [
         {
             dialogue_step: 1,
-            text: 'You asked us how we can hire faster. So we built a hiring algorithm using machine learning. Basically, we will teach a computer to hire like you, but way faster!',
+            text: 'You asked us how we can hire faster. So we built a hiring algorithm (or a computer program) using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
             answer_choice: [
                 {
                     text: 'How does that work?',
@@ -102,14 +102,14 @@ const english = {
         },
         {
             dialogue_step: 2,
-            text: 'First, the algorithm will read through past applicants\' CVs and their outcomes. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decisions</u>!',
+            text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decision process.</u>!',
             answer_choice: [
                 {
                     text: 'A machine will think like me??',
-                    response: 'Thinking is a strong word.',
+                    response: 'Thinking is a strong word. ',
                 },
                 {
-                    text: 'Works for me',
+                    text: 'Works for me ',
                     response: 'We have to be careful though.',
                 },
             ],
@@ -123,14 +123,14 @@ const english = {
                     response: '',
                 },
                 {
-                    text: 'Let\'s feed it data then!',
+                    text: 'How much is a lot?',
                     response: '',
                 },
             ],
         },
         {
             dialogue_step: 4,
-            text: 'I need your help here: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
+            text: 'I need your help with that: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
             file_drag: true,
             answer_choice: [],
         },
@@ -197,10 +197,10 @@ const english = {
                 launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named Elvan Yang asking why they were rejected. Can you look into it?',
                 responses: [
-                    'I\'m on it!',
-                    'Ok, but where should I look?',
+                    'I\'ll look into the data inspector!',
+                    'Ok, I\'ll search in the records?',
                 ],
-                inspectQuestion: "So why did you reject Elvan?",
+                inspectQuestion: "So why was Elvan rejected?",
                 inspectResponses: [
                     "I have no idea.",
                     "Maybe because Elvan is blue?"
@@ -213,12 +213,12 @@ const english = {
             {
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
-                    'Yes, machine can’t be biased.',
+                    'Machines can\'t be biased, right?',
                     'Not sure, let’s see.',
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data',
+                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
                 },
                 news: [
                     'Techountability: Research shows hiring algorithms may be biased against minorities',
@@ -227,19 +227,19 @@ const english = {
             },
             {
                 launchMachineInspector: true,
-                messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
+                messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Review our evaluation metrics to see if you can go public.',
                 responses: [
-                    'I\'ll give it a shot!',
+                    'I\'ll look around and check the data inspector!',
                     'Um, actually...',
                 ],
                 tooltip: {
                     parent: 'scanray',
                     text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within historical stereoytpes and biases.',
                 },
-                inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
+                inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! Who would that be?',
                 inspectResponses: [
-                    'I hired mostly yellow people in the past and the machine just copies it.',
-                    'The machine learnt that yellow people are better because of the past hires.',
+                    'I hired mostly yellow people in the past, and the software copied my pattern.',
+                    'The larger company dataset we fed it might\'ve been biased',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
@@ -247,9 +247,9 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
+                messageFromVc: 'EMERGENCY! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Wrap-up what happened',
+                    'Wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
