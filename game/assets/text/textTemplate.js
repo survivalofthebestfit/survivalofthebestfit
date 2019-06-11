@@ -43,7 +43,7 @@ const english = {
 
     smallOfficeStage: {
         subject: 'Our investment in Bestfit',
-        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers',
+        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
@@ -74,7 +74,7 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley...Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays.',
+        messageFromVc: 'Solid work, but it\'s just so competitive in Yellow Valley... Can you talk to your software engineers to speed things up? I heard artificial intelligence can solve every problem nowadays.',
         responses: [
             'Sure, we can automate it all!',
             'Hmm, I will ask.',
@@ -87,7 +87,7 @@ const english = {
     conversation: [
         {
             dialogue_step: 1,
-            text: 'You asked us how we can hire faster. So we built a hiring algorithm using machine learning. Basically, we will teach a computer to hire like you, but way faster!',
+            text: 'You asked us how we can hire faster. So we built a hiring algorithm (or a computer program) using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
             answer_choice: [
                 {
                     text: 'How does that work?',
@@ -106,10 +106,10 @@ const english = {
             answer_choice: [
                 {
                     text: 'A machine will think like me??',
-                    response: 'Thinking is a strong word.',
+                    response: 'Thinking is a strong word. ',
                 },
                 {
-                    text: 'Works for me',
+                    text: 'Works for me ',
                     response: 'We have to be careful though.',
                 },
             ],
@@ -200,7 +200,7 @@ const english = {
                     'I\'m on it!',
                     'Ok, but where should I look?',
                 ],
-                inspectQuestion: "So why did you reject Elvan?",
+                inspectQuestion: "So why was Elvan rejeced?",
                 inspectResponses: [
                     "I have no idea.",
                     "Maybe because Elvan is blue?"
@@ -218,7 +218,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in the input data',
+                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
                 },
                 news: [
                     'Techountability: Research shows hiring algorithms may be biased against minorities',
@@ -227,7 +227,7 @@ const english = {
             },
             {
                 launchMachineInspector: true,
-                messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Double check your evaluation metrics to see if you can go public.',
+                messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Review our evaluation metrics to see if you can go public.',
                 responses: [
                     'I\'ll give it a shot!',
                     'Um, actually...',
@@ -236,10 +236,10 @@ const english = {
                     parent: 'scanray',
                     text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within historical stereoytpes and biases.',
                 },
-                inspectQuestion: 'So why are we discriminating aginst Blueville residents?',
+                inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! Who would that be?',
                 inspectResponses: [
-                    'I hired mostly yellow people in the past and the machine just copies it.',
-                    'The machine learnt that yellow people are better because of the past hires.',
+                    'I hired mostly yellow people in the past, and the software copied my pattern.',
+                    'The larger company dataset we fed it might\'ve been biased',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
@@ -247,9 +247,9 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'Hey, you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong? Go figure it out.',
+                messageFromVc: 'EMERGENCY! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Wrap-up what happened',
+                    'Wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
