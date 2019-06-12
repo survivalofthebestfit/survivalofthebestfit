@@ -1,9 +1,0 @@
-{
-    "compilerOptions": {
-        "target": "ES6",
-        "baseUrl": "./public/game"
-    },
-    "exclude": [
-        "node_modules"
-    ]
-}
