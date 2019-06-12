@@ -2,26 +2,12 @@
 @import 'mixins.scss';
 @import 'buttons.scss';
 
-#select {
-
-a {
-      text-decoration-line: underline;
-      color: #BE5E5E;
-      font-weight: 700;
-      &:hover {
-        background-color: #BE5E5E;
-        color: white;      
-      }
-      }
-
-}
-
 .next-box {
 position: relative;
  @include buttonBox();
   @include boxColors($shadow-color: 'darkred');
 float: right;
- margin-right: 12%; 
+ margin-right: 11.5%; 
  clear: left;
   
 }

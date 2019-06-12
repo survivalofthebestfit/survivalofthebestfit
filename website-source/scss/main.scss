@@ -64,6 +64,16 @@ body {
 
 }
 
+#select a {
+      text-decoration-line: underline;
+      color: #BE5E5E;
+      font-weight: 700;
+      &:hover {
+        background-color: #BE5E5E;
+        color: white;      
+      }
+}
+
 
 
 h1, h2 {
