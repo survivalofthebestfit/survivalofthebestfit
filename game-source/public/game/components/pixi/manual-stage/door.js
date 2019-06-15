@@ -2,17 +2,18 @@ import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
 import {ANCHORS, EVENTS, SCALES} from '~/public/game/controllers/constants';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import {screenSizeDetector, uv2px, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
+import {screenSizeDetector, uv2px} from '~/public/game/controllers/common/utils.js';
 
 export default class {
-    constructor({type, floor, floorParent, xAnchorUV}) {
+    constructor({type, floor, floorParent, xAnchorUV, scaleName}) {
         this.doorType = type;
         this.floorParent = floorParent;
         this.xAnchorUV = xAnchorUV;
         this.xAnchor = uv2px(this.xAnchorUV, 'w');
         this.yAnchorUV = floor === 'first_floor' ? ANCHORS.FLOORS.FIRST_FLOOR.y : ANCHORS.FLOORS.GROUND_FLOOR.y;
         this.yAnchor = uv2px(this.yAnchorUV, 'h');
-        this.scale = SCALES.DOOR[screenSizeDetector()];
+        this.scale = SCALES[scaleName][screenSizeDetector()];
+        this.scaleName = scaleName;
         this.animSpeed = 0.35;
         this.sprite = null;
     }
@@ -50,7 +51,7 @@ export default class {
     }
 
     _recomputeParams() {
-        this.scale = SCALES.DOOR[screenSizeDetector()];
+        this.scale = SCALES[this.scaleName][screenSizeDetector()];
         this.yAnchor = uv2px(this.yAnchorUV, 'h');
         this.xAnchor = uv2px(this.xAnchorUV, 'w');
     }

@@ -103,12 +103,14 @@ class Office {
                 floor: 'first_floor',
                 floorParent: this.floors.first_floor,
                 xAnchorUV: this.officeCoordinates.entryDoorX,
+                scaleName: 'DOOR',
             }),
             new Door({
                 type: 'doorRejected',
                 floor: 'first_floor',
                 floorParent: this.floors.first_floor,
                 xAnchorUV: this.officeCoordinates.exitDoorX,
+                scaleName: 'DOOR',
             }),
         ];
         this.listenerSetup();

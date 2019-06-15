@@ -1,4 +1,4 @@
-import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup';
+import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
 import {screenSizeDetector, uv2px, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 import {SCALES, ANCHORS} from '~/public/game/controllers/constants';
