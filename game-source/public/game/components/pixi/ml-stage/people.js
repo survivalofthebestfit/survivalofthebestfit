@@ -70,6 +70,7 @@ export default class {
     createTween() {
         const tween = PIXI.tweenManager.createTween(this.container);
         tween.from({x: this.container.x}).to({x: this.container.x-this.personXoffset});
+        tween.easing = PIXI.tween.Easing.inOutCubic();
         tween.delay = 200;
         tween.time = 600;
         return tween;

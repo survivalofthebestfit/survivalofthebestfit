@@ -236,7 +236,7 @@ const english = {
                     parent: 'scanray',
                     text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The agorithm might learn not to hire these people...',
                 },
-                inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! Who would that be?',
+                inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
                     'The machine copies my decisions! However, when I used to hire, blue people were less qualified.',
                     'The machine is biased, just like I was?!',
@@ -247,7 +247,7 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'EMERGENCY! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
+                messageFromVc: 'GAME OVER!! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
                     'Let\'s Wrap-up what happened.',
                 ],

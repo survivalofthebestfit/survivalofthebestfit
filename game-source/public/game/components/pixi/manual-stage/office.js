@@ -5,7 +5,7 @@ import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {createPerson, moveToDoor, moveToFromSpotlight, repositionPerson} from '~/public/game/components/pixi/manual-stage/person.js';
 import Floor from '~/public/game/components/pixi/manual-stage/floor.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
-import {screenSizeDetector, uv2px, px2uv, clamp, isMobile, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
+import {uv2px, px2uv, clamp, isMobile, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 import Door from '~/public/game/components/pixi/manual-stage/door.js';
 import ResumeUI from '~/public/game/components/interface/ui-resume/ui-resume';
 import InstructionUI from '~/public/game/components/interface/ui-instruction/ui-instruction';
@@ -14,7 +14,6 @@ import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk
 import {ANCHORS, EVENTS, SOUNDS, SCALES} from '~/public/game/controllers/constants';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
 import TaskUI from '../../interface/ui-task/ui-task';
-import TextBoxUI from '../../interface/ui-textbox/ui-textbox';
 import {OFFICE_PEOPLE_CONTAINER} from '~/public/game/controllers/constants/pixi-containers.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
 import * as state from '~/public/game/controllers/common/state';

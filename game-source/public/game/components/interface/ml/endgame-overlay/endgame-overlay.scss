@@ -48,6 +48,7 @@
 
 h3 {
    font-size: 1.4rem;
+   text-align: center;
 }
 
 .conversation-container {
@@ -63,10 +64,11 @@ h3 {
 
 img {
   width: 60%; 
-  margin-left: 0%; 
-  margin-right: auto; 
   clear: right; 
   margin-top: 3%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 }

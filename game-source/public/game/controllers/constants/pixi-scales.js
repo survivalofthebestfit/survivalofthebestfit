@@ -8,7 +8,7 @@ export default {
         desktop: 0.7,
     },
     'DOOR': {
-        mobile: 0.3,
+        mobile: 0.25,
         desktop: 0.38,
     },
     'DOOR_ML': {

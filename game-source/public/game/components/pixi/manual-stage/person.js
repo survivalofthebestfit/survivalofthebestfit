@@ -1,7 +1,7 @@
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {uv2px, screenSizeDetector, createPersonSprite, getAnimationByName} from '~/public/game/controllers/common/utils.js';
 import {spotlight} from './office';
-import {EVENTS, ANIM, SCALES} from '~/public/game/controllers/constants';
+import {EVENTS, ANIM, SCALES, ANCHORS} from '~/public/game/controllers/constants';
 
 let showedInstructions = false;
 
@@ -15,7 +15,7 @@ function moveToFromSpotlight(person, newX, newY) {
     person.tween.stop().clear();
     person.tween.to({
         x: newX,
-        y: newY,
+        y: newY, // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
     });
     person.tween.easing=PIXI.tween.Easing.inOutSine();
     person.tween.time = 500;
@@ -123,7 +123,7 @@ function createPerson(x, y, id, color) {
 }
 
 function repositionPerson(person, x, y) {
-    person.scale.set(SCALES.PEOPLE[screenSizeDetector()]);
+    person.scale.set(SCALES.PERSON[screenSizeDetector()]);
     person.uvX = x;
     person.x = uv2px(x, 'w');
     person.y = uv2px(y, 'h') - person.height/2;
