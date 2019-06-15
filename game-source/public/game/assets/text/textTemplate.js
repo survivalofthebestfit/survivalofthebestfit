@@ -218,7 +218,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'The algorithm doesn’t work in a vacuum. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
+                    text: 'The algorithm is only as good as the data it was trained on. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
                 },
                 news: [
                     'Techountability: Research shows hiring algorithms may be biased against minorities',
@@ -234,7 +234,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'The data that are fed into algorithms are often full of biases due to historical systematic discrimination or careless data collection.',
+                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The agorithm might learn not to hire these people...',
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! Who would that be?',
                 inspectResponses: [

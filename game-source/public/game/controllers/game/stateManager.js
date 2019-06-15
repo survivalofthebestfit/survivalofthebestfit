@@ -40,7 +40,7 @@ const gameFSM = new machina.Fsm({
         titleStage: {
             _onEnter: function() {
                 state.set('stage', STAGES.TITLE);
-                titlePageUI = new TitlePageUI({
+                new TitlePageUI({
                     headerText: txt.titleStage.header,
                     content: txt.titleStage.instruction,
                     responses: txt.titleStage.responses,

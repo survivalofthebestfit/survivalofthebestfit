@@ -98,7 +98,7 @@ function moveCandidate() {
 
 function createPerson(x, y, id, color) {
     const person = createPersonSprite(color); 
-    person.scale.set(SCALES.PEOPLE[screenSizeDetector()]);
+    person.scale.set(SCALES.PERSON[screenSizeDetector()]);
     person.interactive = true;
     person.buttonMode = true;
     person.inSpotlight = false;
