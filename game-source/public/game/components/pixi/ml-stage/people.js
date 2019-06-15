@@ -42,13 +42,12 @@ export default class {
         let currentX = (this.mlLastIndex-this.mlStartIndex);
 
         let thisColor = cvCollection.cvDataEqual[this.mlLastIndex].color;
-        if (!this.toInspectId && thisColor == "blue") {
-            
+        if (this.toInspectId == undefined && thisColor == "blue") {
             // the candidate to inspect will be the first blue candidate in ML line
-                // overwrite that person's CV data with the special rejected perfect blue candidate's cv
-                cvCollection.cvDataEqual[this.mlLastIndex] = cvCollection.specialCandidate;
-                this.toInspectId = this.mlLastIndex;
-                console.log("special" + this.toInspectId);
+            // overwrite that person's CV data with the special rejected perfect blue candidate's cv
+            cvCollection.cvDataEqual[this.mlLastIndex] = cvCollection.specialCandidate;
+            this.toInspectId = this.mlLastIndex;
+            console.log("special" + this.toInspectId);
         }
 
         const person = new MLPerson({
@@ -96,20 +95,5 @@ export default class {
 
         this.peopleLine = this.peopleLine.slice(1);
         this._addNewPerson();
-    }
-
-    chooseCandidateToInspect() {
-        //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
-        let getAverage = (array) => array.reduce((a, b) => a + parseInt(b), 0) / array.length;
-          
-        //find the first blue candidate in the ML lab rejected 
-        //this ID has to be dynamic since we dont know how many candidates were previously populated
-        //overwrite that person's CV data with the special rejected perfect blue candidate's cv
-        // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-
-        let resultId = this.mlLabRejected.find( personId => cvCollection.cvDataEqual[personId].color == "blue" ) || 10;
-        cvCollection.cvDataEqual[resultId] = cvCollection.specialCandidate;
-
-        return resultId;
     }
 }

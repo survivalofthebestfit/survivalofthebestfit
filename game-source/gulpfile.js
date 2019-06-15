@@ -23,7 +23,6 @@ function browserSync(done) {
         },
         port: 4000,
         open: false,
-        watch: true,
     });
     done();
 }
