@@ -2,111 +2,120 @@
 @import 'mixins.scss';
 @import 'buttons.scss';
 
-.next-box {
-position: relative;
- @include buttonBox();
-  @include boxColors($shadow-color: 'darkred');
-float: right;
- margin-right: 11.5%; 
- clear: left;
-  
-}
-
-h4.next-box:hover {
-    color: black;
-    cursor: pointer;
-  }
-
-
-#text1 {
-  style: block;
-}
-
-#text2, #text3 {
-  display: none;
-}
-
 .resources {
+    h1 {
+        font-size: 2.8rem;
+        text-transform: uppercase;
+        margin-top: 5rem;
+        margin-bottom: 3rem;
+    }
+
+    h3 {
+        text-align: left;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    p {
+
+        margin-bottom: 3rem;
+        text-align: left;
+        line-height: 1.5;
+
+        a {
+            text-decoration-line: underline;
+            color: #BE5E5E;
+            font-weight: 700;
+
+            &:hover {
+                background-color: #BE5E5E;
+                color: white;
+            }
+        }
+    }
 
 
-  background-color: $rose-light-2;
-  letter-spacing: 0;
-  margin-left: 7%;
+    .header-box {
+        text-align: left;
+        position: relative;
+        color: white;
+        @include buttonBox();
+        @include boxColors($shadow-color: 'darkred');
+        float: left;
+        margin-left: 5%;
 
-  h1 {
-  margin-top: 5%;
-  margin-bottom: 3%;
-   text-align: center;
-   width: auto;
-   font-family: 'VT323', monospace;
-  }
-
+    }
 
 
-  h4 {
-  font-family: 'VT323', monospace;
-  }
+    .info-box {
 
-  .header-box {
-  text-align: left;
-  position: relative;
-  color: white;
-  @include buttonBox();
-  @include boxColors($shadow-color: 'darkred');
-  float: left;
-  margin-left: 5%;
-  
-  //clear: left;
+        color: inherit;
+        background-color: #FAFAFA;
+        padding: 20px 10px 20px 20px;
+        position: relative;
+    }
 
-  }
+    .info-box:before,
+    .info-box:after {
+        content: "";
+        display: inline-block;
+        position: absolute;
+    }
 
+    .info-box:before {
+        left: 0;
+        width: 100%;
+        height: 4px;
+        bottom: -4px;
+        transform: translateX(4px) skewX(65deg);
+    }
 
-.info-box {
+    .info-box:after {
+        top: 0;
+        height: 100%;
+        width: 8px;
+        right: -8px;
+        transform: translateY(3px) skewY(25deg);
+    }
 
-  color: inherit;
-  background-color: #FAFAFA;
-  padding: 20px 10px 20px 20px;
-  position: relative;
-  //left: 50%;
-  //top: 50%;
-  //transform: translate(-50%, -50%); 
+    .info-box:before {
+        background: #919191;
+    }
 
-
-}
-
-  .info-box:before, .info-box:after {
-    content: "";
-    display: inline-block;
-    position: absolute; }
-  .info-box:before {
-    left: 0;
-    width: 100%;
-    height: 4px;
-    bottom: -4px;
-    transform: translateX(4px) skewX(65deg); }
-  .info-box:after {
-    top: 0;
-    height: 100%;
-    width: 8px;
-    right: -8px;
-    transform: translateY(3px) skewY(25deg); }
-  .info-box:before{
-    background: #919191; }
-  .info-box:after {
-    background: #B9B9B9; }
-
-  p {
-  font-size: .98rem;
-  text-align: justify;
-  clear: left;
-  margin-left: 5%;
-  margin-right: 12%;
-  padding-top: 1rem;
-  padding-bottom: 2rem;
-  font-family: 'Inconsolata', monospace;
+    .info-box:after {
+        background: #B9B9B9;
+    }
 
 
-}
+    .next-box {
+        position: relative;
+        @include buttonBox();
+        @include boxColors($shadow-color: 'darkred');
+        float: right;
+        margin-right: 11.5%;
+        clear: left;
+    }
 
+    h4.next-box:hover {
+        color: black;
+        cursor: pointer;
+    }
+
+    #text1 {
+        display: block;
+    }
+
+    #text2,
+    #text3 {
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        padding-top: 1rem;
+
+        h1 {
+            font-size: 3.5rem;
+        }
+    }
 
 }

@@ -1,0 +1,95 @@
+{"frames": {
+
+"ray_00.png":
+{
+	"frame": {"x":0,"y":0,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_01.png":
+{
+	"frame": {"x":0,"y":109,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_02.png":
+{
+	"frame": {"x":0,"y":218,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_03.png":
+{
+	"frame": {"x":0,"y":327,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_04.png":
+{
+	"frame": {"x":0,"y":436,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_05.png":
+{
+	"frame": {"x":0,"y":545,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_06.png":
+{
+	"frame": {"x":0,"y":654,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_07.png":
+{
+	"frame": {"x":0,"y":763,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_08.png":
+{
+	"frame": {"x":0,"y":872,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+},
+"ray_09.png":
+{
+	"frame": {"x":0,"y":981,"w":52,"h":109},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":52,"h":109},
+	"sourceSize": {"w":52,"h":109}
+}},
+"animations": {
+	"ray": ["ray_00.png","ray_01.png","ray_02.png","ray_03.png","ray_04.png","ray_05.png","ray_06.png","ray_07.png","ray_08.png","ray_09.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "ray_spritesheet.png",
+	"format": "RGBA8888",
+	"size": {"w":52,"h":1090},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:49987a61952d1fa18aac86b7a4d5c6b6:d042e797da132fefe58bb09e04f824f0:ed690d8967fe1b9d875f04d45ab4785d$"
+}
+}

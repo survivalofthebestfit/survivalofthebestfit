@@ -26,9 +26,10 @@
   }
   
   .navbar-nav {
-    font-family: "roboto mono";
+    font-family: "Nunito";
     font-size: 1rem;
-
+    font-weight: 300;
+    letter-spacing: 2px;
     .nav-item {
       &:hover {
         color: $gray-900;
