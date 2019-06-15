@@ -48,9 +48,10 @@
       @include mq($until: mobile) {
           font-size: 1.1rem;
       };
-      padding: 0 padding(sm);
+      padding-right: padding(xxl);
+      padding-left: padding(sm);
       line-height: 1;
-      border-right:solid color(txt-light-grey) 2px;
+      border-left:solid color(txt-light-grey) 2px;
     }
   }
 

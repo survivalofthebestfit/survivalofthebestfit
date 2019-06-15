@@ -158,19 +158,19 @@ const english = {
     mlLabStage: {
         onboarding: [
             {
-                text: "People’s CVs are now scanned and evaluated by a computer"
+                text: 'People’s CVs are now scanned and evaluated by a computer',
             },
             {
-                text: "People’s CVs are now scanned and evaluated by a computer"
+                text: 'People’s CVs are now scanned and evaluated by a computer',
             },
             {
-                text: "The machine scans each CV and either accepts or rejects the candidate"
+                text: 'The machine scans each CV and either accepts or rejects the candidate',
             },
             {
-                text: "Candidates are informed immediately after the machine makes its decision"
+                text: 'Candidates are informed immediately after the machine makes its decision',
             },
             {
-                text: "Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!"
+                text: 'Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!',
             }
 
         ],
@@ -197,13 +197,13 @@ const english = {
                 launchCVInspector: true,
                 messageFromVc: 'I just got a complaint from a past applicant named Elvan Yang asking why they were rejected. Can you look into it?',
                 responses: [
-                    'I\'ll look into the data inspector!',
-                    'Ok, I\'ll search in the records?',
+                    'I\'ll look for Elvan in the data inspector!',
+                    'Ok, I\'ll email you with my results.',
                 ],
-                inspectQuestion: "So why was Elvan rejected?",
+                inspectQuestion: 'So why was Elvan rejected?',
                 inspectResponses: [
-                    "I have no idea.",
-                    "Maybe because Elvan is blue?"
+                    'I have no idea.',
+                    'Maybe because Elvan is blue?',
                 ]
                 // tooltip: {
                 //     parent: 'scanray',
@@ -229,17 +229,17 @@ const english = {
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Review our evaluation metrics to see if you can go public.',
                 responses: [
-                    'I\'ll look around and check the data inspector!',
-                    'Um, actually...',
+                    'I\'ll check stats in the data inspector!',
+                    'Um, actually... We might have a problem.',
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'Bias could originate with the metrics we use to evaluate applicants. They often fit within historical stereoytpes and biases.',
+                    text: 'The data that are fed into algorithms are often full of biases due to historical systematic discrimination or careless data collection.',
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! Who would that be?',
                 inspectResponses: [
-                    'I hired mostly yellow people in the past, and the software copied my pattern.',
-                    'The larger company dataset we fed it might\'ve been biased',
+                    'The machine copies my decisions! However, when I used to hire, blue people were less qualified.',
+                    'The machine is biased, just like I was?!',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
@@ -249,7 +249,7 @@ const english = {
             {
                 messageFromVc: 'EMERGENCY! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Wrap-up what happened.',
+                    'Let\'s Wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
@@ -301,12 +301,12 @@ function setLang(dictionary) {
 }
 
 switch (language) {
-    case 'english':
-        setLang(english);
-        break;
-    case 'arabic':
-        setLang(null);
-        break;
-    default:
-        setLang(english);
+case 'english':
+    setLang(english);
+    break;
+case 'arabic':
+    setLang(null);
+    break;
+default:
+    setLang(english);
 }
