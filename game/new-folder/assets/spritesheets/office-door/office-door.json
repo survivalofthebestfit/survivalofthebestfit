@@ -1,0 +1,95 @@
+{"frames": {
+
+"door00.png":
+{
+	"frame": {"x":1,"y":1,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door01.png":
+{
+	"frame": {"x":1,"y":498,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door02.png":
+{
+	"frame": {"x":284,"y":1,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door03.png":
+{
+	"frame": {"x":284,"y":498,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door04.png":
+{
+	"frame": {"x":567,"y":1,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door05.png":
+{
+	"frame": {"x":567,"y":498,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door06.png":
+{
+	"frame": {"x":850,"y":1,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door07.png":
+{
+	"frame": {"x":850,"y":498,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door08.png":
+{
+	"frame": {"x":1133,"y":1,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+},
+"door09.png":
+{
+	"frame": {"x":1133,"y":498,"w":281,"h":495},
+	"rotated": false,
+	"trimmed": true,
+	"spriteSourceSize": {"x":0,"y":5,"w":281,"h":495},
+	"sourceSize": {"w":281,"h":500}
+}},
+"animations": {
+	"door": ["door00.png","door01.png","door02.png","door03.png","door04.png","door05.png","door06.png","door07.png","door08.png","door09.png"]
+},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.0",
+	"image": "door-office-{1}.png",
+	"format": "RGBA8888",
+	"size": {"w":1415,"h":994},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:3220c765a9f24dd0e0ae77104dcbd897:bed2c91ae2ee991287cd95c2bc673783:d82ee846114b58c115099234512a1be8$"
+}
+}
