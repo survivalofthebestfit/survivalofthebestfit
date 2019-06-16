@@ -1,40 +1,39 @@
 head
-  meta(charset='utf-8')
-  meta(http-equiv='X-UA-Compatible', content='IE=edge')
-  meta(name='viewport', content='width=device-width, initial-scale=1.0, shrink-to-fit=no')
-  meta(name='theme-color' content='#4DA5F4')
-  meta(name='csrf-token', content=_csrf)
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0, shrink-to-fit=no')
+    meta(name='theme-color' content='#4DA5F4')
+    meta(name='csrf-token', content=_csrf)
 
-  meta(property="og:title" content="Survival of the Best Fit")
-  meta(property="og:description" content="An educational game about hiring bias in AI.")
-  meta(property="og:image" content="https://www.survivalofthebestfit.com/img-website/landing-page-design.png")
-  meta(property="og:url" content="https://www.survivalofthebestfit.com")
+    meta(property="og:title" content="Survival of the Best Fit")
+    meta(property="og:description" content="Can you hire without bias?")
+    meta(property="og:image" content="https://www.survivalofthebestfit.com/img-website/og-image.jpg")
+    meta(property="og:url" content="https://www.survivalofthebestfit.com")
 
-  title #{title} Survival of the Best Fit
-  link(rel="favicon", href='../favicon.ico')
-  link(rel='stylesheet', href='../vendor/bootstrap/css/bootstrap.min.css')
-  link(rel='stylesheet', href='../vendor/fontawesome-free/css/all.min.css')
-  link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Roboto+Mono:400,700')
-  link(href="https://fonts.googleapis.com/css?family=Nunito:300,400,700&display=swap" rel="stylesheet")
-  link(href="https://fonts.googleapis.com/css?family=Open Sans:400,700&display=swap" rel="stylesheet")
-  link(rel='stylesheet', href='../css/styles-website.min.css')
-  
+    title #{title} Survival of the Best Fit
+    link(rel="favicon", href='../favicon.ico')
+    link(rel='stylesheet', href='../vendor/bootstrap/css/bootstrap.min.css')
+    link(rel='stylesheet', href='../vendor/fontawesome-free/css/all.min.css')
+    link(rel='stylesheet', href='https://fonts.googleapis.com/css?family=Roboto+Mono:400,700')
+    link(href="https://fonts.googleapis.com/css?family=Nunito:300,400,700&display=swap" rel="stylesheet")
+    link(href="https://fonts.googleapis.com/css?family=Open Sans:400,700&display=swap" rel="stylesheet")
+    link(rel='stylesheet', href='../css/styles-website.min.css')
 
-  // Navigation
-  nav#mainNav.navbar.navbar-expand-md.navbar-light.justify-content-betwee
-      .container
-          #navbarResponsive.collapse.navbar-collapse.dual-nav.w-50.order-1.order-md-0
-              ul.navbar-nav
-                  
-                  li.nav-item
-                      a.nav-link.pl-0.js-scroll-trigger(href='./index.html') Home
-                  li.nav-item
-                      a.nav-link.pl-0.js-scroll-trigger(href='./about.html') About
-                  li.nav-item
-                      a.nav-link.pl-0.js-scroll-trigger(href='./resources.html') Resources
 
-          a.navbar-brand.mx-auto.d-block.text-center.order-0.order-md-1.w-25(href='./') SOTBF
-          .navbar-collapse.collapse.dual-nav.w-50.order-2
-              a.btn.btn-info.ml-auto.navbar-play-button.navbar-play(href='./game', role='button') Start Game
-          button.navbar-toggler.navbar-toggler-right(type='button', data-toggle='collapse', data-target='.dual-nav', aria-controls='navbarResponsive', aria-expanded='false', aria-label='Toggle navigation')
-              span.navbar-toggler-icon
+    // Navigation
+    nav#mainNav.navbar.navbar-expand-md.navbar-light.justify-content-between.sticky-top
+        .container
+            #navbarResponsive.collapse.navbar-collapse.dual-nav.w-50.order-1.order-md-0
+                ul.navbar-nav
+                    li.nav-item
+                        a.nav-link.pl-0.js-scroll-trigger(href='./') Home
+                    li.nav-item
+                        a.nav-link.pl-0.js-scroll-trigger(href='./about') About
+                    li.nav-item
+                        a.nav-link.pl-0.js-scroll-trigger(href='./resources') Resources
+            button.navbar-toggler.navbar-toggler-right(type='button', data-toggle='collapse', data-target='.dual-nav', aria-controls='navbarResponsive', aria-expanded='false', aria-label='Toggle navigation')
+                span.navbar-toggler-icon
+            a.navbar-brand.mx-auto.d-block.text-center.order-0.order-md-1.w-25(href='./') SOTBF
+            .navbar-collapse.collapse.dual-nav.w-50.order-2
+                a.btn.btn-info.ml-auto.navbar-play-button.navbar-play(href='./game', role='button') Start Game
+            

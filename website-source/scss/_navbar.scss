@@ -3,7 +3,7 @@
   color: black;
   font-family: VT323, monospace;
   font-size: 1.5em;
-  margin-top: 1em;
+  padding-top: 1em;
 
   .navbar-play {
     background: #DE4545;
@@ -22,7 +22,9 @@
   }
 
   .navbar-brand {
-    font-size: 2em;
+    font-size: 1.8rem;
+    color: #a39d9d;
+    text-align: left !important;
   }
   
   .navbar-nav {
@@ -69,7 +71,7 @@
 
     .navbar-brand {
       padding: .5rem 0;
-      // color: fade-out($white, .5);
+      text-align: center !important;
     }
 
     .nav-link {
@@ -109,5 +111,12 @@
     font-family: VT323,monospace;
     background: #de4545;
     font-size: 1.2rem;
+  }
+
+  .show {
+    ul {
+      padding-left: 1rem;
+      padding-top: 1rem;
+    }
   }
 }

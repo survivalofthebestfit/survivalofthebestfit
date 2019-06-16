@@ -1,42 +1,188 @@
+$("a[href^='https://']").attr("target","_blank");
+
+/*
+FOR WEBSITE LANDING PAGE RESOURCES
+*/
+
+var pages = ["#part1", "#part2", "#part3", "#part4"];
+
+function getActivePageIndex() {
+    for (var i=0; i<pages.length; i++) {
+        if (!$(pages[i]).hasClass('is-inactive')) {
+            return i;
+        };
+    }
+}
+
+function handleNavButton(targetPage) {
+    $('#prevPage').removeClass('is-inactive');
+    $('#nextPage').removeClass('is-inactive');
+
+    if (targetPage == pages[0]) {
+        $('#prevPage').addClass('is-inactive');
+    }
+
+    if (targetPage == pages[pages.length-1]) {
+        $('#nextPage').addClass('is-inactive');
+    }
+
+    for (var i=0; i<pages.length; i++) {
+        var page = pages[i];
+        if (page != targetPage) {
+            $(page).addClass('is-inactive');
+        }
+        else {
+            $(page).removeClass('is-inactive')
+            $("html").animate({ scrollTop: 300 }, "slow");
+        }
+    }
+
+    var gtagEventName = "open-resources-page-{n}"
+    gtag('event', gtagEventName.replace('{n}', targetPage), {'event_category': 'progress', 'event_label': 'resources-page'});
+}
+
 function prevPage() {
-	if (!$('#part3').hasClass('is-inactive')) show2();
-	else if (!$('#part2').hasClass('is-inactive')) show1();
+    var activePageIndex = getActivePageIndex();
+    var targetPage = activePageIndex > 0 ? pages[activePageIndex-1] : pages[0];
+
+    handleNavButton(targetPage);
 }
 
 function nextPage() {
-	if (!$('#part1').hasClass('is-inactive')) show2(); 
-	else if (!$('#part2').hasClass('is-inactive')) show3();
+    var activePageIndex = getActivePageIndex();
+    var targetPage = activePageIndex <  pages.length-1 ? pages[activePageIndex+1] : pages[pages.length-1];
+    handleNavButton(targetPage);
 }
 
-function show1() {
-	$('#part1').removeClass('is-inactive');
-	$('#part2').addClass('is-inactive');
-	$('#part3').addClass('is-inactive');
+/*
+FOR GAME WRAP UP OVERLAY
+*/
 
-	$('#prevPage').addClass('is-inactive');
-	gtag('event', 'open-resources-first-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+function select() {
+    var buttons = document.getElementById("buttons");
+    var next = document.getElementById("part2");
 
-}
-
-function show2() {
-	$('#part2').removeClass('is-inactive');
-
-	$('#part1').addClass('is-inactive');
-	$('#part3').addClass('is-inactive');
-
-	$('#prevPage').removeClass('is-inactive');
-	$('#nextPage').removeClass('is-inactive');
-	gtag('event', 'open-resources-second-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+    console.log("function entered");
+    
+    buttons.style.display = "none";
+    next.style.display = "block";
 
 }
 
-function show3() {
-	$('#part3').removeClass('is-inactive');
+function next1() {
 
-	$('#part1').addClass('is-inactive');
-	$('#part2').addClass('is-inactive');
+    console.log("button clicked");
+    var page1 = document.getElementById("part1");
+    var page1_2 = document.getElementById("part2");
+    var page2 = document.getElementById("part3");
+   
+    page1.style.display = "none";
+    page1_2.style.display = "none";
+    page2.style.display = "block";
+    
+} 
 
-	$('#nextPage').addClass('is-inactive');
-	gtag('event', 'open-resources-third-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+function next2() {
 
+    console.log("button clicked");
+    var current = document.getElementById("part3");
+    var next = document.getElementById("part4");
+   
+    current.style.display = "none";
+    next.style.display = "block";
+    
+} 
+
+//clean this into 1 function
+
+function open1() {
+
+    var current = document.getElementById("text1");
+    var next = document.getElementById("text2");
+    
+    current.style.display = "none";
+    next.style.display = "block";
+    
+} 
+
+function open2() {
+
+    var current = document.getElementById("text2");
+    var next = document.getElementById("text3");
+    
+    current.style.display = "none";
+    next.style.display = "block";
+    
+} 
+
+
+function back() {
+
+    var text1 = document.getElementById("text1");
+    var text2 = document.getElementById("text2");
+    var text3 = document.getElementById("text3");
+    
+    if (text2.style.display === "block") {
+        text2.style.display = "none";
+        text1.style.display = "block";
+    }
+
+
+    if (text3.style.display === "block") {
+        text3.style.display = "none";
+        text2.style.display = "block";
+    }
 }
+
+function goToResourcesLog() {
+    gtag('event', 'open-resources-first-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+    return true;
+}
+
+/*
+NAVBAR HANDLING
+*/
+
+// Smooth scrolling using jQuery easing
+$('a.js-scroll-trigger[href*="#"]:not([href="#"])').click(function () {
+    if (location.pathname.replace(/^\//, '') == this.pathname.replace(/^\//, '') && location.hostname == this.hostname) {
+      var target = $(this.hash);
+      target = target.length ? target : $('[name=' + this.hash.slice(1) + ']');
+      if (target.length) {
+        $('html, body').animate({
+          scrollTop: (target.offset().top - 70)
+        }, 1000, "easeInOutExpo");
+        return false;
+      }
+    }
+  });
+  
+  // Closes responsive menu when a scroll trigger link is clicked
+  $('.js-scroll-trigger').click(function () {
+    $('.navbar-collapse').collapse('hide');
+  });
+  
+  // Activate scrollspy to add active class to navbar items on scroll
+  $('body').scrollspy({
+    target: '#mainNav',
+    offset: 100
+  });
+  
+  // Collapse Navbar
+  var navbarCollapse = function () {
+    if ($("#mainNav").offset().top > 100) {
+      $("#mainNav").addClass("navbar-shrink");
+    } else {
+      $("#mainNav").removeClass("navbar-shrink");
+    }
+  };
+  
+  $('.navbar-toggler').click(function () {
+    $('#mainNav').toggleClass('bg-white-transparent');
+  })
+  
+  // Collapse now if page is not at top
+  navbarCollapse();
+  // Collapse the navbar when page is scrolled
+  $(window).scroll(navbarCollapse);
+  
