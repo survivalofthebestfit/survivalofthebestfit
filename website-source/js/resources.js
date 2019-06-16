@@ -4,7 +4,7 @@ $("a[href^='https://']").attr("target","_blank");
 FOR WEBSITE LANDING PAGE RESOURCES
 */
 
-var pages = ["#part1", "#part2", "#part3", "#part4"];
+var pages = ["#reading1", "#reading2", "#reading3", "#reading4"];
 
 function getActivePageIndex() {
     for (var i=0; i<pages.length; i++) {
@@ -37,14 +37,13 @@ function handleNavButton(targetPage) {
         }
     }
 
-    var gtagEventName = "open-resources-page-{n}"
+    var gtagEventName = "open-resources-{n}"
     gtag('event', gtagEventName.replace('{n}', targetPage), {'event_category': 'progress', 'event_label': 'resources-page'});
 }
 
 function prevPage() {
     var activePageIndex = getActivePageIndex();
     var targetPage = activePageIndex > 0 ? pages[activePageIndex-1] : pages[0];
-
     handleNavButton(targetPage);
 }
 

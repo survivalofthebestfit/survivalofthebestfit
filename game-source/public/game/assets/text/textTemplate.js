@@ -18,8 +18,8 @@ const english = {
 
     // texts displayed during the game
     titleStage: {
-        header: 'Survival of the Best Fit',
-        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
+        header: 'Congratulations!',
+        instruction: 'You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
