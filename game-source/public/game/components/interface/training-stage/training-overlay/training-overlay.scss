@@ -60,6 +60,15 @@
     font-size: 1.2rem;
     margin-bottom: 15px;
   }
+
+  &-info-icon {
+    display: inline-block;
+    height: 20px;
+    width: 20px;
+    margin: 0 5px 0 2px;
+    transform: translateY(3px);
+    background: url(../assets/img/info-icon-green.png) center/contain no-repeat;
+  }
   
 
   &__response {
