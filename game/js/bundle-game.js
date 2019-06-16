@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
+var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -101033,7 +101033,7 @@ function (_UIBase) {
 
       _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
-      if (_screenfull["default"].enabled && (0, _utils.screenSizeDetector)() === 'mobile') {
+      if (_screenfull["default"].enabled && (0, _utils.isMobile)()) {
         _screenfull["default"].request();
       }
 
@@ -102061,7 +102061,7 @@ function moveToFromSpotlight(person, newX, newY) {
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
-    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height * person.scale.y - 0.9 * (_constants.SCALES.FLOOR[(0, _utils.screenSizeDetector)()] + _constants.SCALES.FLOOR_SHADOW[(0, _utils.screenSizeDetector)()])
+    y: newY
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
@@ -102116,7 +102116,8 @@ function moveCandidate() {
     });
 
     showedInstructions = true;
-  } // display clicked person's CV
+  } // console.log(`x: ${this.originalX}, y: ${this.originalY}`);
+  // display clicked person's CV
 
 
   candidateClicked = this.id;
