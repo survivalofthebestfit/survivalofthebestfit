@@ -98043,6 +98043,7 @@ function (_Component) {
     value: function _addEventListeners() {
       this.$fullscreenIcon.click(this._handleFullscreenRequest.bind(this));
       this.$soundIcon.click(this._toggleVolume.bind(this));
+      window.addEventListener('beforeunload', this._handlePageLeave.bind(this));
     }
   }, {
     key: "_removeEventListeners",
@@ -98050,6 +98051,15 @@ function (_Component) {
       // event listeners need to be removed explicitly because they are managed globally Jquery
       this.$fullscreenIcon.off();
       this.$soundIcon.off();
+    }
+  }, {
+    key: "_handlePageLeave",
+    value: function _handlePageLeave() {
+      console.log('left the page, turn volume off');
+
+      if (!this.$soundIcon.hasClass(_classes["default"].VOLUME_ICON_OFF)) {
+        this._toggleVolume();
+      }
     }
   }, {
     key: "_handleFullscreenRequest",
@@ -98182,6 +98192,8 @@ var _utils = require("../../../../controllers/common/utils.js");
 
 var sound = _interopRequireWildcard(require("../../../../controllers/game/sound.js"));
 
+var state = _interopRequireWildcard(require("../../../../controllers/common/state.js"));
+
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
@@ -98264,6 +98276,7 @@ function (_UIBase) {
     key: "_buttonHandler",
     value: function _buttonHandler() {
       sound.play(_constants.SOUNDS.BUTTON_CLICK);
+      state.set('ml-sound', _constants.SOUNDS.ML_DRONE);
       this.$button.addClass(_constants.CLASSES.BUTTON_CLICKED);
 
       _gameSetup.eventEmitter.emit(_constants.EVENTS.EMAIL_REPLY, {});
@@ -98398,7 +98411,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../../controllers/common/utils.js":574,"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
+},{"../../../../controllers/common/state.js":572,"../../../../controllers/common/utils.js":574,"../../../../controllers/constants":579,"../../../../controllers/game/gameSetup.js":588,"../../../../controllers/game/sound.js":591,"../../ui-base/ui-base":552,"../dataset-resume-preview/dataset-resume-preview":539,"../person-card/person-card":545,"../statistics-card/statistics-card":547,"gsap/TweenMax":331,"jquery":336}],541:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -98733,7 +98746,13 @@ function (_UIBase) {
       this._newsArray = this._newsArray.slice(0, 2); // pop the outdated news from the array
 
       this.show(); // show the updated news feed
-      // TODO tweak this if needed - schedule to hide the news after some time
+
+      console.log('SHOW NEWS FEED!'); // TODO tweak this if needed - schedule to hide the news after some time
+    }
+  }, {
+    key: "breaking",
+    value: function breaking() {
+      this.$el.addClass(_classes["default"].BREAKING_NEWS);
     }
   }, {
     key: "_createNewsElement",
@@ -99456,6 +99475,7 @@ function (_UIBase) {
     key: "exit",
     value: function exit() {
       (0, _utils.setCanvasBackground)({});
+      (0, _jquery["default"])('body').removeClass(_constants.CLASSES.TRAINING_BACKGROUND);
       (0, _utils.waitForSeconds)(0.3).then(function () {
         _stateManager.gameFSM.nextStage();
       });
@@ -99951,6 +99971,7 @@ function (_UIBase) {
       (0, _utils.setCanvasBackground)({
         color: 'pink'
       });
+      (0, _jquery["default"])('body').addClass(_classes["default"].TRAINING_BACKGROUND);
       this.$el.addClass('pink-background');
       this.hide();
       (0, _utils.waitForSeconds)(0.6).then(function () {
@@ -101226,7 +101247,7 @@ function (_UIBase) {
       var _this2 = this;
 
       this.$el.css({
-        'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 20 : 40), "px"),
+        'top': "".concat(_office.spotlight.y - this.personHeight - ((0, _utils.isMobile)() ? 15 : 20), "px"),
         // get person height
         'left': "".concat(_office.spotlight.x + 10, "px")
       });
@@ -102340,7 +102361,7 @@ function () {
       var serverWidth = this.sprite.width;
       var serverHeight = this.sprite.height;
       this.$counterEl.css({
-        'top': "".concat(y + serverHeight * 0.19, "px"),
+        'top': "".concat(y + serverHeight * ((0, _utils.isMobile)() ? 0.14 : 0.19), "px"),
         'left': "".concat(x + serverWidth / 2 - 10, "px")
       });
     }
@@ -103223,7 +103244,8 @@ var store = {
   'hiring-stage-number': Number(0),
   'hiring-in-progress': Boolean(false),
   'hiring-stage-success': Boolean(false),
-  'stage': String('pregame')
+  'stage': String('pregame'),
+  'ml-sound': String('silence')
 };
 
 var set = function set(prop, value) {
@@ -103649,8 +103671,10 @@ var _default = {
   FULLSCREEN_ICON_EXPANDED: 'FullscreenIcon--expanded',
   VOLUME_ICON_OFF: 'VolumeIcon--off',
   ANIMATE_RESUME_ATTRIBUTES: 'animate-attributes',
+  TRAINING_BACKGROUND: 'training-background',
   HIRING_TASK_DONE: 'hiring-task-done',
   FILE_PULSE: 'datafile-pulse',
+  BREAKING_NEWS: 'breaking-news',
   ML: 'ml',
   OSCILLATE: 'u-oscillate',
   PULSATE: 'u-pulsate',
@@ -103986,7 +104010,9 @@ var SOUNDS = {
   STAGE_FAILED: 'stage-failed',
   TRAIN_ALGORITHM: 'train-algorithm',
   TRAINING_UPDATE: 'training-update',
-  ML_LAB_AMBIENT: 'ml-lab-ambient'
+  ML_LAB_AMBIENT: 'ml-lab-ambient',
+  ML_DRONE: 'drone',
+  BREAKING_NEWS: 'breaking-news'
 };
 exports.SOUNDS = SOUNDS;
 var SOUND_MANIFEST = [{
@@ -104025,6 +104051,13 @@ var SOUND_MANIFEST = [{
   playerID: null,
   volume: 1.0
 }, {
+  name: SOUNDS.BREAKING_NEWS,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.BREAKING_NEWS, ".mp3"),
+  player: null,
+  loop: false,
+  playerID: null,
+  volume: 1.0
+}, {
   name: SOUNDS.MANUAL_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.MANUAL_AMBIENT, ".mp3"),
   player: null,
@@ -104034,6 +104067,13 @@ var SOUND_MANIFEST = [{
 }, {
   name: SOUNDS.ML_LAB_AMBIENT,
   path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_LAB_AMBIENT, ".mp3"),
+  player: null,
+  loop: true,
+  playerID: null,
+  volume: 1.0
+}, {
+  name: SOUNDS.ML_DRONE,
+  path: "".concat(SOUNDS_DIR, "/").concat(SOUNDS.ML_DRONE, ".mp3"),
   player: null,
   loop: true,
   playerID: null,
@@ -104513,6 +104553,8 @@ var _dataModule = require("../machine-learning/dataModule");
 
 var sound = _interopRequireWildcard(require("./sound.js"));
 
+var state = _interopRequireWildcard(require("../common/state.js"));
+
 var _uiTask = _interopRequireDefault(require("../../components/interface/ui-task/ui-task"));
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj["default"] = obj; return newObj; } }
@@ -104579,7 +104621,8 @@ function () {
       this.newsFeed.updateNewsFeed({
         news: this.ML_TIMELINE[0].news
       });
-      sound.schedule(_constants.SOUNDS.ML_LAB_AMBIENT, 1);
+      state.set('ml-sound', _constants.SOUNDS.ML_LAB_AMBIENT);
+      sound.schedule(state.get('ml-sound'), 1);
       if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
   }, {
@@ -104599,6 +104642,11 @@ function () {
 
 
       if (!this.ML_TIMELINE[0].hasOwnProperty('news')) return;
+
+      if (this.ML_TIMELINE[0].breaking) {
+        console.log('we have breaking news!');
+      }
+
       this.newsFeed.updateNewsFeed({
         news: this.ML_TIMELINE[0].news
       });
@@ -104612,7 +104660,7 @@ function () {
       this.animator.pauseAnimation();
       this.newsFeed.stop();
       this.newsFeed.hide();
-      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT, false);
+      sound.fadeOut(state.get('ml-sound'), false);
       sound.play(_constants.SOUNDS.NEW_MESSAGE);
       new _uiTextbox["default"]({
         show: true,
@@ -104638,6 +104686,11 @@ function () {
         return;
       }
 
+      if (msg.breaking) {
+        newsFeed.breaking();
+        sound.play(_constants.SOUNDS.BREAKING_NEWS);
+      }
+
       if (msg.launchMachineInspector) {
         animator.datasetView.swapToStatistics();
         animator.datasetView.show();
@@ -104645,7 +104698,7 @@ function () {
       } // if we are not inspecting anything, continue playing the background sound
 
 
-      sound.play(_constants.SOUNDS.ML_LAB_AMBIENT);
+      sound.play(state.get('ml-sound'));
 
       if (msg.isLastMessage) {
         _stateManager.gameFSM.nextStage();
@@ -104711,7 +104764,7 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      sound.fadeOut(_constants.SOUNDS.ML_LAB_AMBIENT);
+      sound.fadeOut(state.get('ml-sound'));
       this.stop();
       this.animator.destroy();
 
@@ -104726,7 +104779,7 @@ function () {
 
 exports["default"] = MlLabNarrator;
 
-},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-task/ui-task":555,"../../components/interface/ui-textbox/ui-textbox":556,"../constants":579,"../machine-learning/dataModule":593,"./gameSetup.js":588,"./mlLabAnimator.js":589,"./sound.js":591,"./stateManager.js":592}],591:[function(require,module,exports){
+},{"../../components/interface/ml/info-tooltip/info-tooltip":542,"../../components/interface/ml/news-feed/news-feed.js":543,"../../components/interface/ui-task/ui-task":555,"../../components/interface/ui-textbox/ui-textbox":556,"../common/state.js":572,"../constants":579,"../machine-learning/dataModule":593,"./gameSetup.js":588,"./mlLabAnimator.js":589,"./sound.js":591,"./stateManager.js":592}],591:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
