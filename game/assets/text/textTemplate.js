@@ -18,8 +18,8 @@ const english = {
 
     // texts displayed during the game
     titleStage: {
-        header: 'Congratulations',
-        instruction: 'You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
+        header: 'Survival of the Best Fit',
+        instruction: 'Congratulations! You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
         responses: [
             'Start Game',
         ],
@@ -248,9 +248,9 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'YOU ARE FIRED! You got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
+                messageFromVc: 'GAME OVER!! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Let me understand what happened.',
+                    'Let\'s Wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
