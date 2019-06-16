@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.8' };
+var core = module.exports = { version: '2.6.6' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
+var USE_NATIVE = typeof $Symbol == 'function';
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -98234,9 +98234,7 @@ function (_UIBase) {
 
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
-    _this.scrollIsActive = false; // this._handleIconClick = this._handleIconClick.bind(this);
-
-    _this._handleInspectButtonClick = _this._handleInspectButtonClick.bind(_assertThisInitialized(_this));
+    _this.scrollIsActive = false;
     _this._handlePersonCardClick = _this._handlePersonCardClick.bind(_assertThisInitialized(_this));
     _this.activePerson = null;
 
@@ -98275,9 +98273,6 @@ function (_UIBase) {
     value: function _addEventListeners() {
       var _this2 = this;
 
-      // this.$xIcon.on('click', this._handleIconClick);
-      _gameSetup.eventEmitter.on(_constants.EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
-
       var $resumeGrids = document.querySelectorAll('.DatasetGrid');
       $resumeGrids.forEach(function (grid) {
         return grid.addEventListener('click', _this2._handlePersonCardClick);
@@ -98287,18 +98282,7 @@ function (_UIBase) {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      // this.$xIcon.off('click', this._handleIconClick);
       _gameSetup.eventEmitter.off(_constants.EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
-    }
-  }, {
-    key: "_handleIconClick",
-    value: function _handleIconClick() {
-      this.hide();
-    }
-  }, {
-    key: "_handleInspectButtonClick",
-    value: function _handleInspectButtonClick() {
-      this.$el.hasClass(_constants.CLASSES.IS_INACTIVE) ? this.show() : '';
     }
   }, {
     key: "handleNewResume",
@@ -98306,8 +98290,7 @@ function (_UIBase) {
       var personCard = new _personCard["default"]({
         resume: resume,
         $parent: this.$el
-      }); // if (!this.scrollIsActive) this._checkForScroll();
-
+      });
       this.dataset.push(personCard);
     }
   }, {
@@ -98362,7 +98345,9 @@ function (_UIBase) {
 
       ;
 
-      this._showNewEmailNotification();
+      if (activePerson.getData()['name'] === 'Elvan Yang') {
+        this._showNewEmailNotification();
+      }
     }
   }, {
     key: "show",
@@ -100556,14 +100541,15 @@ function (_UIBase) {
 
     if (options.placeLeft) {
       var mlLabCoordinates = {
-        left: 10,
-        top: 17,
+        left: 33,
+        top: 16,
         minWidth: 150
       };
 
       _this.$el.css({
         'top': "".concat(mlLabCoordinates.top, "%"),
         'left': "".concat(mlLabCoordinates.left, "%"),
+        'transform': 'translate(-53%)',
         'min-width': "".concat(mlLabCoordinates.minWidth, "px")
       });
     } // every stage in unsuccessful by default
@@ -101327,7 +101313,8 @@ function () {
     var type = _ref.type,
         floor = _ref.floor,
         floorParent = _ref.floorParent,
-        xAnchorUV = _ref.xAnchorUV;
+        xAnchorUV = _ref.xAnchorUV,
+        scaleName = _ref.scaleName;
 
     _classCallCheck(this, _default);
 
@@ -101337,7 +101324,8 @@ function () {
     this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     this.yAnchorUV = floor === 'first_floor' ? _constants.ANCHORS.FLOORS.FIRST_FLOOR.y : _constants.ANCHORS.FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
-    this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
+    this.scale = _constants.SCALES[scaleName][(0, _utils.screenSizeDetector)()];
+    this.scaleName = scaleName;
     this.animSpeed = 0.35;
     this.sprite = null;
   }
@@ -101391,7 +101379,7 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES[this.scaleName][(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
       this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
@@ -101592,8 +101580,6 @@ var _dataModule = require("../../../controllers/machine-learning/dataModule.js")
 
 var _uiTask = _interopRequireDefault(require("../../interface/ui-task/ui-task"));
 
-var _uiTextbox = _interopRequireDefault(require("../../interface/ui-textbox/ui-textbox"));
-
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
 var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
@@ -101711,12 +101697,14 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: this.officeCoordinates.entryDoorX
+      xAnchorUV: this.officeCoordinates.entryDoorX,
+      scaleName: 'DOOR'
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: this.officeCoordinates.exitDoorX
+      xAnchorUV: this.officeCoordinates.exitDoorX,
+      scaleName: 'DOOR'
     })];
     this.listenerSetup();
   }
@@ -102014,7 +102002,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/ui-textbox/ui-textbox":556,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102044,7 +102032,8 @@ function moveToFromSpotlight(person, newX, newY) {
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
-    y: newY
+    y: newY // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
+
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
@@ -102150,7 +102139,7 @@ function moveCandidate() {
 
 function createPerson(x, y, id, color) {
   var person = (0, _utils.createPersonSprite)(color);
-  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
   person.interactive = true;
   person.buttonMode = true;
   person.inSpotlight = false;
@@ -102172,7 +102161,7 @@ function createPerson(x, y, id, color) {
 }
 
 function repositionPerson(person, x, y) {
-  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
@@ -102320,7 +102309,7 @@ function () {
 
     this.sprite = type === 'rejected' ? _textures.SPRITES.dataServerRejected : _textures.SPRITES.dataServerAccepted;
     this.dataServerScale = _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
-    this.directionVector = type === 'rejected' ? -1 : 1;
+    this.directionVector = type === 'rejected' ? 1 : -1;
     this.machine = machine;
     this.$counterTemplate = (0, _jquery["default"])(document).find('#js-server-counter-template');
     this.$counterEl = null;
@@ -102423,15 +102412,9 @@ function () {
 
     this.machine = _textures.SPRITES.machine;
     this.machine.name = 'machine';
-    this.inspectButton = _textures.SPRITES.inspectButton;
-
-    this._addEventListeners();
-
     this.draw();
 
     _gameSetup.mlLabStageContainer.addChild(this.machine);
-
-    _gameSetup.mlLabStageContainer.addChild(this.inspectButton);
   }
 
   _createClass(_default, [{
@@ -102444,26 +102427,6 @@ function () {
       var serverHeight = _textures.SPRITES.dataServerRejected.height / _textures.SPRITES.dataServerRejected.scale.x * _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
 
       this.machine.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - serverHeight * 1.1;
-      this.inspectButton.scale.set(this.scale);
-      this.inspectButton.x = _utils.spacingUtils.getCenteredChildX(this.machine.x, this.machine.width, this.inspectButton.width);
-      this.inspectButton.y = _utils.spacingUtils.getCenteredChildY(this.machine.y, this.machine.height, this.inspectButton.height); // this.machine.tint = 0xe8ffff;
-      // e8ffff
-      // fff5d2
-    }
-  }, {
-    key: "_addEventListeners",
-    value: function _addEventListeners() {
-      this.inspectButton.interactive = false;
-      this.inspectButton.buttonMode = false; // this.inspectButton.on('click', this._inspectButtonClickHandler);
-    }
-  }, {
-    key: "removeEventListeners",
-    value: function removeEventListeners() {// this.inspectButton.off('click', this._inspectButtonClickHandler);
-    }
-  }, {
-    key: "_inspectButtonClickHandler",
-    value: function _inspectButtonClickHandler() {
-      _gameSetup.eventEmitter.emit(_constants.EVENTS.DATASET_VIEW_INSPECT, {});
     } // util function to pass machine dimensions to data server/scan ray
 
   }, {
@@ -102506,6 +102469,8 @@ var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/peop
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
+var _utils2 = require("../../../controllers/common/utils");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -102527,7 +102492,7 @@ function () {
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.peopleLine = [];
     this.mlLabRejected = [];
-    this.personXoffset = 70;
+    this.personXoffset = _constants.SCALES.PERSON_DISTANCE[(0, _utils2.screenSizeDetector)()];
     this.peopleTalkManager = new _peopleTalkManager["default"]({
       parent: _gameSetup.mlLabStageContainer,
       stage: 'ml'
@@ -102541,7 +102506,7 @@ function () {
 
     this._draw();
 
-    this.container.x = (0, _utils.uv2px)(0.25, 'w');
+    this.container.x = (0, _utils.uv2px)(0.33, 'w');
     this.toInspectId;
   }
 
@@ -102563,7 +102528,7 @@ function () {
       var currentX = this.mlLastIndex - this.mlStartIndex;
       var thisColor = _cvCollection.cvCollection.cvDataEqual[this.mlLastIndex].color;
 
-      if (!this.toInspectId && thisColor == "blue") {
+      if (this.toInspectId == undefined && thisColor == "blue") {
         // the candidate to inspect will be the first blue candidate in ML line
         // overwrite that person's CV data with the special rejected perfect blue candidate's cv
         _cvCollection.cvCollection.cvDataEqual[this.mlLastIndex] = _cvCollection.cvCollection.specialCandidate;
@@ -102598,6 +102563,7 @@ function () {
       }).to({
         x: this.container.x - this.personXoffset
       });
+      tween.easing = PIXI.tween.Easing.inOutCubic();
       tween.delay = 200;
       tween.time = 600;
       return tween;
@@ -102636,26 +102602,6 @@ function () {
 
       this._addNewPerson();
     }
-  }, {
-    key: "chooseCandidateToInspect",
-    value: function chooseCandidateToInspect() {
-      //this function chooses a blue, well qualified candiate that was rejected for the CEO to inspect
-      var getAverage = function getAverage(array) {
-        return array.reduce(function (a, b) {
-          return a + parseInt(b);
-        }, 0) / array.length;
-      }; //find the first blue candidate in the ML lab rejected 
-      //this ID has to be dynamic since we dont know how many candidates were previously populated
-      //overwrite that person's CV data with the special rejected perfect blue candidate's cv
-      // if for some reason the game accepts everyone, we don't want it to crash so return 10 in worst case
-
-
-      var resultId = this.mlLabRejected.find(function (personId) {
-        return _cvCollection.cvCollection.cvDataEqual[personId].color == "blue";
-      }) || 10;
-      _cvCollection.cvCollection.cvDataEqual[resultId] = _cvCollection.cvCollection.specialCandidate;
-      return resultId;
-    }
   }]);
 
   return _default;
@@ -102663,7 +102609,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils":574,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102718,7 +102664,7 @@ function () {
   }, {
     key: "_draw",
     value: function _draw() {
-      this.person.scale.set(_index.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+      this.person.scale.set(_index.SCALES.PERSON_ML[(0, _utils.screenSizeDetector)()]);
       this.person.x = this.x;
       this.person.y = -this.person.height / 2;
     }
@@ -102891,8 +102837,8 @@ function () {
       var halfOfNumOfResumes = Math.floor(halfOfBeltWidth / (2 * this.resumeWidth));
       this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes - 1);
       this.numOfResumes = halfOfNumOfResumes * repetition;
-      this.resumeContainer.x = -1 * this.resumeWidth / repetition;
-      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
+      this.resumeContainer.x = -1 * this.resumeWidth / repetition - 5;
+      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - _textures.beltTexture.height * _constants.SCALES.BELT[(0, _utils.screenSizeDetector)()] * 1.21;
     }
   }, {
     key: "destroy",
@@ -103323,7 +103269,7 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 var SPRITES = {};
 exports.SPRITES = SPRITES;
 var loader = PIXI.loaders.shared;
-loader.add('machine', 'assets/img/machine.png').add('inspectButton', 'assets/img/question-mark-icon.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json').add('bluePerson', 'assets/spritesheets/characters/blue/blue.json').add('yellowPerson', 'assets/spritesheets/characters/yellow/yellow.json');
+loader.add('machine', 'assets/img/machine.png').add('scanRay', 'assets/img/scan-ray.png').add('rayAnim', 'assets/spritesheets/machine-ray/ray_spritesheet.json').add('dataServerRejected', 'assets/spritesheets/data-server-rejected/data-server-rejected.json').add('dataServerAccepted', 'assets/spritesheets/data-server-accepted/data-server-accepted.json').add('doorAccepted', 'assets/img/door-accepted.png').add('officeDoor', 'assets/spritesheets/office-door/office-door.json').add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json').add('bluePerson', 'assets/spritesheets/characters/blue/blue.json').add('yellowPerson', 'assets/spritesheets/characters/yellow/yellow.json');
 
 function loadAssets() {
   return _loadAssets.apply(this, arguments);
@@ -103346,7 +103292,6 @@ function _loadAssets() {
                 SPRITES.doorRejected = new PIXI.extras.AnimatedSprite(resources.wayOutDoor.spritesheet.animations['door']);
                 SPRITES.machine = new PIXI.Sprite(resources.machine.texture);
                 SPRITES.scanRay = new PIXI.Sprite(resources.scanRay.texture);
-                SPRITES.inspectButton = new PIXI.Sprite(resources.inspectButton.texture);
                 SPRITES.rayAnim = new PIXI.extras.AnimatedSprite(resources.rayAnim.spritesheet.animations['ray']);
                 SPRITES.dataServerAccepted = new PIXI.extras.AnimatedSprite(resources.dataServerAccepted.spritesheet.animations['data-server-accepted']);
                 SPRITES.dataServerRejected = new PIXI.extras.AnimatedSprite(resources.dataServerRejected.spritesheet.animations['data-server-rejected']); // TODO: move data server scales to the data server component
@@ -103690,7 +103635,7 @@ var _default = {
   FADE_OUT: 'u-fade-out',
   BUTTON_CLICKED: 'is-clicked',
   CV_CATEGORY: 'cv-category',
-  STAS_CATEGORY: 'stats-category',
+  STATS_CATEGORY: 'stats-category',
   CV_SKILL: 'skill',
   CV_WORK: 'work',
   CV_AMBITION: 'ambition',
@@ -103907,7 +103852,7 @@ exports["default"] = void 0;
 var _default = {
   FLOORS: {
     FIRST_FLOOR: {
-      y: 0.58
+      y: 0.61
     },
     GROUND_FLOOR: {
       y: 1
@@ -103971,39 +103916,51 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  DATA_SERVER: {
-    mobile: 0.13,
+  'DATA_SERVER': {
+    mobile: 0.12,
     desktop: 0.26
   },
-  MACHINE: {
-    mobile: 0.4,
+  'MACHINE': {
+    mobile: 0.3,
     desktop: 0.7
   },
-  DOOR: {
-    mobile: 0.3,
+  'DOOR': {
+    mobile: 0.25,
+    desktop: 0.38
+  },
+  'DOOR_ML': {
+    mobile: 0.2,
     desktop: 0.38
   },
   // in pixels!
-  FLOOR: {
-    mobile: 25,
+  'FLOOR': {
+    mobile: 20,
     desktop: 40
   },
   // in pixels!
-  FLOOR_SHADOW: {
-    mobile: 12,
+  'FLOOR_SHADOW': {
+    mobile: 10,
     desktop: 20
   },
-  BELT: {
-    mobile: 0.3,
+  'BELT': {
+    mobile: 0.2,
     desktop: 0.45
   },
-  RESUME: {
+  'RESUME': {
     mobile: 0.3,
     desktop: 0.5
   },
-  PEOPLE: {
+  'PERSON': {
     mobile: 0.2,
     desktop: 0.28
+  },
+  'PERSON_ML': {
+    mobile: 0.14,
+    desktop: 0.28
+  },
+  'PERSON_DISTANCE': {
+    mobile: 50,
+    desktop: 70
   }
 };
 exports["default"] = _default;
@@ -104308,7 +104265,8 @@ function () {
       type: 'doorAccepted',
       floor: 'ground_floor',
       floorParent: this.groundFloor,
-      xAnchorUV: 0.08
+      xAnchorUV: 0.12,
+      scaleName: 'DOOR_ML'
     }).addToPixi();
     this.machine = new _machine["default"]();
     this.dataServers = [new _dataServer["default"]({
@@ -104379,9 +104337,9 @@ function () {
     key: "evalFirstPerson",
     value: function evalFirstPerson() {
       var firstPerson = this.people.getFirstPerson();
-      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the first person
+      var status = _dataModule.dataModule.predict(firstPerson.getData()) == 1 ? 'accepted' : 'rejected'; // make sure to always reject the person to be inspected
 
-      if (this.people.toInspectId && firstPerson.id == this.people.toInspectId) {
+      if (firstPerson.id == this.people.toInspectId) {
         status = 'rejected';
       }
 
@@ -104506,22 +104464,17 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      this.destroyTweens();
-      this.conversationManager.destroy(); // unimplemented
+      this.destroyTweens(); // this.conversationManager.destroy(); // unimplemented
 
       this.newsFeed.destroy();
       this.datasetView.destroy();
       this.firstFloor.destroy();
-      this.groundFloor.destroy();
-      this.door.destroy(); // unimplemented
+      this.groundFloor.destroy(); // this.door.destroy(); // unimplemented
 
       this.resumeLine.destroy();
-      this.belt.destroy();
-      this.machine.destroy(); // unimplemented
-
-      this.dataServers.destroy(); // unimplemented
-
-      this.machineRay.destroy(); // half implemented
+      this.belt.destroy(); // this.machine.destroy(); // unimplemented
+      // this.dataServers.destroy(); // unimplemented
+      // this.machineRay.destroy(); // half implemented
 
       this.resumeUI.destroy();
       this.people.destroy();
@@ -104602,7 +104555,7 @@ function () {
     key: "populateHiringGoals",
     value: function populateHiringGoals() {
       // You can use this to debug so that ML lab stage progresses faster
-      var debugMode = true;
+      var debugMode = false;
       var hiringCount = 0;
 
       if (debugMode) {
@@ -104700,6 +104653,7 @@ function () {
         return;
       }
 
+      animator.datasetView.hide();
       animator.startAnimation();
       newsFeed.start();
       newsFeed.show();
@@ -104714,7 +104668,6 @@ function () {
   }, {
     key: "_handleEmailReply",
     value: function _handleEmailReply() {
-      this.animator.datasetView.hide();
       this.ML_TIMELINE[0].launchCVInspector = false;
       this.ML_TIMELINE[0].launchMachineInspector = false;
       var callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
@@ -104724,7 +104677,7 @@ function () {
         content: this.ML_TIMELINE[0].inspectQuestion,
         responses: this.ML_TIMELINE[0].inspectResponses,
         callback: callback,
-        //TODO - can we do overlay??
+        // TODO - can we do overlay??
         overlay: true
       });
     }
@@ -104929,7 +104882,7 @@ var _office = require("../../components/pixi/manual-stage/office.js");
 
 var _mlLabNarrator = _interopRequireDefault(require("./mlLabNarrator"));
 
-var _uiTitle = _interopRequireDefault(require("../../components/interface/ui-title/ui-title"));
+var _uiTitle = _interopRequireDefault(require("../../components/interface/ui-title/ui-title.js"));
 
 var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-textbox/ui-textbox"));
 
@@ -104949,10 +104902,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var office;
 var currentStage;
-var revenue;
 var transitionOverlay;
 var trainingStageOverlay;
-var titlePageUI;
 var mlLab;
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -104964,11 +104915,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage'); // this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        // this.transition('gameBreakdown');
       }
     },
 
@@ -104981,7 +104932,7 @@ var gameFSM = new machina.Fsm({
         var _this = this;
 
         state.set('stage', _constants.STAGES.TITLE);
-        titlePageUI = new _uiTitle["default"]({
+        new _uiTitle["default"]({
           headerText: txt.titleStage.header,
           content: txt.titleStage.instruction,
           responses: txt.titleStage.responses,
@@ -105156,6 +105107,10 @@ var gameFSM = new machina.Fsm({
           'event_category': 'progress',
           'event_label': 'states'
         });
+        gtag('event', 'open-wrap-up-first-page', {
+          'event_category': 'progress',
+          'event_label': 'resources-page'
+        });
         state.set('stage', _constants.STAGES.GAME_END);
         new _endgameOverlay["default"]();
         if (mlLab) mlLab.destroy();
@@ -105174,7 +105129,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title":557,"../../components/pixi/manual-stage/office.js":561,"../common/state":572,"../constants":579,"./gameSetup.js":588,"./mlLabNarrator":590,"machina":338}],593:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title.js":557,"../../components/pixi/manual-stage/office.js":561,"../common/state":572,"../constants":579,"./gameSetup.js":588,"./mlLabNarrator":590,"machina":338}],593:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -105849,23 +105804,37 @@ function () {
   }, {
     key: "getManualStats",
     value: function getManualStats() {
-      var onlyPerson = this.getCardStats(_cvCollection.cvCollection.cvData.slice(0, _dataModule.dataModule.getLastIndex()));
+      // [0] hired yellow %, [1] rejected yellow %, [2] yellow average skills, [3] blue average skills
+      var onlyPersonalStats = this.getCardStats(_cvCollection.cvCollection.cvData.slice(0, _dataModule.dataModule.getLastIndex()));
 
-      if (onlyPerson[1] > 70) {
-        return onlyPerson;
+      if (onlyPersonalStats[0] > 75 && onlyPersonalStats[1] < 40 && onlyPersonalStats[2] - onlyPersonalStats[3] > 30) {
+        return onlyPersonalStats;
       }
 
-      return this.getCardStats(_cvCollection.cvCollection.cvData);
+      var fullDatasetStats = this.getCardStats(_cvCollection.cvCollection.cvData);
+
+      if (fullDatasetStats[1] > 75 && fullDatasetStats[1] < 40 && fullDatasetStats[3] - fullDatasetStats[4] > 30) {
+        return fullDatasetStats;
+      }
+
+      return [80, 30, 70, 35];
     }
   }, {
     key: "getMlLabStats",
     value: function getMlLabStats() {
+      // [0] hired yellow %, [1] rejected yellow %, [2] yellow average skills, [3] blue average skills
       var acceptance = _dataModule.dataModule.getAcceptanceByTheAlgo();
 
       acceptance.forEach(function (element, index) {
         _cvCollection.cvCollection.cvDataEqual[index].empl = element[0];
       });
-      return this.getCardStats(_cvCollection.cvCollection.cvDataEqual.slice(0, acceptance.length));
+      var mlLabStats = this.getCardStats(_cvCollection.cvCollection.cvDataEqual.slice(0, acceptance.length));
+
+      if (mlLabStats[1] > 75 && mlLabStats[1] < 40 && mlLabStats[3] - mlLabStats[4] > 30) {
+        return mlLabStats;
+      }
+
+      return [82, 26, 60, 63];
     }
   }, {
     key: "getFeatures",
