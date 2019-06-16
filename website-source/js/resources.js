@@ -1,81 +1,36 @@
-//clean this code
-
-
-function next1() {
-
-	console.log("button clicked");
-    var page1 = document.getElementById("part1");
-    var page1_2 = document.getElementById("part2");
-    var page2 = document.getElementById("part3");
-   
-    page1.style.display = "none";
-    page1_2.style.display = "none";
-    page2.style.display = "block";
-	
-} 
-
-function next2() {
-
-	console.log("button clicked");
-    var current = document.getElementById("part3");
-    var next = document.getElementById("part4");
-   
-    current.style.display = "none";
-	next.style.display = "block";
-	
-} 
-
-function select() {
-	var buttons = document.getElementById("buttons");
-	var next = document.getElementById("part2");
-
-	console.log("function entered");
-	
-	buttons.style.display = "none";
-	next.style.display = "block";
-
+function prevPage() {
+	if (!$('#part3').hasClass('is-inactive')) show2();
+	else if (!$('#part2').hasClass('is-inactive')) show1();
 }
 
-//clean this into 1 function
-
-function open1() {
-
-	var current = document.getElementById("text1");
-	var next = document.getElementById("text2");
-	
-	current.style.display = "none";
-	next.style.display = "block";
-	
-} 
-
-
-
-function open2() {
-
-	var current = document.getElementById("text2");
-	var next = document.getElementById("text3");
-	
-	current.style.display = "none";
-	next.style.display = "block";
-	
-} 
-
-
-function back() {
-
-	var text1 = document.getElementById("text1");
-	var text2 = document.getElementById("text2");
-	var text3 = document.getElementById("text3");
-	
-	if (text2.style.display === "block") {
-	text2.style.display = "none";
-	text1.style.display = "block";
+function nextPage() {
+	if (!$('#part1').hasClass('is-inactive')) show2(); 
+	else if (!$('#part2').hasClass('is-inactive')) show3();
 }
 
-if (text3.style.display === "block") {
-	text3.style.display = "none";
-	text2.style.display = "block";
+function show1() {
+	$('#part1').removeClass('is-inactive');
+	$('#part2').addClass('is-inactive');
+	$('#part3').addClass('is-inactive');
+
+	$('#prevPage').addClass('is-inactive');
 }
 
-} 
+function show2() {
+	$('#part2').removeClass('is-inactive');
 
+	$('#part1').addClass('is-inactive');
+	$('#part3').addClass('is-inactive');
+
+	$('#prevPage').removeClass('is-inactive');
+	$('#nextPage').removeClass('is-inactive');
+}
+
+function show3() {
+	$('#part3').removeClass('is-inactive');
+
+	$('#part1').addClass('is-inactive');
+	$('#part2').addClass('is-inactive');
+
+	$('#nextPage').addClass('is-inactive');
+}
