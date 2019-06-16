@@ -15,7 +15,7 @@ function moveToFromSpotlight(person, newX, newY) {
     person.tween.stop().clear();
     person.tween.to({
         x: newX,
-        y: newY, // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
+        y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height*person.scale.y - 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),
     });
     person.tween.easing=PIXI.tween.Easing.inOutSine();
     person.tween.time = 500;
