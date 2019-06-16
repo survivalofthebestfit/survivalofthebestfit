@@ -7,6 +7,7 @@
 @import 'signup.scss';
 @import 'contact.scss';
 @import 'footer.scss';
+@import 'resources.scss';
 
 
 body {
@@ -26,8 +27,12 @@ h1 {
 
 @media(min-width: 768px) {
   h1 {
-    font-size: 3.5rem;
+    font-size: 3.8rem;
   }
+}
+
+h2, h3 {
+  font-family: "Nunito"
 }
 
 .cute-box {
@@ -104,7 +109,9 @@ a {
   background-color: fade-out($white-washed, .15);
 }
 
-.table-scan {
-  margin-top: 2rem;
+.img-asset {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
   max-height: 10rem;
+  max-width: 10rem;
 }
