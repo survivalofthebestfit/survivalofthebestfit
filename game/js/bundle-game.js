@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
+var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -98234,8 +98234,7 @@ function (_UIBase) {
 
     _this.dataset = [];
     _this.resumePreview = new _datasetResumePreview["default"]();
-    _this.scrollIsActive = false; // this._handleIconClick = this._handleIconClick.bind(this);
-
+    _this.scrollIsActive = false;
     _this._handlePersonCardClick = _this._handlePersonCardClick.bind(_assertThisInitialized(_this));
     _this.activePerson = null;
 
@@ -98274,7 +98273,6 @@ function (_UIBase) {
     value: function _addEventListeners() {
       var _this2 = this;
 
-      // this.$xIcon.on('click', this._handleIconClick);
       var $resumeGrids = document.querySelectorAll('.DatasetGrid');
       $resumeGrids.forEach(function (grid) {
         return grid.addEventListener('click', _this2._handlePersonCardClick);
@@ -98284,13 +98282,7 @@ function (_UIBase) {
   }, {
     key: "_removeEventListeners",
     value: function _removeEventListeners() {
-      // this.$xIcon.off('click', this._handleIconClick);
       _gameSetup.eventEmitter.off(_constants.EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
-    }
-  }, {
-    key: "_handleIconClick",
-    value: function _handleIconClick() {
-      this.hide();
     }
   }, {
     key: "handleNewResume",
@@ -98298,8 +98290,7 @@ function (_UIBase) {
       var personCard = new _personCard["default"]({
         resume: resume,
         $parent: this.$el
-      }); // if (!this.scrollIsActive) this._checkForScroll();
-
+      });
       this.dataset.push(personCard);
     }
   }, {
@@ -98354,7 +98345,9 @@ function (_UIBase) {
 
       ;
 
-      this._showNewEmailNotification();
+      if (activePerson.getData()['name'] === 'Elvan Yang') {
+        this._showNewEmailNotification();
+      }
     }
   }, {
     key: "show",
@@ -100548,14 +100541,15 @@ function (_UIBase) {
 
     if (options.placeLeft) {
       var mlLabCoordinates = {
-        left: 10,
-        top: 17,
+        left: 33,
+        top: 16,
         minWidth: 150
       };
 
       _this.$el.css({
         'top': "".concat(mlLabCoordinates.top, "%"),
         'left': "".concat(mlLabCoordinates.left, "%"),
+        'transform': 'translate(-53%)',
         'min-width': "".concat(mlLabCoordinates.minWidth, "px")
       });
     } // every stage in unsuccessful by default
@@ -101319,7 +101313,8 @@ function () {
     var type = _ref.type,
         floor = _ref.floor,
         floorParent = _ref.floorParent,
-        xAnchorUV = _ref.xAnchorUV;
+        xAnchorUV = _ref.xAnchorUV,
+        scaleName = _ref.scaleName;
 
     _classCallCheck(this, _default);
 
@@ -101329,7 +101324,8 @@ function () {
     this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     this.yAnchorUV = floor === 'first_floor' ? _constants.ANCHORS.FLOORS.FIRST_FLOOR.y : _constants.ANCHORS.FLOORS.GROUND_FLOOR.y;
     this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
-    this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
+    this.scale = _constants.SCALES[scaleName][(0, _utils.screenSizeDetector)()];
+    this.scaleName = scaleName;
     this.animSpeed = 0.35;
     this.sprite = null;
   }
@@ -101383,7 +101379,7 @@ function () {
   }, {
     key: "_recomputeParams",
     value: function _recomputeParams() {
-      this.scale = _constants.SCALES.DOOR[(0, _utils.screenSizeDetector)()];
+      this.scale = _constants.SCALES[this.scaleName][(0, _utils.screenSizeDetector)()];
       this.yAnchor = (0, _utils.uv2px)(this.yAnchorUV, 'h');
       this.xAnchor = (0, _utils.uv2px)(this.xAnchorUV, 'w');
     }
@@ -101584,8 +101580,6 @@ var _dataModule = require("../../../controllers/machine-learning/dataModule.js")
 
 var _uiTask = _interopRequireDefault(require("../../interface/ui-task/ui-task"));
 
-var _uiTextbox = _interopRequireDefault(require("../../interface/ui-textbox/ui-textbox"));
-
 var _pixiContainers = require("../../../controllers/constants/pixi-containers.js");
 
 var sound = _interopRequireWildcard(require("../../../controllers/game/sound.js"));
@@ -101703,12 +101697,14 @@ function () {
       type: 'doorAccepted',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: this.officeCoordinates.entryDoorX
+      xAnchorUV: this.officeCoordinates.entryDoorX,
+      scaleName: 'DOOR'
     }), new _door["default"]({
       type: 'doorRejected',
       floor: 'first_floor',
       floorParent: this.floors.first_floor,
-      xAnchorUV: this.officeCoordinates.exitDoorX
+      xAnchorUV: this.officeCoordinates.exitDoorX,
+      scaleName: 'DOOR'
     })];
     this.listenerSetup();
   }
@@ -102006,7 +102002,7 @@ function () {
 
 exports.Office = Office;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/ui-textbox/ui-textbox":556,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/state":572,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/constants/pixi-containers.js":584,"../../../controllers/game/gameSetup.js":588,"../../../controllers/game/sound.js":591,"../../../controllers/game/stateManager.js":592,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"../../interface/ui-instruction/ui-instruction":553,"../../interface/ui-resume/ui-resume":554,"../../interface/ui-task/ui-task":555,"../../interface/yes-no/yes-no":558,"./door.js":559,"./floor.js":560,"./person.js":562,"jquery":336,"pixi.js":482}],562:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102036,7 +102032,8 @@ function moveToFromSpotlight(person, newX, newY) {
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
-    y: newY
+    y: newY // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
+
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
@@ -102142,7 +102139,7 @@ function moveCandidate() {
 
 function createPerson(x, y, id, color) {
   var person = (0, _utils.createPersonSprite)(color);
-  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
   person.interactive = true;
   person.buttonMode = true;
   person.inSpotlight = false;
@@ -102164,7 +102161,7 @@ function createPerson(x, y, id, color) {
 }
 
 function repositionPerson(person, x, y) {
-  person.scale.set(_constants.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+  person.scale.set(_constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
   person.uvX = x;
   person.x = (0, _utils.uv2px)(x, 'w');
   person.y = (0, _utils.uv2px)(y, 'h') - person.height / 2;
@@ -102312,7 +102309,7 @@ function () {
 
     this.sprite = type === 'rejected' ? _textures.SPRITES.dataServerRejected : _textures.SPRITES.dataServerAccepted;
     this.dataServerScale = _constants.SCALES.DATA_SERVER[(0, _utils.screenSizeDetector)()];
-    this.directionVector = type === 'rejected' ? -1 : 1;
+    this.directionVector = type === 'rejected' ? 1 : -1;
     this.machine = machine;
     this.$counterTemplate = (0, _jquery["default"])(document).find('#js-server-counter-template');
     this.$counterEl = null;
@@ -102472,6 +102469,8 @@ var _peopleTalkManager = _interopRequireDefault(require("../../interface/ml/peop
 
 var _dataModule = require("../../../controllers/machine-learning/dataModule.js");
 
+var _utils2 = require("../../../controllers/common/utils");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -102493,7 +102492,7 @@ function () {
     this.mlLastIndex = _dataModule.dataModule.getLastIndex() || 0;
     this.peopleLine = [];
     this.mlLabRejected = [];
-    this.personXoffset = 70;
+    this.personXoffset = _constants.SCALES.PERSON_DISTANCE[(0, _utils2.screenSizeDetector)()];
     this.peopleTalkManager = new _peopleTalkManager["default"]({
       parent: _gameSetup.mlLabStageContainer,
       stage: 'ml'
@@ -102507,7 +102506,7 @@ function () {
 
     this._draw();
 
-    this.container.x = (0, _utils.uv2px)(0.25, 'w');
+    this.container.x = (0, _utils.uv2px)(0.33, 'w');
     this.toInspectId;
   }
 
@@ -102564,6 +102563,7 @@ function () {
       }).to({
         x: this.container.x - this.personXoffset
       });
+      tween.easing = PIXI.tween.Easing.inOutCubic();
       tween.delay = 200;
       tween.time = 600;
       return tween;
@@ -102609,7 +102609,7 @@ function () {
 
 exports["default"] = _default;
 
-},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
+},{"../../../assets/text/cvCollection.js":534,"../../../controllers/common/utils":574,"../../../controllers/common/utils.js":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../../../controllers/machine-learning/dataModule.js":593,"../../interface/ml/people-talk-manager/people-talk-manager":544,"./person":567}],567:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102664,7 +102664,7 @@ function () {
   }, {
     key: "_draw",
     value: function _draw() {
-      this.person.scale.set(_index.SCALES.PEOPLE[(0, _utils.screenSizeDetector)()]);
+      this.person.scale.set(_index.SCALES.PERSON_ML[(0, _utils.screenSizeDetector)()]);
       this.person.x = this.x;
       this.person.y = -this.person.height / 2;
     }
@@ -102837,8 +102837,8 @@ function () {
       var halfOfNumOfResumes = Math.floor(halfOfBeltWidth / (2 * this.resumeWidth));
       this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes - 1);
       this.numOfResumes = halfOfNumOfResumes * repetition;
-      this.resumeContainer.x = -1 * this.resumeWidth / repetition;
-      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale * _textures.beltTexture.height * 1.07;
+      this.resumeContainer.x = -1 * this.resumeWidth / repetition - 5;
+      this.resumeContainer.y = (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - _textures.beltTexture.height * _constants.SCALES.BELT[(0, _utils.screenSizeDetector)()] * 1.21;
     }
   }, {
     key: "destroy",
@@ -103852,7 +103852,7 @@ exports["default"] = void 0;
 var _default = {
   FLOORS: {
     FIRST_FLOOR: {
-      y: 0.58
+      y: 0.61
     },
     GROUND_FLOOR: {
       y: 1
@@ -103916,39 +103916,51 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  DATA_SERVER: {
-    mobile: 0.13,
+  'DATA_SERVER': {
+    mobile: 0.12,
     desktop: 0.26
   },
-  MACHINE: {
-    mobile: 0.4,
+  'MACHINE': {
+    mobile: 0.3,
     desktop: 0.7
   },
-  DOOR: {
-    mobile: 0.3,
+  'DOOR': {
+    mobile: 0.25,
+    desktop: 0.38
+  },
+  'DOOR_ML': {
+    mobile: 0.2,
     desktop: 0.38
   },
   // in pixels!
-  FLOOR: {
-    mobile: 25,
+  'FLOOR': {
+    mobile: 20,
     desktop: 40
   },
   // in pixels!
-  FLOOR_SHADOW: {
-    mobile: 12,
+  'FLOOR_SHADOW': {
+    mobile: 10,
     desktop: 20
   },
-  BELT: {
-    mobile: 0.3,
+  'BELT': {
+    mobile: 0.2,
     desktop: 0.45
   },
-  RESUME: {
+  'RESUME': {
     mobile: 0.3,
     desktop: 0.5
   },
-  PEOPLE: {
+  'PERSON': {
     mobile: 0.2,
     desktop: 0.28
+  },
+  'PERSON_ML': {
+    mobile: 0.14,
+    desktop: 0.28
+  },
+  'PERSON_DISTANCE': {
+    mobile: 50,
+    desktop: 70
   }
 };
 exports["default"] = _default;
@@ -104253,7 +104265,8 @@ function () {
       type: 'doorAccepted',
       floor: 'ground_floor',
       floorParent: this.groundFloor,
-      xAnchorUV: 0.08
+      xAnchorUV: 0.12,
+      scaleName: 'DOOR_ML'
     }).addToPixi();
     this.machine = new _machine["default"]();
     this.dataServers = [new _dataServer["default"]({
@@ -104451,22 +104464,17 @@ function () {
   }, {
     key: "destroy",
     value: function destroy() {
-      this.destroyTweens();
-      this.conversationManager.destroy(); // unimplemented
+      this.destroyTweens(); // this.conversationManager.destroy(); // unimplemented
 
       this.newsFeed.destroy();
       this.datasetView.destroy();
       this.firstFloor.destroy();
-      this.groundFloor.destroy();
-      this.door.destroy(); // unimplemented
+      this.groundFloor.destroy(); // this.door.destroy(); // unimplemented
 
       this.resumeLine.destroy();
-      this.belt.destroy();
-      this.machine.destroy(); // unimplemented
-
-      this.dataServers.destroy(); // unimplemented
-
-      this.machineRay.destroy(); // half implemented
+      this.belt.destroy(); // this.machine.destroy(); // unimplemented
+      // this.dataServers.destroy(); // unimplemented
+      // this.machineRay.destroy(); // half implemented
 
       this.resumeUI.destroy();
       this.people.destroy();
@@ -104645,6 +104653,7 @@ function () {
         return;
       }
 
+      animator.datasetView.hide();
       animator.startAnimation();
       newsFeed.start();
       newsFeed.show();
@@ -104659,7 +104668,6 @@ function () {
   }, {
     key: "_handleEmailReply",
     value: function _handleEmailReply() {
-      this.animator.datasetView.hide();
       this.ML_TIMELINE[0].launchCVInspector = false;
       this.ML_TIMELINE[0].launchMachineInspector = false;
       var callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
@@ -104669,7 +104677,7 @@ function () {
         content: this.ML_TIMELINE[0].inspectQuestion,
         responses: this.ML_TIMELINE[0].inspectResponses,
         callback: callback,
-        //TODO - can we do overlay??
+        // TODO - can we do overlay??
         overlay: true
       });
     }
@@ -104874,7 +104882,7 @@ var _office = require("../../components/pixi/manual-stage/office.js");
 
 var _mlLabNarrator = _interopRequireDefault(require("./mlLabNarrator"));
 
-var _uiTitle = _interopRequireDefault(require("../../components/interface/ui-title/ui-title"));
+var _uiTitle = _interopRequireDefault(require("../../components/interface/ui-title/ui-title.js"));
 
 var _uiTextbox = _interopRequireDefault(require("../../components/interface/ui-textbox/ui-textbox"));
 
@@ -104894,10 +104902,8 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 var office;
 var currentStage;
-var revenue;
 var transitionOverlay;
 var trainingStageOverlay;
-var titlePageUI;
 var mlLab;
 /**
  * MINIMIZE GAME SETUP CODE HERE. Try to shift setup into other files respective to stage
@@ -104926,7 +104932,7 @@ var gameFSM = new machina.Fsm({
         var _this = this;
 
         state.set('stage', _constants.STAGES.TITLE);
-        titlePageUI = new _uiTitle["default"]({
+        new _uiTitle["default"]({
           headerText: txt.titleStage.header,
           content: txt.titleStage.instruction,
           responses: txt.titleStage.responses,
@@ -105101,6 +105107,10 @@ var gameFSM = new machina.Fsm({
           'event_category': 'progress',
           'event_label': 'states'
         });
+        gtag('event', 'open-wrap-up-first-page', {
+          'event_category': 'progress',
+          'event_label': 'resources-page'
+        });
         state.set('stage', _constants.STAGES.GAME_END);
         new _endgameOverlay["default"]();
         if (mlLab) mlLab.destroy();
@@ -105119,7 +105129,7 @@ var gameFSM = new machina.Fsm({
 });
 exports.gameFSM = gameFSM;
 
-},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title":557,"../../components/pixi/manual-stage/office.js":561,"../common/state":572,"../constants":579,"./gameSetup.js":588,"./mlLabNarrator":590,"machina":338}],593:[function(require,module,exports){
+},{"../../components/interface/ml/endgame-overlay/endgame-overlay":541,"../../components/interface/training-stage/training-overlay/training-overlay":548,"../../components/interface/transition/transition-overlay/transition-overlay":551,"../../components/interface/ui-textbox/ui-textbox":556,"../../components/interface/ui-title/ui-title.js":557,"../../components/pixi/manual-stage/office.js":561,"../common/state":572,"../constants":579,"./gameSetup.js":588,"./mlLabNarrator":590,"machina":338}],593:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
