@@ -12,6 +12,7 @@
         justify-content: space-between;
         align-items: center;
         font-size: 1.2rem;
+        z-index: 5;
 
         @include mq($until: mobile-landscape) {
           padding: 5px 10px;

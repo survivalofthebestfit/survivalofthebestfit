@@ -14,6 +14,8 @@ export const SOUNDS = {
     TRAIN_ALGORITHM: 'train-algorithm',
     TRAINING_UPDATE: 'training-update',
     ML_LAB_AMBIENT: 'ml-lab-ambient',
+    ML_DRONE: 'drone',
+    BREAKING_NEWS: 'breaking-news',
 };
 
 export const SOUND_MANIFEST = [
@@ -58,6 +60,14 @@ export const SOUND_MANIFEST = [
         volume: 1.0,
     },
     {
+        name: SOUNDS.BREAKING_NEWS,
+        path: `${SOUNDS_DIR}/${SOUNDS.BREAKING_NEWS}.mp3`,
+        player: null, 
+        loop: false,
+        playerID: null,
+        volume: 1.0,
+    },
+    {
         name: SOUNDS.MANUAL_AMBIENT,
         path: `${SOUNDS_DIR}/${SOUNDS.MANUAL_AMBIENT}.mp3`,
         player: null, 
@@ -68,6 +78,14 @@ export const SOUND_MANIFEST = [
     {
         name: SOUNDS.ML_LAB_AMBIENT,
         path: `${SOUNDS_DIR}/${SOUNDS.ML_LAB_AMBIENT}.mp3`,
+        player: null, 
+        loop: true,
+        playerID: null,
+        volume: 1.0,
+    },
+    {
+        name: SOUNDS.ML_DRONE,
+        path: `${SOUNDS_DIR}/${SOUNDS.ML_DRONE}.mp3`,
         player: null, 
         loop: true,
         playerID: null,

@@ -31,6 +31,7 @@
   @include mq($until: mobile-landscape) {
     @include buttonBox();
     min-width: 180px;
+    max-width: 200px;
     min-height: unset;
     padding: padding(xs) 15px padding(sm) 15px;
     top: padding(xxs);

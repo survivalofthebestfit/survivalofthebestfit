@@ -3,9 +3,11 @@
     @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'grey');
     padding: padding(sm) padding(sm) padding(md) padding(sm);
     @include mq($until: desktop) {
+      @include buttonBox();
       padding: padding(sm);
     }
 
+    position: relative;
     min-width: 250px;
     min-height: 300px;
     max-height: 700px;
@@ -24,7 +26,9 @@
     &__name {
       padding: padding(xs) 0;
       margin-top: margin(sm);
+      font-size: 1.2rem;
       @include mq($until: mobile-landscape) {
+        font-size: 1rem;
         padding: padding(xxs) 0;
         margin-top: 12px;
       }
@@ -35,21 +39,15 @@
       width: 100%;
   
       .AverageYellow & {
-        background-color: color(skill-bg-yellow);
+        background-color: color(stats-bg-grey);
       }
   
       .AverageBlue & {
-        background-color: color(skill-bg-blue);
-        &:before {
-          background-color: color(skill-val-blue);
-        }
+        background-color: color(stats-bg-grey);
       }
 
       .RejectedMakeup &, .HiredMakeup & {
-        background-color: color(skill-val-blue);
-        &:before {
-          background-color: color(skill-val-blue);
-        }
+        background-color: color(stats-val-blue);
       }
     }
   
@@ -61,15 +59,15 @@
       }
   
       .AverageYellow & {
-        background-color: color(skill-val-yellow);
+        background-color: color(stats-val-yellow);
       }
 
       .AverageBlue & {
-        background-color: color(skill-val-blue);
+        background-color: color(stats-val-blue);
       }
 
       .RejectedMakeup &, .HiredMakeup & {
-        background-color: color(skill-val-yellow);
+        background-color: color(stats-val-yellow);
       }
     }
   }

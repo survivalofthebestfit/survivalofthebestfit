@@ -25,7 +25,7 @@
     align-items: center;
     margin: margin(sm) 0 margin(md) 0;
     @include mq($until: mobile-landscape) {
-      margin: margin(sm) 0 margin(sm) 0;
+      margin: margin(xs) 0 margin(xs) 0;
     }
   }
 
@@ -105,7 +105,7 @@
   @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
 
   position: absolute;
-  top: 0;
+  top: margin(sm);
   right: 8%;
   padding: padding(xxs) padding(xs);
   text-align: center;
@@ -113,8 +113,8 @@
 
   @include mq($until: mobile-landscape) {
     @include buttonBox();
-    right: margin(md);
-    top: margin(sm);
+    right: margin(sm);
+    top: margin(xs);
   }
 
   &_Notificaiton {

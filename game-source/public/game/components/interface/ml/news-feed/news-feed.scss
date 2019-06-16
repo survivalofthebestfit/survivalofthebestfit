@@ -1,6 +1,9 @@
 .NewsFeed {
   @include textBox();
   @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'grey');
+  &.breaking-news {
+    @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'red');
+  }
   // box-shadow: inset 0 0 0 2px color(txt-light-grey);
   
   padding: 2px padding(sm) 2px padding(sm);
@@ -11,6 +14,10 @@
   width: 100%;
   transition: opacity 0.5s ease-in-out;
   font-size: 1.5rem;
+  @include mq($until: mobile-landscape) {
+    padding: 0 padding(sm);
+    top: 0;
+};
   
   &__title {
     position: absolute;
@@ -23,7 +30,12 @@
     z-index: 2;
     @include mq($until: mobile-landscape) {
         font-size: 1.4rem;
+        padding: 0 padding(xs);
     };
+    .breaking-news & {
+      background: color(red-bg);
+      color: white;
+    }
   }
   
   &__title, .NewsList, .NewsList-item{
@@ -39,11 +51,12 @@
     
     &-item {
       font-size: 1.6rem;
-      @include mq($until: mobile-landscape) {
-          font-size: 1rem;
-      };
       padding-right: padding(xxl);
       padding-left: padding(sm);
+      @include mq($until: mobile-landscape) {
+          font-size: 1.2rem;
+          padding-right: padding(md);
+      };
       border-left: solid color(txt-light-grey) 2px;
     }
   }

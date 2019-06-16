@@ -38,7 +38,12 @@ export default class extends UIBase {
         this.animateNews(); // TODO
         this._newsArray = this._newsArray.slice(0, 2); // pop the outdated news from the array
         this.show(); // show the updated news feed
+        console.log('SHOW NEWS FEED!');
         // TODO tweak this if needed - schedule to hide the news after some time
+    }
+
+    breaking() {
+        this.$el.addClass(CLASSES.BREAKING_NEWS);
     }
 
     _createNewsElement(newsText) {

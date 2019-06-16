@@ -9,6 +9,7 @@ import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state.js';
 import TaskUI from '~/public/game/components/interface/ui-task/ui-task';
 
 export default class MlLabNarrator {
@@ -25,7 +26,7 @@ export default class MlLabNarrator {
         this.task = new TaskUI({
             showTimer: false, 
             placeLeft: true,
-            hires: this.ML_TIMELINE[this.ML_TIMELINE.length-1].delay
+            hires: this.ML_TIMELINE[this.ML_TIMELINE.length-1].delay,
         });
 
         this._addEventListeners();
@@ -33,9 +34,8 @@ export default class MlLabNarrator {
     }
 
     populateHiringGoals() {
-
         // You can use this to debug so that ML lab stage progresses faster
-        let debugMode = false;
+        const debugMode = false;
         
         let hiringCount = 0;
 
@@ -43,9 +43,8 @@ export default class MlLabNarrator {
             for (let i = 0; i < this.ML_TIMELINE.length; i++) {
                 this.ML_TIMELINE[i].delay = ++hiringCount;
             }
-        }
-        else {
-            let stageGoal = 3;
+        } else {
+            const stageGoal = 3;
             for (let i = 0; i < this.ML_TIMELINE.length; i++) {
                 hiringCount += stageGoal;
                 this.ML_TIMELINE[i].delay = hiringCount;
@@ -57,7 +56,8 @@ export default class MlLabNarrator {
         this.isActive = true;
         // DISPLAY THE FIRST NEWSFEED that happens before the first investor message
         this.newsFeed.updateNewsFeed({news: this.ML_TIMELINE[0].news});
-        sound.schedule(SOUNDS.ML_LAB_AMBIENT, 1);
+        state.set('ml-sound', SOUNDS.ML_LAB_AMBIENT);
+        sound.schedule(state.get('ml-sound'), 1);
         if (!Array.isArray(this.ML_TIMELINE)) throw new Error('The timeline needs to be an array!');
     }
 
@@ -75,6 +75,9 @@ export default class MlLabNarrator {
 
         // NEWS UPDATE
         if (!this.ML_TIMELINE[0].hasOwnProperty('news')) return;
+        if (this.ML_TIMELINE[0].breaking) {
+            console.log('we have breaking news!');
+        }
         this.newsFeed.updateNewsFeed({news: this.ML_TIMELINE[0].news});
     };
     
@@ -86,7 +89,7 @@ export default class MlLabNarrator {
         this.animator.pauseAnimation();
         this.newsFeed.stop();
         this.newsFeed.hide();
-        sound.fadeOut(SOUNDS.ML_LAB_AMBIENT, false);
+        sound.fadeOut(state.get('ml-sound'), false);
         sound.play(SOUNDS.NEW_MESSAGE);
 
         new TextboxUI({
@@ -111,6 +114,11 @@ export default class MlLabNarrator {
             return;
         }
 
+        if (msg.breaking) {
+            newsFeed.breaking();
+            sound.play(SOUNDS.BREAKING_NEWS);
+        }
+
 
         if (msg.launchMachineInspector) {
             animator.datasetView.swapToStatistics();
@@ -118,7 +126,7 @@ export default class MlLabNarrator {
             return;
         }
         // if we are not inspecting anything, continue playing the background sound
-        sound.play(SOUNDS.ML_LAB_AMBIENT);
+        sound.play(state.get('ml-sound'));
         
         if (msg.isLastMessage) {
             gameFSM.nextStage();
@@ -128,13 +136,12 @@ export default class MlLabNarrator {
         animator.startAnimation();
         newsFeed.start();
         newsFeed.show();
-
     }
 
     // update schedule: pop the first timer value from the array
     updateTimeline() {
         this.ML_TIMELINE = this.ML_TIMELINE.slice(1);
-        console.log(this.ML_TIMELINE[0])
+        console.log(this.ML_TIMELINE[0]);
     }
 
     _handleEmailReply() {
@@ -173,7 +180,7 @@ export default class MlLabNarrator {
     }
 
     destroy() {
-        sound.fadeOut(SOUNDS.ML_LAB_AMBIENT);
+        sound.fadeOut(state.get('ml-sound'));
         this.stop();
         this.animator.destroy();
         this._removeEventListeners();

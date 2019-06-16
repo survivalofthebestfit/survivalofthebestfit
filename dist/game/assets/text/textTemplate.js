@@ -211,6 +211,7 @@ const english = {
                 // },
             },
             {
+                breaking: true,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Machines can\'t be biased, right?',
@@ -234,7 +235,7 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The agorithm might learn not to hire these people...',
+                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The algorithm might learn not to hire these people...',
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
