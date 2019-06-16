@@ -1,10 +1,11 @@
 import {mlLabStageContainer, eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
 import {uv2px} from '~/public/game/controllers/common/utils.js';
-import {EVENTS, ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants';
+import {EVENTS, SCALES, ML_PEOPLE_CONTAINER} from '~/public/game/controllers/constants';
 import MLPerson from '~/public/game/components/pixi/ml-stage/person';
 import PeopleTalkManager from '~/public/game/components/interface/ml/people-talk-manager/people-talk-manager';
 import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.js';
+import {screenSizeDetector} from '~/public/game/controllers/common/utils';
 
 export default class {
     constructor() {
@@ -16,14 +17,14 @@ export default class {
         this.peopleLine = [];
         this.mlLabRejected = [];
 
-        this.personXoffset = 70;
+        this.personXoffset = SCALES.PERSON_DISTANCE[screenSizeDetector()];
         this.peopleTalkManager = new PeopleTalkManager({parent: mlLabStageContainer, stage: 'ml'});
         this._createPeople();
         eventEmitter.on(EVENTS.RESIZE, this._draw.bind(this));
         
         mlLabStageContainer.addChild(this.container);
         this._draw();
-        this.container.x = uv2px(0.25, 'w');
+        this.container.x = uv2px(0.33, 'w');
         this.toInspectId;
 
     }
@@ -52,7 +53,7 @@ export default class {
 
         const person = new MLPerson({
             parent: this.container,
-            x: currentX*this.personXoffset,
+            x: currentX * this.personXoffset,
             personData: cvCollection.cvDataEqual[this.mlLastIndex],
             id: this.mlLastIndex,
         });
@@ -69,6 +70,7 @@ export default class {
     createTween() {
         const tween = PIXI.tweenManager.createTween(this.container);
         tween.from({x: this.container.x}).to({x: this.container.x-this.personXoffset});
+        tween.easing = PIXI.tween.Easing.inOutCubic();
         tween.delay = 200;
         tween.time = 600;
         return tween;

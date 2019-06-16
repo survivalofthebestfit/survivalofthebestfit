@@ -26,7 +26,8 @@ export default class MlLabAnimator {
             type: 'doorAccepted',
             floor: 'ground_floor',
             floorParent: this.groundFloor,
-            xAnchorUV: 0.08,
+            xAnchorUV: 0.12,
+            scaleName: 'DOOR_ML',
         }).addToPixi();
         
         this.machine = new Machine();        
@@ -191,17 +192,17 @@ export default class MlLabAnimator {
 
     destroy() {
         this.destroyTweens();
-        this.conversationManager.destroy(); // unimplemented
+        // this.conversationManager.destroy(); // unimplemented
         this.newsFeed.destroy();
         this.datasetView.destroy();
         this.firstFloor.destroy();
         this.groundFloor.destroy();
-        this.door.destroy(); // unimplemented
+        // this.door.destroy(); // unimplemented
         this.resumeLine.destroy();
         this.belt.destroy();
-        this.machine.destroy(); // unimplemented
-        this.dataServers.destroy(); // unimplemented
-        this.machineRay.destroy(); // half implemented
+        // this.machine.destroy(); // unimplemented
+        // this.dataServers.destroy(); // unimplemented
+        // this.machineRay.destroy(); // half implemented
         this.resumeUI.destroy();
         this.people.destroy();
         this.timeline.destroy();

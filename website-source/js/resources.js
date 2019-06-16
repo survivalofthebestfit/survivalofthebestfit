@@ -14,6 +14,8 @@ function show1() {
 	$('#part3').addClass('is-inactive');
 
 	$('#prevPage').addClass('is-inactive');
+	gtag('event', 'open-resources-first-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+
 }
 
 function show2() {
@@ -24,6 +26,8 @@ function show2() {
 
 	$('#prevPage').removeClass('is-inactive');
 	$('#nextPage').removeClass('is-inactive');
+	gtag('event', 'open-resources-second-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+
 }
 
 function show3() {
@@ -33,4 +37,6 @@ function show3() {
 	$('#part2').addClass('is-inactive');
 
 	$('#nextPage').addClass('is-inactive');
+	gtag('event', 'open-resources-third-page', {'event_category': 'progress', 'event_label': 'resources-page'});
+
 }

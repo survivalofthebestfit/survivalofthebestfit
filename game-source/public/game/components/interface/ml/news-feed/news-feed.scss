@@ -10,7 +10,6 @@
   top: padding(xs);
   width: 100%;
   transition: opacity 0.5s ease-in-out;
-
   font-size: 1.5rem;
   
   &__title {
@@ -22,6 +21,9 @@
     background: color(txt-light-grey);
     padding: 0 padding(sm);
     z-index: 2;
+    @include mq($until: mobile-landscape) {
+        font-size: 1.4rem;
+    };
   }
   
   &__title, .NewsList, .NewsList-item{
@@ -29,30 +31,20 @@
   }
   
   .NewsList {
-    // transform: translateX(-100vw);
     text-transform: uppercase;
     transform: translateX(100px);
-    //padding: 2px;
     white-space: nowrap;
-    //width: 500vw;
-    @include mq($until: mobile) {
-        //width: 400vw;
-    }
-    //display: flex;
     align-items: center;
     overflow: hidden;
     
     &-item {
-      // color: color(txt-dark-grey);
       font-size: 1.6rem;
-      @include mq($until: mobile) {
-          font-size: 1.1rem;
+      @include mq($until: mobile-landscape) {
+          font-size: 1rem;
       };
-      padding: 0 padding(sm);
-      line-height: 1;
-      border-right:solid color(txt-light-grey) 2px;
+      padding-right: padding(xxl);
+      padding-left: padding(sm);
+      border-left: solid color(txt-light-grey) 2px;
     }
   }
-
-
 }

@@ -23,7 +23,7 @@ export default class {
     }
 
     _draw() {
-        this.person.scale.set(SCALES.PEOPLE[screenSizeDetector()]);
+        this.person.scale.set(SCALES.PERSON_ML[screenSizeDetector()]);
         this.person.x = this.x;
         this.person.y = - this.person.height/2;
     }

@@ -2,7 +2,7 @@ import * as machina from 'machina';
 import {eventEmitter} from './gameSetup.js';
 import {Office} from '~/public/game/components/pixi/manual-stage/office.js';
 import MlLabNarrator from '~/public/game/controllers/game/mlLabNarrator';
-import TitlePageUI from '~/public/game/components/interface/ui-title/ui-title';
+import TitlePageUI from '~/public/game/components/interface/ui-title/ui-title.js';
 import TextBoxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import TransitionOverlay from '~/public/game/components/interface/transition/transition-overlay/transition-overlay';
 import TrainingStageOverlay from '~/public/game/components/interface/training-stage/training-overlay/training-overlay';
@@ -12,10 +12,8 @@ import * as state from '~/public/game/controllers/common/state';
 
 let office;
 let currentStage;
-let revenue;
 let transitionOverlay;
 let trainingStageOverlay;
-let titlePageUI;
 let mlLab;
 
 /**
@@ -42,7 +40,7 @@ const gameFSM = new machina.Fsm({
         titleStage: {
             _onEnter: function() {
                 state.set('stage', STAGES.TITLE);
-                titlePageUI = new TitlePageUI({
+                new TitlePageUI({
                     headerText: txt.titleStage.header,
                     content: txt.titleStage.instruction,
                     responses: txt.titleStage.responses,
@@ -207,6 +205,7 @@ const gameFSM = new machina.Fsm({
         gameBreakdown: {
             _onEnter: function() {
                 gtag('event', 'enter-game-end', {'event_category': 'progress', 'event_label': 'states'});
+                gtag('event', 'open-wrap-up-first-page', {'event_category': 'progress', 'event_label': 'resources-page'});
                 state.set('stage', STAGES.GAME_END);
                 new EndGameOverlay();
                 if (mlLab) mlLab.destroy();
