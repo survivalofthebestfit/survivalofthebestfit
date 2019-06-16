@@ -15,7 +15,7 @@ function moveToFromSpotlight(person, newX, newY) {
     person.tween.stop().clear();
     person.tween.to({
         x: newX,
-        y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height*person.scale.y - 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),
+        y: newY,
     });
     person.tween.easing=PIXI.tween.Easing.inOutSine();
     person.tween.time = 500;
@@ -62,6 +62,8 @@ function moveCandidate() {
         eventEmitter.emit(EVENTS.UPDATE_INSTRUCTIONS, {type: 'manual-eval-show'});
         showedInstructions = true;
     }
+
+    // console.log(`x: ${this.originalX}, y: ${this.originalY}`);
     // display clicked person's CV
     candidateClicked = this.id;
     eventEmitter.emit(EVENTS.DISPLAY_THIS_CV, {});

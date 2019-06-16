@@ -3,7 +3,7 @@ import screenfull from 'screenfull';
 import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import {screenSizeDetector} from '~public/game/controllers/common/utils';
+import {screenSizeDetector, isMobile} from '~public/game/controllers/common/utils';
 
 export default class extends UIBase {
     constructor(options) {
@@ -47,7 +47,7 @@ export default class extends UIBase {
     _buttonIsClicked(e) {
         this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
         eventEmitter.emit(EVENTS.TITLE_STAGE_COMPLETED, {});
-        if (screenfull.enabled && screenSizeDetector() === 'mobile') {
+        if (screenfull.enabled && isMobile()) {
             screenfull.request();
         }
         this.destroy();
