@@ -169,11 +169,6 @@ function watchFiles() {
   gulp.watch('./**/*.pug', gulp.series(pugCompile, browserSyncReload)).on('change', function(path, stats) {
     console.log(`File ${path} was changed`);
   });
-
-  gulp.watch(["./**/*.html"], gulp.series(copyHtml, browserSyncReload)).on('change', function(path, stats) {
-    console.log(`File ${path} was changed`);
-  });
-
 }
 
 // Define complex tasks

@@ -2,18 +2,18 @@
 @import 'mixins.scss';
 @import 'buttons.scss';
 
-.resources {
-    h1 {
-        font-size: 2.8rem;
-        text-transform: uppercase;
-        margin-top: 5rem;
-        margin-bottom: 3rem;
+.resources-section {
+    margin-bottom: 5rem;
+    
+    ul {
+        text-align: left;
+        font-family: "Nunito";
+        list-style-type: none; 
     }
 
-    h3 {
-        text-align: left;
-        font-weight: 700;
-        font-size: 1.5rem;
+    li {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 
     p {
@@ -34,88 +34,43 @@
         }
     }
 
+    .upper-list {
+        font-weight: 700;
+    }
 
-    .header-box {
-        text-align: left;
-        position: relative;
-        color: white;
+    .lower-list {
+        font-weight: 400 !important;
+    }
+
+    .page-nav-button {
         @include buttonBox();
         @include boxColors($shadow-color: 'darkred');
-        float: left;
-        margin-left: 5%;
-
-    }
-
-
-    .info-box {
-
-        color: inherit;
-        background-color: #FAFAFA;
-        padding: 20px 10px 20px 20px;
-        position: relative;
-    }
-
-    .info-box:before,
-    .info-box:after {
-        content: "";
         display: inline-block;
-        position: absolute;
-    }
-
-    .info-box:before {
-        left: 0;
-        width: 100%;
-        height: 4px;
-        bottom: -4px;
-        transform: translateX(4px) skewX(65deg);
-    }
-
-    .info-box:after {
-        top: 0;
-        height: 100%;
-        width: 8px;
-        right: -8px;
-        transform: translateY(3px) skewY(25deg);
-    }
-
-    .info-box:before {
-        background: #919191;
-    }
-
-    .info-box:after {
-        background: #B9B9B9;
-    }
-
-
-    .next-box {
         position: relative;
-        @include buttonBox();
-        @include boxColors($shadow-color: 'darkred');
-        float: right;
-        margin-right: 11.5%;
-        clear: left;
+        font-family: 'Nunito';
+        margin-top: -3rem !important;
+        padding: 1rem 1.5rem;
+        font-weight: 700;
+        font-size: 1.2rem;
     }
 
-    h4.next-box:hover {
-        color: black;
+    .page-nav-button:hover {
         cursor: pointer;
     }
 
-    #text1 {
-        display: block;
+    #prevPage {
+        text-align: left;
+        float: left;
     }
 
-    #text2,
-    #text3 {
-        display: none;
+    #nextPage {
+        text-align: right;
+        float: right;
     }
 
-    @media (min-width: 768px) {
-        padding-top: 1rem;
-
-        h1 {
-            font-size: 3.5rem;
-        }
+    .is-inactive {
+        opacity: 0;
+        display: none !important;
     }
 
 }

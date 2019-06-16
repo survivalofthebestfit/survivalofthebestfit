@@ -1,78 +1,42 @@
-//clean this code
-
-
-function next1() {
-	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
-    var page1 = document.getElementById("part1");
-    var page1_2 = document.getElementById("part2");
-    var page2 = document.getElementById("part3");
-   
-    page1.style.display = "none";
-    page1_2.style.display = "none";
-	page2.style.display = "block";
-	gtag('event', 'open-wrap-up-second-page', {'event_category': 'progress', 'event_label': 'resources-page'});
-} 
-
-function next2() {
-	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
-    var current = document.getElementById("part3");
-    var next = document.getElementById("part4");
-   
-    current.style.display = "none";
-	next.style.display = "block";
-	gtag('event', 'open-wrap-up-third-page', {'event_category': 'progress', 'event_label': 'resources-page'});
-} 
-
-function select(el) {
-	var buttons = document.getElementById("buttons");
-	var next = document.getElementById("part2");
-
-	console.log("Metric chosen:", el.childNodes[0].innerText || el.childNodes[0].textContent);
-	gtag('event', 'metric-chosen-' +  el.childNodes[0].innerText || el.childNodes[0].textContent, {'event_category': 'user-preference', 'event_label': 'wrap-up-metric-question'});
-
-	buttons.style.display = "none";
-	next.style.display = "block";
-
+function prevPage() {
+	if (!$('#part3').hasClass('is-inactive')) show2();
+	else if (!$('#part2').hasClass('is-inactive')) show1();
 }
 
-function goToResourcesLog() {
+function nextPage() {
+	if (!$('#part1').hasClass('is-inactive')) show2(); 
+	else if (!$('#part2').hasClass('is-inactive')) show3();
+}
+
+function show1() {
+	$('#part1').removeClass('is-inactive');
+	$('#part2').addClass('is-inactive');
+	$('#part3').addClass('is-inactive');
+
+	$('#prevPage').addClass('is-inactive');
 	gtag('event', 'open-resources-first-page', {'event_category': 'progress', 'event_label': 'resources-page'});
-	return true;
+
 }
 
-function open1() {
-	var current = document.getElementById("text1");
-	var next = document.getElementById("text2");
-	
-	current.style.display = "none";
-	next.style.display = "block";
+function show2() {
+	$('#part2').removeClass('is-inactive');
+
+	$('#part1').addClass('is-inactive');
+	$('#part3').addClass('is-inactive');
+
+	$('#prevPage').removeClass('is-inactive');
+	$('#nextPage').removeClass('is-inactive');
 	gtag('event', 'open-resources-second-page', {'event_category': 'progress', 'event_label': 'resources-page'});
-} 
 
+}
 
+function show3() {
+	$('#part3').removeClass('is-inactive');
 
-function open2() {
-	var current = document.getElementById("text2");
-	var next = document.getElementById("text3");
-	
-	current.style.display = "none";
-	next.style.display = "block";
+	$('#part1').addClass('is-inactive');
+	$('#part2').addClass('is-inactive');
+
+	$('#nextPage').addClass('is-inactive');
 	gtag('event', 'open-resources-third-page', {'event_category': 'progress', 'event_label': 'resources-page'});
-} 
 
-
-function back() {
-	var text1 = document.getElementById("text1");
-	var text2 = document.getElementById("text2");
-	var text3 = document.getElementById("text3");
-	
-	if (text2.style.display === "block") {
-		text2.style.display = "none";
-		text1.style.display = "block";
-	}
-
-	if (text3.style.display === "block") {
-		text3.style.display = "none";
-		text2.style.display = "block";
-	}
-}  
+}
