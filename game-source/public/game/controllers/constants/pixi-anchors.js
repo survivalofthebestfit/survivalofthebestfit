@@ -2,7 +2,7 @@
 export default {
     FLOORS: {
         FIRST_FLOOR: {
-            y: 0.58,
+            y: 0.61,
         },
         GROUND_FLOOR: {
             y: 1,

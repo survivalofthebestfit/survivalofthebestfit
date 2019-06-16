@@ -1,17 +1,18 @@
 footer {
-    padding: 1.5rem;
-    li {
-        font-size: 0.8rem;    
-        margin-bottom: 0.5rem;    
+    padding: 0rem 1.5rem;
+    font-family: 'Nunito';
+    letter-spacing: 2px;
+    font-weight: 300;
+    font-size: 0.8rem;    
+
+    p {
+        display: inline-block;
+        margin-left: 0.5rem;
     }
 
     @media(min-width: 768px) {
-        padding: 2rem;
+        padding: 0rem 2rem;
         margin-left: 2rem;
-        li {
-            font-size: 1rem; 
-            margin-bottom: 1rem;    
-   
-        }
-      }
+        font-size: 1rem;   
+    }
 }

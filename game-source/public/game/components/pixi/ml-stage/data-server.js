@@ -8,7 +8,7 @@ export default class {
     constructor({machine, type}) {
         this.sprite = type === 'rejected' ? SPRITES.dataServerRejected : SPRITES.dataServerAccepted;
         this.dataServerScale = SCALES.DATA_SERVER[screenSizeDetector()];
-        this.directionVector = type === 'rejected' ? -1 : 1;
+        this.directionVector = type === 'rejected' ? 1 : -1;
         this.machine = machine;
         this.$counterTemplate = $(document).find('#js-server-counter-template');
         this.$counterEl = null;

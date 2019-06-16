@@ -124,7 +124,7 @@ export default class MlLabNarrator {
             gameFSM.nextStage();
             return;
         } 
-
+        animator.datasetView.hide();
         animator.startAnimation();
         newsFeed.start();
         newsFeed.show();
@@ -138,10 +138,9 @@ export default class MlLabNarrator {
     }
 
     _handleEmailReply() {
-        this.animator.datasetView.hide();
         this.ML_TIMELINE[0].launchCVInspector = false;
         this.ML_TIMELINE[0].launchMachineInspector = false;
-        let callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
+        const callback = this.textAckCallback.bind({}, this.ML_TIMELINE[0], this.animator, this.newsFeed);
 
         new TextboxUI({
             show: true,
@@ -149,8 +148,8 @@ export default class MlLabNarrator {
             content: this.ML_TIMELINE[0].inspectQuestion,
             responses: this.ML_TIMELINE[0].inspectResponses,
             callback: callback,
-            //TODO - can we do overlay??
-            overlay: true
+            // TODO - can we do overlay??
+            overlay: true,
         });        
     }
 

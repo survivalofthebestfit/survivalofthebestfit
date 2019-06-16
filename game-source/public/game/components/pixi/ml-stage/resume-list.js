@@ -48,8 +48,8 @@ export default class {
         const halfOfNumOfResumes = Math.floor( halfOfBeltWidth / (2 * this.resumeWidth));
         this.resumeXOffset = halfOfBeltWidth / (halfOfNumOfResumes-1);
         this.numOfResumes = halfOfNumOfResumes * repetition;
-        this.resumeContainer.x = -1 * this.resumeWidth/repetition;
-        this.resumeContainer.y = uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - this.scale*beltTexture.height*1.07;
+        this.resumeContainer.x = -1 * this.resumeWidth/repetition - 5;
+        this.resumeContainer.y = uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - beltTexture.height*SCALES.BELT[screenSizeDetector()]*1.21;
     }
 
     destroy() {

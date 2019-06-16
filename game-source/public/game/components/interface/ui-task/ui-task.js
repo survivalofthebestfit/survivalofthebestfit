@@ -33,10 +33,11 @@ export default class extends UIBase {
         }
 
         if (options.placeLeft) {
-            const mlLabCoordinates = {left: 10, top: 17, minWidth: 150};
+            const mlLabCoordinates = {left: 33, top: 16, minWidth: 150};
             this.$el.css({
                 'top': `${mlLabCoordinates.top}%`,
                 'left': `${mlLabCoordinates.left}%`,
+                'transform': 'translate(-53%)',
                 'min-width': `${mlLabCoordinates.minWidth}px`,
             });
         }

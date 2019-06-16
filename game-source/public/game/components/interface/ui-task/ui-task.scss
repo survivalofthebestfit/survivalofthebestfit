@@ -18,7 +18,7 @@
   display: flex;
   justify-content: space-around;
   @include mq($from: mobile-landscape) {
-    top: 4%;
+    top: 14%;
     min-width: 200px;
     padding: padding(xxs) padding(xs) padding(xs) padding(xs);
   }

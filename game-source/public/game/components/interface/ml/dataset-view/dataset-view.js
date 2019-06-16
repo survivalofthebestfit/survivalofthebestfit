@@ -24,7 +24,6 @@ export default class extends UIBase {
         this.dataset = [];
         this.resumePreview = new DatasetResumePreview();
         this.scrollIsActive = false;
-        // this._handleIconClick = this._handleIconClick.bind(this);
         this._handlePersonCardClick = this._handlePersonCardClick.bind(this);
         this.activePerson = null;
         this._addEventListeners();
@@ -51,19 +50,13 @@ export default class extends UIBase {
     }
 
     _addEventListeners() {
-        // this.$xIcon.on('click', this._handleIconClick);
         const $resumeGrids = document.querySelectorAll('.DatasetGrid');
         $resumeGrids.forEach((grid) => grid.addEventListener('click', this._handlePersonCardClick));
         this.$button.click(this._buttonHandler.bind(this));
     }
 
     _removeEventListeners() {
-        // this.$xIcon.off('click', this._handleIconClick);
         eventEmitter.off(EVENTS.DATASET_VIEW_INSPECT, this._handleInspectButtonClick);
-    }
-
-    _handleIconClick() {
-        this.hide();
     }
 
     handleNewResume(resume) {
@@ -71,7 +64,6 @@ export default class extends UIBase {
             resume: resume,
             $parent: this.$el,
         });
-        // if (!this.scrollIsActive) this._checkForScroll();
         this.dataset.push(personCard);
     }
 
@@ -108,7 +100,9 @@ export default class extends UIBase {
             this.resumePreview.previewNewPerson(activePerson.getData());
             this.activePerson = activePerson;
         };
-        this._showNewEmailNotification();
+        if (activePerson.getData()['name'] === 'Elvan Yang') {
+            this._showNewEmailNotification();
+        }
     }
 
     show() {
