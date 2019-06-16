@@ -8,6 +8,7 @@ import StatisticsCard from '~/public/game/components/interface/ml/statistics-car
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {waitForSeconds} from '~/public/game/controllers/common/utils.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
+import * as state from '~/public/game/controllers/common/state.js';
 
 export default class extends UIBase {
     constructor(options) {
@@ -45,6 +46,7 @@ export default class extends UIBase {
 
     _buttonHandler() {
         sound.play(SOUNDS.BUTTON_CLICK);
+        state.set('ml-sound', SOUNDS.ML_DRONE);
         this.$button.addClass(CLASSES.BUTTON_CLICKED);
         eventEmitter.emit(EVENTS.EMAIL_REPLY, {});
     }

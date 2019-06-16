@@ -90,7 +90,7 @@ export default class extends UIBase {
 
     show() {
         this.$el.css({
-            'top': `${spotlight.y - this.personHeight - (isMobile() ? 20 : 40 )}px`, // get person height
+            'top': `${spotlight.y - this.personHeight - (isMobile() ? 15 : 20 )}px`, // get person height
             'left': `${spotlight.x + 10}px`,
         });
         TweenLite.set(this.$id, {y: 5, xPercent: -50, opacity: 0});

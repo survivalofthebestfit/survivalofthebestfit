@@ -17,12 +17,20 @@ export default class Footer extends Component {
     _addEventListeners() {
         this.$fullscreenIcon.click(this._handleFullscreenRequest.bind(this));
         this.$soundIcon.click(this._toggleVolume.bind(this));
+        window.addEventListener('beforeunload', this._handlePageLeave.bind(this));
     }
 
     _removeEventListeners() {
         // event listeners need to be removed explicitly because they are managed globally Jquery
         this.$fullscreenIcon.off();
         this.$soundIcon.off();
+    }
+
+    _handlePageLeave() {
+        console.log('left the page, turn volume off');
+        if (!this.$soundIcon.hasClass(CLASSES.VOLUME_ICON_OFF)) {
+            this._toggleVolume();
+        }
     }
 
     _handleFullscreenRequest() {

@@ -108,6 +108,7 @@ export default class extends UIBase {
 
     exit() {
         setCanvasBackground({});
+        $('body').removeClass(CLASSES.TRAINING_BACKGROUND);
         waitForSeconds(0.3).then(() => {
             gameFSM.nextStage();
         });

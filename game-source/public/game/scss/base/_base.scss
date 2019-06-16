@@ -12,6 +12,9 @@ body {
   left: 0;
   background-color: color(bg-yellow);
   font-family: 'VT323', monospace;
+  &.training-background {
+    background-color: color(rose-light);
+  }
 }
 
 // button

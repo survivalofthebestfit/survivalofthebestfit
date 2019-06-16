@@ -45,6 +45,7 @@ export default class extends UIBase {
 
     exit() {
         setCanvasBackground({color: 'pink'});
+        $('body').addClass(CLASSES.TRAINING_BACKGROUND);
         this.$el.addClass('pink-background');
         this.hide();
         waitForSeconds(0.6).then(() => {

@@ -1,6 +1,6 @@
 import $ from 'jquery';
 import {mlLabStageContainer} from '~/public/game/controllers/game/gameSetup.js';
-import {screenSizeDetector, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
+import {screenSizeDetector, waitForSeconds, isMobile, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 import {SPRITES} from '~/public/game/controllers/common/textures.js';
 import {SCALES, CLASSES} from '~/public/game/controllers/constants';
 
@@ -34,7 +34,7 @@ export default class {
         const serverWidth = this.sprite.width;
         const serverHeight = this.sprite.height;
         this.$counterEl.css({
-            'top': `${y + serverHeight*0.19}px`,
+            'top': `${y + serverHeight*(isMobile() ? 0.14 : 0.19)}px`,
             'left': `${x+serverWidth/2 - 10}px`,
         });
     }

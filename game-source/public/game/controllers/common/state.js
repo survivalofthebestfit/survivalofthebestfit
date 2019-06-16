@@ -4,6 +4,7 @@ const store = {
     'hiring-in-progress': Boolean(false),
     'hiring-stage-success': Boolean(false),
     'stage': String('pregame'),
+    'ml-sound': String('silence'),
 };
 
 
