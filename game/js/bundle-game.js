@@ -100930,6 +100930,8 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
+var _screenfull = _interopRequireDefault(require("screenfull"));
+
 var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
@@ -101031,8 +101033,8 @@ function (_UIBase) {
 
       _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
-      if (screenfull.enabled && (0, _utils.isMobile)()) {
-        screenfull.request();
+      if (_screenfull["default"].enabled && (0, _utils.isMobile)()) {
+        _screenfull["default"].request();
       }
 
       this.destroy();
@@ -101074,7 +101076,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336,"screenfull":530}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102062,7 +102064,7 @@ function moveToFromSpotlight(person, newX, newY) {
     y: newY
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
-  person.tween.time = 500;
+  person.tween.time = 400;
   person.tween.start();
   person.tween.on('end', function () {
     stopSpriteAnimation.call(person);
@@ -104974,11 +104976,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
+        // this.transition('titleStage');
+        // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        // this.transition('mlLabStage');
-        // this.transition('gameBreakdown');
+        this.transition('mlLabStage'); // this.transition('gameBreakdown');
       }
     },
 

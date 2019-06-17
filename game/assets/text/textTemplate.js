@@ -19,14 +19,14 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Congratulations!',
-        instruction: 'You just secured 1 million dollars from Yellowhill ventures to build your startup Bestfit. Are you ready to grow your new company in the competitive Yellow Valley?',
+        instruction: 'You just secured 1 million dollars from Yellow Valley ventures. Are you ready to grow your new startup in this competitive world?',
         responses: [
             'Start Game',
         ],
     },
     tutorialStage: {
         header: 'Tutorial',
-        instruction: 'As the CEO of Bestfit, your goal is to hire the best and brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
+        instruction: 'As the CEO, your goal is to hire the best and brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
         responses: [
             'Got it',
         ],
@@ -42,8 +42,8 @@ const english = {
     },
 
     smallOfficeStage: {
-        subject: 'Our investment in Bestfit',
-        messageFromVc: 'Congrats again on your latest investment - we are excited to work with you. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers.',
+        subject: 'Our investment in your startup',
+        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
@@ -52,8 +52,8 @@ const english = {
         subject: 'Good start',
         messageFromVc: 'However, for more funding you\’ll need to hire faster, so pay attention to the clock!',
         responses: [
-            'I\'ll hire faster',
-            'I\'ll pay attention to the clock!',
+            'I\'ll hire faster.',
+            'Hmm, okay.',
         ],
         hiringGoal: 5,
         duration: 45
@@ -74,9 +74,9 @@ const english = {
 
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'Solid work, but it\'s just too competitive in Yellow Valley... Talk to your software engineers to speed things up! I heard artificial intelligence can solve every problem nowadays.',
+        messageFromVc: 'It\'s just too competitive here in Yellow Valley...Can you talk to your software engineers to speed things up? I heard AI solves all problems nowadays.',
         responses: [
-            'Sure, we can automate it all!',
+            'Sure, we can automate it away!',
             'Hmm, I will email the engineers.',
         ],
         previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution.',
@@ -87,7 +87,7 @@ const english = {
     conversation: [
         {
             dialogue_step: 1,
-            text: 'You asked us how we can hire faster. So we built a hiring algorithm (or a computer program) using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
+            text: 'You asked us how we can hire faster. So we built a hiring algorithm using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
             answer_choice: [
                 {
                     text: 'How does that work?',
@@ -102,7 +102,7 @@ const english = {
         },
         {
             dialogue_step: 2,
-            text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then try to learn what makes a candidate good or bad. Basically, the program will try to <u>copy your hiring decision process.</u>!',
+            text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then learn what makes a candidate good or bad by <u>copying your hiring decision process</u>!',
             answer_choice: [
                 {
                     text: 'A machine will think like me??',
