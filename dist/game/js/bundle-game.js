@@ -100930,15 +100930,11 @@ exports["default"] = void 0;
 
 var _jquery = _interopRequireDefault(require("jquery"));
 
-var _screenfull = _interopRequireDefault(require("screenfull"));
-
 var _constants = require("../../../controllers/constants");
 
 var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
-
-var _utils = require("../../../controllers/common/utils");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -101033,10 +101029,6 @@ function (_UIBase) {
 
       _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
-      if (_screenfull["default"].enabled && (0, _utils.screenSizeDetector)() === 'mobile') {
-        _screenfull["default"].request();
-      }
-
       this.destroy();
     }
   }, {
@@ -101076,7 +101068,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/common/utils":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336,"screenfull":530}],558:[function(require,module,exports){
+},{"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102061,7 +102053,8 @@ function moveToFromSpotlight(person, newX, newY) {
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
-    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height * person.scale.y - 0.9 * (_constants.SCALES.FLOOR[(0, _utils.screenSizeDetector)()] + _constants.SCALES.FLOOR_SHADOW[(0, _utils.screenSizeDetector)()])
+    y: newY // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
+
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;

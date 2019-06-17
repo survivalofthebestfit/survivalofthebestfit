@@ -2,16 +2,27 @@
 footer.footer
 	.container
 		.row
-			.my-3
-				ul.list-unstyled
-					li
+			.col-xs-12.mt-4.mx-auto
+				ul.list-unstyled.list-inline.social.text-center
+					li.list-inline-item
 						a(href='mailto:survivalofthebestfit@gmail.com')
 							i.fas.fa-envelope.fa-lg
-							p survivalofthebestfit@gmail.com
-					li
+					li.list-inline-item
 						a(href='https://github.com/survivalofthebestfit/survivalofthebestfit')
 							i.fab.fa-github.fa-lg
-							p /survivalofthebestfit
+					li.list-inline-item
+						a(href='https://twitter.com/sotbf_')
+							i.fab.fa-twitter.fa-lg
+					li.list-inline-item
+						a(href='https://medium.com/survival-of-the-best-fit')
+							i.fab.fa-medium.fa-lg
+
+		row
+			.col-xs-12.my-2.text-center.mx-auto
+				p 
+					| &copy 2019 Copyright.
+					a.ml-2(href="https://survivalofthebestfit.com") Survival of the Best Fit
+
 script(src='./vendor/jquery/jquery.min.js')
 script(src='./vendor/bootstrap/js/bootstrap.bundle.min.js')
 script(src='./vendor/jquery-easing/jquery.easing.min.js')

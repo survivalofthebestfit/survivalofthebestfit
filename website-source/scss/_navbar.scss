@@ -3,7 +3,7 @@
   color: black;
   font-family: VT323, monospace;
   font-size: 1.5em;
-  padding-top: 1em;
+  padding-left: 1rem;
 
   .navbar-play {
     background: #DE4545;
@@ -12,10 +12,12 @@
   }
 
   .navbar-toggler {
-    font-size: 80%;
-    padding: 0.75rem;
-    color: $primary;
-    border: 1px solid $primary;
+    font-size: 50%;
+    padding: .5rem;
+    color: #2e4755;
+    border: 1px solid #2e4755;
+    margin-top: 0.5rem;
+
     &:focus {
       outline: none;
     }
@@ -65,6 +67,25 @@
     background-color: fade-out($white-washed, .20);
   }
 
+  @media (min-width: 768px) {
+    // padding: 1rem 3rem 0rem 3rem;
+
+    &.navbar-shrink {
+      background-color: fade-out($white-washed, .20);
+      max-height: 4rem;
+      padding-top: 0;
+
+    }
+
+    .navbar-brand {
+      text-align: center !important;
+    }
+
+    .navbar-play-button {
+      margin: 0;
+    }
+  }
+
   @media (min-width: 992px) {
     padding-top: 0;
     padding-bottom: 0;
@@ -84,6 +105,7 @@
 
     &.navbar-shrink {
       background-color: fade-out($white-washed, .20);
+      
       .nav-link {
         padding: 1rem;
         border-bottom: 0.25rem solid transparent;

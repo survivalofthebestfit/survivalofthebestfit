@@ -1,9 +1,30 @@
 footer {
     padding: 0rem 1.5rem;
     font-family: 'Nunito';
-    letter-spacing: 2px;
     font-weight: 300;
-    font-size: 0.8rem;    
+    font-size: 0.8rem;
+ 
+    .social {
+        .li {
+            padding: 0.5rem 0;
+
+        }
+
+        i {
+            margin-right: .5rem;
+            margin-left: 0.5rem;
+            font-size: 2rem;
+            -webkit-transition: .5s all ease;
+            -moz-transition: .5s all ease;
+            transition: .5s all ease;
+
+
+            &:hover {
+                font-size:2.5rem;
+                margin-top:-1rem;
+            }
+        }
+    }
 
     p {
         display: inline-block;
