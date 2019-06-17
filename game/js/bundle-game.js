@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.5' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -2804,7 +2804,6 @@ module.exports.f = function (C) {
 },{"./_a-function":45}],109:[function(require,module,exports){
 'use strict';
 // 19.1.2.1 Object.assign(target, source, ...)
-var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var gOPS = require('./_object-gops');
 var pIE = require('./_object-pie');
@@ -2834,14 +2833,11 @@ module.exports = !$assign || require('./_fails')(function () {
     var length = keys.length;
     var j = 0;
     var key;
-    while (length > j) {
-      key = keys[j++];
-      if (!DESCRIPTORS || isEnum.call(S, key)) T[key] = S[key];
-    }
+    while (length > j) if (isEnum.call(S, key = keys[j++])) T[key] = S[key];
   } return T;
 } : $assign;
 
-},{"./_descriptors":70,"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
+},{"./_fails":76,"./_iobject":89,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_to-object":154}],110:[function(require,module,exports){
 // 19.1.2.2 / 15.2.3.5 Object.create(O [, Properties])
 var anObject = require('./_an-object');
 var dPs = require('./_object-dps');
@@ -3011,7 +3007,6 @@ module.exports = function (KEY, exec) {
 };
 
 },{"./_core":64,"./_export":74,"./_fails":76}],122:[function(require,module,exports){
-var DESCRIPTORS = require('./_descriptors');
 var getKeys = require('./_object-keys');
 var toIObject = require('./_to-iobject');
 var isEnum = require('./_object-pie').f;
@@ -3023,17 +3018,13 @@ module.exports = function (isEntries) {
     var i = 0;
     var result = [];
     var key;
-    while (length > i) {
-      key = keys[i++];
-      if (!DESCRIPTORS || isEnum.call(O, key)) {
-        result.push(isEntries ? [key, O[key]] : O[key]);
-      }
-    }
-    return result;
+    while (length > i) if (isEnum.call(O, key = keys[i++])) {
+      result.push(isEntries ? [key, O[key]] : O[key]);
+    } return result;
   };
 };
 
-},{"./_descriptors":70,"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
+},{"./_object-keys":119,"./_object-pie":120,"./_to-iobject":152}],123:[function(require,module,exports){
 // all object keys, includes non-enumerable and symbols
 var gOPN = require('./_object-gopn');
 var gOPS = require('./_object-gops');
@@ -6813,14 +6804,12 @@ var enumKeys = require('./_enum-keys');
 var isArray = require('./_is-array');
 var anObject = require('./_an-object');
 var isObject = require('./_is-object');
-var toObject = require('./_to-object');
 var toIObject = require('./_to-iobject');
 var toPrimitive = require('./_to-primitive');
 var createDesc = require('./_property-desc');
 var _create = require('./_object-create');
 var gOPNExt = require('./_object-gopn-ext');
 var $GOPD = require('./_object-gopd');
-var $GOPS = require('./_object-gops');
 var $DP = require('./_object-dp');
 var $keys = require('./_object-keys');
 var gOPD = $GOPD.f;
@@ -6947,7 +6936,7 @@ if (!USE_NATIVE) {
   $DP.f = $defineProperty;
   require('./_object-gopn').f = gOPNExt.f = $getOwnPropertyNames;
   require('./_object-pie').f = $propertyIsEnumerable;
-  $GOPS.f = $getOwnPropertySymbols;
+  require('./_object-gops').f = $getOwnPropertySymbols;
 
   if (DESCRIPTORS && !require('./_library')) {
     redefine(ObjectProto, 'propertyIsEnumerable', $propertyIsEnumerable, true);
@@ -6998,16 +6987,6 @@ $export($export.S + $export.F * !USE_NATIVE, 'Object', {
   getOwnPropertySymbols: $getOwnPropertySymbols
 });
 
-// Chrome 38 and 39 `Object.getOwnPropertySymbols` fails on primitives
-// https://bugs.chromium.org/p/v8/issues/detail?id=3443
-var FAILS_ON_PRIMITIVES = $fails(function () { $GOPS.f(1); });
-
-$export($export.S + $export.F * FAILS_ON_PRIMITIVES, 'Object', {
-  getOwnPropertySymbols: function getOwnPropertySymbols(it) {
-    return $GOPS.f(toObject(it));
-  }
-});
-
 // 24.3.2 JSON.stringify(value [, replacer [, space]])
 $JSON && $export($export.S + $export.F * (!USE_NATIVE || $fails(function () {
   var S = $Symbol();
@@ -7041,7 +7020,7 @@ setToStringTag(Math, 'Math', true);
 // 24.3.3 JSON[@@toStringTag]
 setToStringTag(global.JSON, 'JSON', true);
 
-},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-object":154,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
+},{"./_an-object":50,"./_descriptors":70,"./_enum-keys":73,"./_export":74,"./_fails":76,"./_global":82,"./_has":83,"./_hide":84,"./_is-array":91,"./_is-object":93,"./_library":101,"./_meta":106,"./_object-create":110,"./_object-dp":111,"./_object-gopd":113,"./_object-gopn":115,"./_object-gopn-ext":114,"./_object-gops":116,"./_object-keys":119,"./_object-pie":120,"./_property-desc":128,"./_redefine":130,"./_set-to-string-tag":136,"./_shared":138,"./_to-iobject":152,"./_to-primitive":155,"./_uid":159,"./_wks":164,"./_wks-define":162,"./_wks-ext":163}],291:[function(require,module,exports){
 'use strict';
 var $export = require('./_export');
 var $typed = require('./_typed');
@@ -22394,7 +22373,7 @@ function isAnyArray(object) {
 module.exports = isAnyArray;
 
 },{}],335:[function(require,module,exports){
-!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,b=/\bAndroid(?:.+)SD4930UR\b/i,l=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,s=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,c=/BB10/i,h=/Opera Mini/i,v=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(b,i),tablet:!m(b,i)&&m(l,i),device:m(b,i)||m(l,i)},android:{phone:!m(f,i)&&m(b,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(b,i)&&!m(a,i)&&(m(l,i)||m(p,i)),device:!m(f,i)&&(m(b,i)||m(l,i)||m(a,i)||m(p,i))||m(/\bokhttp\b/i,i)},windows:{phone:m(f,i),tablet:m(s,i),device:m(f,i)||m(s,i)},other:{blackberry:m(u,i),blackberry10:m(c,i),opera:m(h,i),firefox:m(w,i),chrome:m(v,i),device:m(u,i)||m(c,i)||m(h,i)||m(w,i)||m(v,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?(module.exports=i(),module.exports.isMobile=i):"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
+!function(e){var n=/iPhone/i,t=/iPod/i,r=/iPad/i,a=/\bAndroid(?:.+)Mobile\b/i,p=/Android/i,l=/\bAndroid(?:.+)SD4930UR\b/i,b=/\bAndroid(?:.+)(?:KF[A-Z]{2,4})\b/i,f=/Windows Phone/i,u=/\bWindows(?:.+)ARM\b/i,c=/BlackBerry/i,s=/BB10/i,v=/Opera Mini/i,h=/\b(CriOS|Chrome)(?:.+)Mobile/i,w=/\Mobile(?:.+)Firefox\b/i;function m(e,i){return e.test(i)}function i(e){var i=e||("undefined"!=typeof navigator?navigator.userAgent:""),o=i.split("[FBAN");void 0!==o[1]&&(i=o[0]),void 0!==(o=i.split("Twitter"))[1]&&(i=o[0]);var d={apple:{phone:m(n,i)&&!m(f,i),ipod:m(t,i),tablet:!m(n,i)&&m(r,i)&&!m(f,i),device:(m(n,i)||m(t,i)||m(r,i))&&!m(f,i)},amazon:{phone:m(l,i),tablet:!m(l,i)&&m(b,i),device:m(l,i)||m(b,i)},android:{phone:!m(f,i)&&m(l,i)||!m(f,i)&&m(a,i),tablet:!m(f,i)&&!m(l,i)&&!m(a,i)&&(m(b,i)||m(p,i)),device:!m(f,i)&&(m(l,i)||m(b,i)||m(a,i)||m(p,i))},windows:{phone:m(f,i),tablet:m(u,i),device:m(f,i)||m(u,i)},other:{blackberry:m(c,i),blackberry10:m(s,i),opera:m(v,i),firefox:m(w,i),chrome:m(h,i),device:m(c,i)||m(s,i)||m(v,i)||m(w,i)||m(h,i)}};return d.any=d.apple.device||d.android.device||d.windows.device||d.other.device,d.phone=d.apple.phone||d.android.phone||d.windows.phone,d.tablet=d.apple.tablet||d.android.tablet||d.windows.tablet,d}"undefined"!=typeof module&&module.exports&&"undefined"==typeof window?module.exports=i:"undefined"!=typeof module&&module.exports&&"undefined"!=typeof window?module.exports=i():"function"==typeof define&&define.amd?define([],e.isMobile=i()):e.isMobile=i()}(this);
 },{}],336:[function(require,module,exports){
 /*!
  * jQuery JavaScript Library v3.4.1
@@ -101029,13 +101008,13 @@ function (_UIBase) {
   }, {
     key: "_buttonIsClicked",
     value: function _buttonIsClicked(e) {
-      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
-
-      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
-
       if (_screenfull["default"].enabled && (0, _utils.isMobile)()) {
         _screenfull["default"].request();
       }
+
+      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
+
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
       this.destroy();
     }
@@ -101664,10 +101643,15 @@ function computeOfficeParams(type) {
 
 function computeSpotlight(_ref) {
   var entryDoor = _ref.entryDoor,
-      exitDoor = _ref.exitDoor;
+      exitDoor = _ref.exitDoor,
+      person = _ref.person;
+
+  var personHeightHalf = 0.6 * (new PIXI.extras.AnimatedSprite(PIXI.loader.resources['yellowPerson'].spritesheet.animations['idle']).height * _constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
+
   return {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
-    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - personHeightHalf //- 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),
+
   };
 }
 
@@ -101954,11 +101938,13 @@ function () {
           xClampedOffset = _this$centerPeopleLin2.xClampedOffset,
           startX = _this$centerPeopleLin2.startX;
 
-      for (var i = 0; i < candidates; i++) {
-        var x = startX + xClampedOffset * i;
-        var y = computePersonY();
-        var person = this.personContainer.getChildAt(i);
-        if (person) (0, _person.repositionPerson)(person, x, y);
+      if (this.personContainer.children.length) {
+        for (var i = 0; i < candidates; i++) {
+          var x = startX + xClampedOffset * i;
+          var y = computePersonY();
+          var person = this.personContainer.getChildAt(i);
+          if (person) (0, _person.repositionPerson)(person, x, y);
+        }
       } // reposition html elements
 
 
@@ -105029,7 +105015,9 @@ var gameFSM = new machina.Fsm({
           stageNumber: currentStage,
           overlay: true
         });
-        office = new _office.Office();
+        setTimeout(function () {
+          office = new _office.Office();
+        }, 1000);
         gtag('event', 'enter-small-office', {
           'event_category': 'progress',
           'event_label': 'states'
