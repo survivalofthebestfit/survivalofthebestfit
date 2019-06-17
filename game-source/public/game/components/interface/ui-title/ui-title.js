@@ -45,11 +45,11 @@ export default class extends UIBase {
     }
 
     _buttonIsClicked(e) {
-        this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
-        eventEmitter.emit(EVENTS.TITLE_STAGE_COMPLETED, {});
         if (screenfull.enabled && isMobile()) {
             screenfull.request();
         }
+        this.$buttons.addClass(CLASSES.BUTTON_CLICKED);
+        eventEmitter.emit(EVENTS.TITLE_STAGE_COMPLETED, {});
         this.destroy();
     }
 

@@ -5,7 +5,7 @@ import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {createPerson, moveToDoor, moveToFromSpotlight, repositionPerson} from '~/public/game/components/pixi/manual-stage/person.js';
 import Floor from '~/public/game/components/pixi/manual-stage/floor.js';
 import {cvCollection} from '~/public/game/assets/text/cvCollection.js';
-import {uv2px, px2uv, clamp, isMobile, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
+import {uv2px, px2uv, screenSizeDetector, clamp, isMobile, waitForSeconds, spacingUtils as space} from '~/public/game/controllers/common/utils.js';
 import Door from '~/public/game/components/pixi/manual-stage/door.js';
 import ResumeUI from '~/public/game/components/interface/ui-resume/ui-resume';
 import InstructionUI from '~/public/game/components/interface/ui-instruction/ui-instruction';
@@ -43,10 +43,11 @@ function computeOfficeParams(type) {
     }
 };
 
-function computeSpotlight({entryDoor, exitDoor}) {
+function computeSpotlight({entryDoor, exitDoor, person}) {
+    const personHeightHalf = 0.6 * (new PIXI.extras.AnimatedSprite(PIXI.loader.resources['yellowPerson'].spritesheet.animations['idle']).height * SCALES.PERSON[screenSizeDetector()]);
     return {
         x: uv2px(space.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
-        y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h'),
+        y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - personHeightHalf, //- 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),
     };
 }
 
@@ -145,7 +146,7 @@ class Office {
             this.task.destroy();
             this.task = null;
         }
-
+        
         if (this.currentStage == 0) {
             // SMALL STAGE - INITIAL SET UP
             candidatesToAdd = this.candidatePoolSize.smallOfficeStage;
@@ -169,7 +170,7 @@ class Office {
             this.personContainer = new PIXI.Container();
             this.personContainer.name = OFFICE_PEOPLE_CONTAINER;
         }
-
+        
         this.populateCandidates(this.uniqueCandidateIndex, candidatesToAdd);
         officeStageContainer.addChild(this.interiorContainer);
         officeStageContainer.addChild(this.personContainer);
@@ -282,11 +283,13 @@ class Office {
         // reposition candidates
         const candidates = this.getCandidatePoolSize(this.currentStage);
         const {xClampedOffset, startX} = this.centerPeopleLine(candidates);
-        for (let i = 0; i < candidates; i++) {
-            const x = startX + xClampedOffset * i;
-            const y = computePersonY();
-            const person = this.personContainer.getChildAt(i);
-            if (person) repositionPerson(person, x, y);
+        if (this.personContainer.children.length) {
+            for (let i = 0; i < candidates; i++) {
+                const x = startX + xClampedOffset * i;
+                const y = computePersonY();
+                const person = this.personContainer.getChildAt(i);
+                if (person) repositionPerson(person, x, y);
+            }
         }
         // reposition html elements
         const h = document.body.clientHeight;

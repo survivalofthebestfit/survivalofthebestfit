@@ -70,7 +70,8 @@ function select() {
 
 function next1() {
 
-    console.log("button clicked");
+	console.log("button clicked");
+	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
     var page1 = document.getElementById("part1");
     var page1_2 = document.getElementById("part2");
     var page2 = document.getElementById("part3");
@@ -83,7 +84,8 @@ function next1() {
 
 function next2() {
 
-    console.log("button clicked");
+	console.log("button clicked");
+	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
     var current = document.getElementById("part3");
     var next = document.getElementById("part4");
    
