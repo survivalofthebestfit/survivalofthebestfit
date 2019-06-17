@@ -100936,6 +100936,8 @@ var _uiBase = _interopRequireDefault(require("../ui-base/ui-base"));
 
 var _gameSetup = require("../../../controllers/game/gameSetup.js");
 
+var _utils = require("../../../controllers/common/utils");
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -101029,6 +101031,10 @@ function (_UIBase) {
 
       _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
+      if (screenfull.enabled && (0, _utils.isMobile)()) {
+        screenfull.request();
+      }
+
       this.destroy();
     }
   }, {
@@ -101068,7 +101074,7 @@ function (_UIBase) {
 
 exports["default"] = _default;
 
-},{"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
+},{"../../../controllers/common/utils":574,"../../../controllers/constants":579,"../../../controllers/game/gameSetup.js":588,"../ui-base/ui-base":552,"jquery":336}],558:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -102053,8 +102059,7 @@ function moveToFromSpotlight(person, newX, newY) {
   person.tween.stop().clear();
   person.tween.to({
     x: newX,
-    y: newY // uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - person.height,
-
+    y: newY
   });
   person.tween.easing = PIXI.tween.Easing.inOutSine();
   person.tween.time = 500;
@@ -102109,7 +102114,8 @@ function moveCandidate() {
     });
 
     showedInstructions = true;
-  } // display clicked person's CV
+  } // console.log(`x: ${this.originalX}, y: ${this.originalY}`);
+  // display clicked person's CV
 
 
   candidateClicked = this.id;
