@@ -18,7 +18,7 @@ function moveToFromSpotlight(person, newX, newY) {
         y: newY,
     });
     person.tween.easing=PIXI.tween.Easing.inOutSine();
-    person.tween.time = 500;
+    person.tween.time = 400;
     person.tween.start();
     person.tween.on('end', () => {
         stopSpriteAnimation.call(person);

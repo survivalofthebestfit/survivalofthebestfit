@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import screenfull from 'screenfull';
 import {CLASSES, EVENTS} from '~/public/game/controllers/constants';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
