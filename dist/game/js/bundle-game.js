@@ -104976,11 +104976,11 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        // this.transition('titleStage');
-        // this.transition('smallOfficeStage');
+        this.transition('titleStage'); // this.transition('smallOfficeStage');
         // this.transition('mlTransitionStage');
         // this.transition('mlTrainingStage');
-        this.transition('mlLabStage'); // this.transition('gameBreakdown');
+        // this.transition('mlLabStage');
+        // this.transition('gameBreakdown');
       }
     },
 
