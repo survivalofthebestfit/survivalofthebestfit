@@ -250,7 +250,7 @@ const english = {
             {
                 messageFromVc: 'GAME OVER!! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Let\'s Wrap-up what happened.',
+                    'Let\'s wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
