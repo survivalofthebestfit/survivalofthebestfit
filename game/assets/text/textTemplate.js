@@ -7,19 +7,19 @@ const english = {
     about: {
         aboutBody: 'Survival of the Best Fit is a game to demonstrate how blind use of AI in hiring can further perpetuate human bias. In this simulation, users will act as recruiters at a fast-growing company. To reduce costs and maximize output, they would use a new, obscure AI system to replace human recruiters, only to realize that this creates a snowball of problems.\nThis is a project by Gabor Csapo, Jihyun Kim, Miha Klasinc, and Alia ElKattan',
     },
-
+ 
     //resources page
-
+ 
     resources: {
         title: 'Machines, Bias, and Fairness',
         aboutBiasTitle: 'How does \'machine bias\' work?',
         aboutBias: 'xx\n xxx',
     },
-
+ 
     // texts displayed during the game
     titleStage: {
         header: 'Congratulations!',
-        instruction: 'You just secured 1 million dollars from Yellow Valley ventures. Are you ready to grow your new startup in this competitive world?',
+        instruction: 'You\’ve just secured 1 million dollars from Yellow Valley ventures. Ready to grow your new startup?',
         responses: [
             'Start Game',
         ],
@@ -37,17 +37,17 @@ const english = {
             eval: 'Click Accept to hire a candidate, or Reject to see more new applicants.',
         },
         ml: {
-
+ 
         },
     },
-
+ 
     smallOfficeStage: {
         subject: 'Our investment in your startup',
-        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to build and hire only the best. I\'ve worked with some great Yellow Valley engineers.',
+        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to build and hire only the best.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
-
+ 
     mediumOfficeStage: {
         subject: 'Good start',
         messageFromVc: 'However, for more funding you\’ll need to hire faster, so pay attention to the clock!',
@@ -58,7 +58,7 @@ const english = {
         hiringGoal: 5,
         duration: 45
     },
-
+ 
     largeOfficeStage: {
         subject: 'Next investment round...',
         messageFromVc: 'Good effort, but you need to hire even faster to get more funding. Can you pull this off?',
@@ -69,9 +69,9 @@ const english = {
         hiringGoal: 8,
         previousStageFailed: 'You ran out of time. The investors want to see results, you\'ll have to hire even more people next month!',
         duration: 45
-
+ 
     },
-
+ 
     mlTransition: {
         subject: 'Using AI?',
         messageFromVc: 'It\'s just too competitive here in Yellow Valley...Can you talk to your software engineers to speed things up? I heard AI solves all problems nowadays.',
@@ -82,7 +82,7 @@ const english = {
         previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution.',
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
-
+ 
     // email from SOFTWARE ENGINEER
     conversation: [
         {
@@ -96,7 +96,7 @@ const english = {
                 {
                     text: 'That\'s great.',
                     response: 'Perfect! ',
-
+ 
                 },
             ],
         },
@@ -130,7 +130,7 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help with that: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
+            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
             file_drag: true,
             answer_choice: [],
         },
@@ -154,7 +154,7 @@ const english = {
             ],
         },
     ],
-
+ 
     mlLabStage: {
         onboarding: [
             {
@@ -172,9 +172,9 @@ const english = {
             {
                 text: 'Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!',
             }
-
+ 
         ],
-        
+       
         narration: [
             {
                 news: [
@@ -239,8 +239,8 @@ const english = {
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
-                    'The machine copies my decisions! However, when I used to hire, blue people were less qualified.',
-                    'The machine is biased, just like I was?!',
+                    'The machine was trained on more good yellow candidates than blue. That made it biased towards yellow.',
+                    'The machine is biased, just like I was?! We should have looked into my training data more.',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
@@ -250,12 +250,12 @@ const english = {
             {
                 messageFromVc: 'GAME OVER!! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Let\'s Wrap-up what happened.',
+                    'Let\'s wrap-up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
                     'The Justice: Tech companies need to be held accountable',
-
+ 
                 ],
             },
         ],
@@ -310,4 +310,4 @@ case 'arabic':
     break;
 default:
     setLang(english);
-}
+} 
