@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
+var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -101029,13 +101029,13 @@ function (_UIBase) {
   }, {
     key: "_buttonIsClicked",
     value: function _buttonIsClicked(e) {
-      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
-
-      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
-
       if (_screenfull["default"].enabled && (0, _utils.isMobile)()) {
         _screenfull["default"].request();
       }
+
+      this.$buttons.addClass(_constants.CLASSES.BUTTON_CLICKED);
+
+      _gameSetup.eventEmitter.emit(_constants.EVENTS.TITLE_STAGE_COMPLETED, {});
 
       this.destroy();
     }
@@ -101664,10 +101664,15 @@ function computeOfficeParams(type) {
 
 function computeSpotlight(_ref) {
   var entryDoor = _ref.entryDoor,
-      exitDoor = _ref.exitDoor;
+      exitDoor = _ref.exitDoor,
+      person = _ref.person;
+
+  var personHeightHalf = 0.6 * (new PIXI.extras.AnimatedSprite(PIXI.loader.resources['yellowPerson'].spritesheet.animations['idle']).height * _constants.SCALES.PERSON[(0, _utils.screenSizeDetector)()]);
+
   return {
     x: (0, _utils.uv2px)(_utils.spacingUtils.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
-    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y - 0.13, 'h')
+    y: (0, _utils.uv2px)(_constants.ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - personHeightHalf //- 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),
+
   };
 }
 
@@ -101954,11 +101959,13 @@ function () {
           xClampedOffset = _this$centerPeopleLin2.xClampedOffset,
           startX = _this$centerPeopleLin2.startX;
 
-      for (var i = 0; i < candidates; i++) {
-        var x = startX + xClampedOffset * i;
-        var y = computePersonY();
-        var person = this.personContainer.getChildAt(i);
-        if (person) (0, _person.repositionPerson)(person, x, y);
+      if (this.personContainer.children.length) {
+        for (var i = 0; i < candidates; i++) {
+          var x = startX + xClampedOffset * i;
+          var y = computePersonY();
+          var person = this.personContainer.getChildAt(i);
+          if (person) (0, _person.repositionPerson)(person, x, y);
+        }
       } // reposition html elements
 
 
@@ -105029,7 +105036,9 @@ var gameFSM = new machina.Fsm({
           stageNumber: currentStage,
           overlay: true
         });
-        office = new _office.Office();
+        setTimeout(function () {
+          return office = new _office.Office();
+        }, 500);
         gtag('event', 'enter-small-office', {
           'event_category': 'progress',
           'event_label': 'states'
