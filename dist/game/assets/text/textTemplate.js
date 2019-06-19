@@ -26,7 +26,7 @@ const english = {
     },
     tutorialStage: {
         header: 'Tutorial',
-        instruction: 'As the CEO, your goal is to hire the best and brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
+        instruction: 'As the CEO, your goal is to hire the best and the brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
         responses: [
             'Got it',
         ],
@@ -43,7 +43,7 @@ const english = {
  
     smallOfficeStage: {
         subject: 'Our investment in your startup',
-        messageFromVc: 'Congrats again on your latest investment. Now\'s the time to build and hire only the best.',
+        messageFromVc: 'We are excited to see you grow the startup. It\'s a competitive market so hire only the best.',
         responses: ['Let\'s do this'],
         hiringGoal: 3,
     },
@@ -79,7 +79,7 @@ const english = {
             'Sure, we can automate it away!',
             'Hmm, I will email the engineers.',
         ],
-        previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Perhaps artificial intelligence is a solution.',
+        previousStageFailed: 'This is clearly not working. Talk to your software engineers to see if they can speed things up. Maybe AI is the solution.',
     },
     // add transition here. e-mail from INVESTOR says:  We’ve made good progress, but the faster we grow, the more profit we’ll make. I suggest you use an automated program to help with hiring. Check with the software development team?
  
@@ -105,7 +105,7 @@ const english = {
             text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then learn what makes a candidate good or bad by <u>copying your hiring decision process</u>!',
             answer_choice: [
                 {
-                    text: 'A machine will think like me??',
+                    text: 'A machine will think like me?',
                     response: 'Thinking is a strong word. ',
                 },
                 {
@@ -136,7 +136,7 @@ const english = {
         },
         {
             dialogue_step: 5,
-            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies\' data! They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> below with similar recruitment values!',
+            text: 'Thanks! Machine learning algorithms get more accurate with more data, so here’s what we’ll do: use big tech companies\' data. They have huge applicant records, so we can merge our CVs with theirs and train our model! \n <u>Choose a company</u> you think hires smart people.',
             dataset_choice: true,
             answer_choice: [
                 'Google',
@@ -146,7 +146,7 @@ const english = {
         },
         {
             dialogue_step: 6,
-            text: 'That\s it! We can now train the algorithm with your data and put it to use!',
+            text: 'That\s it! We can now train the algorithm with a lot of past data and put it to use!',
             answer_choice: [
                 {
                     text: 'Great, let\'s train it!',
@@ -195,7 +195,7 @@ const english = {
             },
             {
                 launchCVInspector: true,
-                messageFromVc: 'I just got a complaint from a past applicant named Elvan Yang asking why they were rejected. Can you look into it?',
+                messageFromVc: 'I just got a complaint from a past applicant named <u>Elvan Yang</u> asking why they were rejected. Can you look into it?',
                 responses: [
                     'I\'ll look for Elvan in the data inspector!',
                     'Ok, I\'ll email you with my results.',
@@ -248,9 +248,9 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'GAME OVER!! The news got out and you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
+                messageFromVc: 'Shut down the company!!! The news got out and you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
-                    'Let\'s wrap-up what happened.',
+                    'Let\'s wrap up what happened.',
                 ],
                 news: [
                     'Blueville Daily: Hiring algorithm scandal blows out of proportions',
