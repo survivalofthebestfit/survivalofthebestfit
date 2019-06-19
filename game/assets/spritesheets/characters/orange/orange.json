@@ -384,7 +384,7 @@
 "meta": {
 	"app": "https://www.codeandweb.com/texturepacker",
 	"version": "1.0",
-	"image": "yellow.png",
+	"image": "orange.png",
 	"format": "RGBA8888",
 	"size": {"w":1964,"h":1998},
 	"scale": "1",
