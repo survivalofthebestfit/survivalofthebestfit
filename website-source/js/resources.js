@@ -15,6 +15,7 @@ for (var i=1; i<pages.length; i++) {
 
 function boxClicked(page) {
     $(page + " h2").toggleClass("mb-0");
+    $(page + " h4").toggle();
     $(page + " p, " + page + " iframe").toggle();
 
     var gtagEventName = "open-resources-{n}"
