@@ -2,7 +2,7 @@
 .Resume {
   @include textBox();
   @include boxColors($bg-color: color(bg-washed-white));
-  &--yellow {
+  &--orange {
     box-shadow: inset 0 0 0 2px color(shadow-yellow-light);
     @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'yellow');
   }
@@ -95,7 +95,7 @@
     height: 7px;
     width: 100%;
 
-    .Resume--yellow & {
+    .Resume--orange & {
       background-color: color(skill-bg-yellow);
     }
 
@@ -114,7 +114,7 @@
       transition: width 0.5s ease-in-out;
     }
 
-    .Resume--yellow & {
+    .Resume--orange & {
       background-color: color(skill-val-yellow);
     }
     .Resume--blue & {

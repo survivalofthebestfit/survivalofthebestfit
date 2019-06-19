@@ -14,7 +14,7 @@ export default {
     CV_SCHOOL: 'school',
     NEWS_FEED_ITEM: 'NewsList-item',
     ML_RESUME: 'Resume--ml',
-    RESUME_YELLOW: 'Resume--yellow',
+    RESUME_ORANGE: 'Resume--orange',
     RESUME_BLUE: 'Resume--blue',
     PERSON_CARD: 'PersonCard',
     DATASET_GRID_ITEM: 'DatasetGrid-item',

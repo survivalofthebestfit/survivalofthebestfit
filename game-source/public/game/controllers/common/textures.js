@@ -14,7 +14,7 @@ loader
     .add('officeDoor', 'assets/spritesheets/office-door/office-door.json')
     .add('wayOutDoor', 'assets/spritesheets/way-out-door/door-rejected.json')
     .add('bluePerson', 'assets/spritesheets/characters/blue/blue.json')
-    .add('yellowPerson', 'assets/spritesheets/characters/yellow/yellow.json');
+    .add('orangePerson', 'assets/spritesheets/characters/orange/orange.json');
 
 
 async function loadAssets() {
@@ -40,9 +40,9 @@ async function loadAssets() {
 
 
 // module to load textures
-const yellowPersonTexture = PIXI.Texture.fromImage('assets/img/person_yellow.png');
+const orangePersonTexture = PIXI.Texture.fromImage('assets/img/person_orange.png');
 
-yellowPersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
+orangePersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 const bluePersonTexture = PIXI.Texture.fromImage('assets/img/person_blue.png');
 bluePersonTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
@@ -54,8 +54,8 @@ const xIcon = PIXI.Texture.fromImage('assets/img/x-icon.png');
 const beltTexture = PIXI.Texture.fromImage('assets/img/conveyor_belt.png');
 beltTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
-const cvTexture = PIXI.Texture.fromImage('assets/img/cv_yellow.png');
+const cvTexture = PIXI.Texture.fromImage('assets/img/cv_orange.png');
 cvTexture.baseTexture.scaleMode = PIXI.SCALE_MODES.NEAREST;
 
 
-export {cvTexture, SPRITES, loadAssets, yellowPersonTexture, bluePersonTexture, incubator, xIcon, beltTexture};
+export {cvTexture, SPRITES, loadAssets, orangePersonTexture, bluePersonTexture, incubator, xIcon, beltTexture};

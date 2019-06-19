@@ -192,8 +192,8 @@ const getAnimationByName = ({color, animName}) => {
 
 const getPersonByColor = (color) => {
     switch (color) {
-    case 'yellow':
-        return 'yellowPerson';
+    case 'orange':
+        return 'orangePerson';
     case 'blue':
         return 'bluePerson';
     default:

@@ -13,3 +13,4 @@ npm-debug.log
 **/package-lock.json
 dist/js/*
 dist/css/*
+.vscode
