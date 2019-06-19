@@ -7,7 +7,7 @@ import * as state from '~/public/game/controllers/common/state';
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 
 const screenSizeDetector = () => {
-    return mq(BREAKPOINTS.PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
+    return mq(BREAKPOINTS.PHONE_LANDSCAPE) || isMobile() ? 'mobile' : 'desktop';
 };
 
 const isMobile = () => {
