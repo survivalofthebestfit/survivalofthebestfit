@@ -215,7 +215,7 @@ const english = {
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Machines can\'t be biased, right?',
-                    'Not sure, let’s see.',
+                    'Not sure, I\'ll keep an eye on the hiring line.',
                 ],
                 tooltip: {
                     parent: 'machine',
@@ -240,7 +240,7 @@ const english = {
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
                     'The machine was trained on more good yellow candidates than blue. That made it biased towards yellow.',
-                    'The machine is biased, just like I was?! We should have looked into my training data more.',
+                    'Maybe the big tech company dataset was full of bias? We should have looked into my training data more.',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
@@ -248,7 +248,7 @@ const english = {
                 ],
             },
             {
-                messageFromVc: 'GAME OVER!! You just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
+                messageFromVc: 'GAME OVER!! The news got out and you just got sued for hiring discrimination. All the investors are pulling out! What on earth went wrong?',
                 responses: [
                     'Let\'s wrap-up what happened.',
                 ],

@@ -103394,7 +103394,7 @@ function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterat
 
 // let {pixiApp.screen.width, pixiApp.screen.height} = pixiApp.screen;
 var screenSizeDetector = function screenSizeDetector() {
-  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE) ? 'mobile' : 'desktop';
+  return (0, _mq["default"])(_index.BREAKPOINTS.PHONE_LANDSCAPE) || isMobile() ? 'mobile' : 'desktop';
 };
 
 exports.screenSizeDetector = screenSizeDetector;
@@ -103649,8 +103649,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 var _default = {
-  PHONE_LANDSCAPE: 'only screen and (max-width:815px)',
-  // includes iPhoneX
+  PHONE_LANDSCAPE: 'only screen and (max-width:900px)',
+  // includes iPhone XS Max
   PHONE_AND_TABLET: 'screen and (min-width: 1024px)' // includes iPad
 
 };
