@@ -19,7 +19,7 @@ const english = {
     // texts displayed during the game
     titleStage: {
         header: 'Congratulations!',
-        instruction: 'You\’ve just secured 1 million dollars from Yellow Valley ventures. Ready to grow your new startup?',
+        instruction: 'You\’ve just secured 1 million dollars from Orange Valley ventures. Ready to grow your new startup?',
         responses: [
             'Start Game',
         ],
@@ -74,7 +74,7 @@ const english = {
  
     mlTransition: {
         subject: 'Using AI?',
-        messageFromVc: 'It\'s just too competitive here in Yellow Valley...Can you talk to your software engineers to speed things up? I heard AI solves all problems nowadays.',
+        messageFromVc: 'It\'s just too competitive here in Orange Valley...Can you talk to your software engineers to speed things up? I heard AI solves all problems nowadays.',
         responses: [
             'Sure, we can automate it away!',
             'Hmm, I will email the engineers.',
@@ -189,7 +189,7 @@ const english = {
                     'Great to hear!',
                 ],
                 news: [
-                    'Yellow Valley Review: Does the future of hiring lie in AI?',
+                    'Orange Valley Review: Does the future of hiring lie in AI?',
                     'Tech Junkies: Hiring algorithms are the next big thing',
                 ],
             },
@@ -239,12 +239,12 @@ const english = {
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
-                    'The machine was trained on more good yellow candidates than blue. That made it biased towards yellow.',
+                    'The machine was trained on more good orange candidates than blue. That made it biased towards orange.',
                     'Maybe the big tech company dataset was full of bias? We should have looked into my training data more.',
                 ],
                 news: [
                     'Blueville Gazette: Blueville residents treated unfairly by an algorithm?',
-                    'The justice: Yellow privilege in the tech industry',
+                    'The justice: Orange privilege in the tech industry',
                 ],
             },
             {
