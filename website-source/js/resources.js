@@ -6,6 +6,21 @@ FOR WEBSITE LANDING PAGE RESOURCES
 
 var pages = ["#reading1", "#reading2", "#reading3", "#reading4"];
 
+
+for (var i=1; i<pages.length; i++) {
+    var page = pages[i];
+    
+    $(page + " p, " + page + " iframe").hide();
+}
+
+function boxClicked(page) {
+    $(page + " h2").toggleClass("mb-0");
+    $(page + " p, " + page + " iframe").toggle();
+
+    var gtagEventName = "open-resources-{n}"
+    gtag('event', gtagEventName.replace('{n}', page), {'event_category': 'progress', 'event_label': 'resources-page'});
+}
+
 function getActivePageIndex() {
     for (var i=0; i<pages.length; i++) {
         if (!$(pages[i]).hasClass('is-inactive')) {
@@ -70,7 +85,8 @@ function select() {
 
 function next1() {
 
-    console.log("button clicked");
+	console.log("button clicked");
+	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
     var page1 = document.getElementById("part1");
     var page1_2 = document.getElementById("part2");
     var page2 = document.getElementById("part3");
@@ -83,7 +99,8 @@ function next1() {
 
 function next2() {
 
-    console.log("button clicked");
+	console.log("button clicked");
+	document.getElementsByClassName('conversation-container')[0].scrollTop = 0
     var current = document.getElementById("part3");
     var next = document.getElementById("part4");
    

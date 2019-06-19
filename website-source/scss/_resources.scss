@@ -34,6 +34,12 @@
         }
     }
 
+    iframe {
+        max-width: 100%;
+        margin: auto;
+        position: relative;
+        display: flex;
+    }
     .upper-list {
         font-weight: 700;
     }
@@ -72,5 +78,11 @@
         opacity: 0;
         display: none !important;
     }
+}
 
+.table-of-contents {
+    padding: 1rem;
+    h3 {
+        font-weight: bold;
+    }
 }

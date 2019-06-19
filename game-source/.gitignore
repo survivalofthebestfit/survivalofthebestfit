@@ -4,3 +4,4 @@ package-lock.json
 public/game/css/main.css
 public/game/dist/*
 game/public/game/css*
+.vscode

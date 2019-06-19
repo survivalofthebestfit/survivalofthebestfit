@@ -38,7 +38,7 @@
       height: 7px;
       width: 100%;
   
-      .AverageYellow & {
+      .AverageOrange & {
         background-color: color(stats-bg-grey);
       }
   
@@ -58,8 +58,8 @@
         transition: width 0.5s ease-in-out;
       }
   
-      .AverageYellow & {
-        background-color: color(stats-val-yellow);
+      .AverageOrange & {
+        background-color: color(stats-val-orange);
       }
 
       .AverageBlue & {
@@ -67,7 +67,7 @@
       }
 
       .RejectedMakeup &, .HiredMakeup & {
-        background-color: color(stats-val-yellow);
+        background-color: color(stats-val-orange);
       }
     }
   }
