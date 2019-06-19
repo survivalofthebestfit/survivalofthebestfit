@@ -75,7 +75,7 @@ const gameFSM = new machina.Fsm({
                     stageNumber: currentStage,
                     overlay: true,
                 });
-                setTimeout(()=>{office = new Office()}, 1000);
+                setTimeout(() => office = new Office(), 500);
                 gtag('event', 'enter-small-office', {'event_category': 'progress', 'event_label': 'states'});
             },
 
