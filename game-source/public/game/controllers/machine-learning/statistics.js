@@ -3,22 +3,22 @@ import {dataModule} from '~/public/game/controllers/machine-learning/dataModule.
 
 class Statistics {
     getCardStats(cvArray) {
-        let totalHiredYellow = 0;
+        let totalHiredOrange = 0;
         let totalHiredBlue = 0;
-        let totalRejectedYellow = 0;
+        let totalRejectedOrange = 0;
         let totalRejectedBlue = 0;
  
-        let skillsSumYellow = 0;
+        let skillsSumOrange = 0;
         let skillsSumBlue = 0;
 
         cvArray.forEach((e) => {
-            if (e.color == 'yellow') {
+            if (e.color == 'orange') {
                 if (e.empl == 1) {
-                    totalHiredYellow++;
+                    totalHiredOrange++;
                 } else {
-                    totalRejectedYellow++;
+                    totalRejectedOrange++;
                 }
-                skillsSumYellow += e.qualifications.reduce((a, b) => a + b, 0);
+                skillsSumOrange += e.qualifications.reduce((a, b) => a + b, 0);
             } else if (e.color == 'blue') {
                 if (e.empl == 1) {
                     totalHiredBlue++;
@@ -29,16 +29,16 @@ class Statistics {
             }
         });
 
-        const hiredPercY = Math.floor(100 * totalHiredYellow/(totalHiredYellow + totalHiredBlue));
-        const rejectPercY = Math.floor(100 * totalRejectedYellow/(totalRejectedYellow + totalRejectedBlue));
-        const skillsAverageYellow = Math.floor(10 * skillsSumYellow/(4 * (totalHiredYellow + totalRejectedYellow)));
+        const hiredPercY = Math.floor(100 * totalHiredOrange/(totalHiredOrange + totalHiredBlue));
+        const rejectPercY = Math.floor(100 * totalRejectedOrange/(totalRejectedOrange + totalRejectedBlue));
+        const skillsAverageOrange = Math.floor(10 * skillsSumOrange/(4 * (totalHiredOrange + totalRejectedOrange)));
         const skillsAverageBlue = Math.floor(10 * skillsSumBlue/(4 * (totalHiredBlue + totalRejectedBlue)));
 
-        return [hiredPercY, rejectPercY, skillsAverageYellow, skillsAverageBlue];
+        return [hiredPercY, rejectPercY, skillsAverageOrange, skillsAverageBlue];
     }
 
     getManualStats() {
-        // [0] hired yellow %, [1] rejected yellow %, [2] yellow average skills, [3] blue average skills
+        // [0] hired orange %, [1] rejected orange %, [2] orange average skills, [3] blue average skills
         
         const onlyPersonalStats = this.getCardStats(cvCollection.cvData.slice(0, dataModule.getLastIndex()));
         if (onlyPersonalStats[0] > 75 && onlyPersonalStats[1] < 40 && onlyPersonalStats[2] - onlyPersonalStats[3] > 30) {
@@ -54,7 +54,7 @@ class Statistics {
     }
 
     getMlLabStats() {
-        // [0] hired yellow %, [1] rejected yellow %, [2] yellow average skills, [3] blue average skills
+        // [0] hired orange %, [1] rejected orange %, [2] orange average skills, [3] blue average skills
 
         let acceptance = dataModule.getAcceptanceByTheAlgo();
         acceptance.forEach((element, index) => {
@@ -70,7 +70,7 @@ class Statistics {
     }
 
     getFeatures() {
-        return ['HiredMakeup', 'RejectedMakeup', 'AverageYellow', 'AverageBlue'];
+        return ['HiredMakeup', 'RejectedMakeup', 'AverageOrange', 'AverageBlue'];
     }
 }
 

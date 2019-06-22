@@ -25,14 +25,14 @@ export default class {
     }
 
     setColor(color) {
-        if (color === 'yellow') {
+        if (color === 'orange') {
             this.$el
-                .addClass(CLASSES.RESUME_YELLOW)
+                .addClass(CLASSES.RESUME_ORANGE)
                 .removeClass(CLASSES.RESUME_BLUE);
         } else {
             this.$el
                 .addClass(CLASSES.RESUME_BLUE)
-                .removeClass(CLASSES.RESUME_YELLOW);
+                .removeClass(CLASSES.RESUME_ORANGE);
         };
     }
     // destroy the instance

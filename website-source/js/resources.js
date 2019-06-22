@@ -6,6 +6,22 @@ FOR WEBSITE LANDING PAGE RESOURCES
 
 var pages = ["#reading1", "#reading2", "#reading3", "#reading4"];
 
+
+for (var i=1; i<pages.length; i++) {
+    var page = pages[i];
+    
+    $(page + " p, " + page + " iframe").hide();
+}
+
+function boxClicked(page) {
+    $(page + " h2").toggleClass("mb-0");
+    $(page + " h4").toggle();
+    $(page + " p, " + page + " iframe").toggle();
+
+    var gtagEventName = "open-resources-{n}"
+    gtag('event', gtagEventName.replace('{n}', page), {'event_category': 'progress', 'event_label': 'resources-page'});
+}
+
 function getActivePageIndex() {
     for (var i=0; i<pages.length; i++) {
         if (!$(pages[i]).hasClass('is-inactive')) {

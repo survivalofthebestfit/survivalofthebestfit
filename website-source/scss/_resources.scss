@@ -33,7 +33,21 @@
             }
         }
     }
+    .clickMe {
+        font-family: 'VT323', monospace;
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+        margin-top: 1rem;
+    }
 
+    iframe {
+        max-width: 100%;
+        margin: auto;
+        position: relative;
+        display: flex;
+        padding-bottom: 2rem;
+    }
     .upper-list {
         font-weight: 700;
     }
@@ -72,5 +86,11 @@
         opacity: 0;
         display: none !important;
     }
+}
 
+.table-of-contents {
+    padding: 1rem;
+    h3 {
+        font-weight: bold;
+    }
 }

@@ -44,7 +44,7 @@ function computeOfficeParams(type) {
 };
 
 function computeSpotlight({entryDoor, exitDoor, person}) {
-    const personHeightHalf = 0.6 * (new PIXI.extras.AnimatedSprite(PIXI.loader.resources['yellowPerson'].spritesheet.animations['idle']).height * SCALES.PERSON[screenSizeDetector()]);
+    const personHeightHalf = 0.6 * (new PIXI.extras.AnimatedSprite(PIXI.loader.resources['orangePerson'].spritesheet.animations['idle']).height * SCALES.PERSON[screenSizeDetector()]);
     return {
         x: uv2px(space.getRelativePoint(entryDoor, exitDoor, 0.6), 'w'),
         y: uv2px(ANCHORS.FLOORS.FIRST_FLOOR.y, 'h') - personHeightHalf, //- 0.9 * (SCALES.FLOOR[screenSizeDetector()] + SCALES.FLOOR_SHADOW[screenSizeDetector()]),

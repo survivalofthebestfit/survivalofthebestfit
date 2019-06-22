@@ -30,8 +30,8 @@ const testClf = (clf, featPref) => {
     const cities = featArr.map((x) => x[x.length - 1]);
     metrics = compareBinaryArrays(pred, cities, SILENT);
     const blueCityEmpl = metrics['oneZero'];
-    const yellowCityEmpl = metrics['oneOne'];
-    const biasMetric = round(blueCityEmpl / (blueCityEmpl + yellowCityEmpl));
+    const orangeCityEmpl = metrics['oneOne'];
+    const biasMetric = round(blueCityEmpl / (blueCityEmpl + orangeCityEmpl));
     
     if (DEBUG_MODE) console.log('Blue city bias: ', biasMetric, ' Ratio of good people employed:', goodMetric, ' Ratio of bad people not employed: ', badMetric);
     
@@ -65,7 +65,7 @@ const compareBinaryArrays = (pred, valid) => {
     return {'oneOne': oneOne, 'zeroOne': zeroOne, 'oneZero': oneZero, 'zeroZero': zeroZero};
 };
 
-// prints recall, precision and blue yellow ratio, etc... 
+// prints recall, precision and blue orange ratio, etc... 
 const reportMetrics = (pred, valid, colorArr) => {
     const comparison = compareBinaryArrays(pred, valid);
     const truePos = comparison['oneOne'];
@@ -81,13 +81,13 @@ const reportMetrics = (pred, valid, colorArr) => {
     const by = 'NA';
     if (colorArr) {
         let blue = 0;
-        let yellow = 0;
+        let orange = 0;
         colorArr.forEach((elem, index) => {
             if (valid[index] == 1) {
-                elem == 'blue'? blue++ : yellow++;
+                elem == 'blue'? blue++ : orange++;
             }
         });
-        by = round(blue/(yellow+blue));
+        by = round(blue/(orange+blue));
     }
 
     if (DEBUG_MODE) console.log('Accuracy: ', accuracy, ' Precision:', precision, ' Recall: ', recall, ' Acceptance rate: ', acceptanceRate, ' Blue/All Employed ratio: ', by );    
@@ -96,10 +96,10 @@ const reportMetrics = (pred, valid, colorArr) => {
 const testInputData = () => {
     const [featureArr, labelArr] = preprocResumes(cvCollection.cvData);
     const cityArr = cvCollection.cvData.map((x) => x.city);
-    const colorArr = cvCollection.cvData.map((x) => x.color == 'yellow' ? 1 : 0);
+    const colorArr = cvCollection.cvData.map((x) => x.color == 'orange' ? 1 : 0);
     const metrics = compareBinaryArrays(colorArr, labelArr, SILENT);
     const metrics2 = compareBinaryArrays(colorArr, cityArr, SILENT);
-    console.log('Input data test (Yellow 1, Blue 0) \n color-empl pair counts: ', metrics, '\n color-city pair counts:', metrics2);
+    console.log('Input data test (Orange 1, Blue 0) \n color-empl pair counts: ', metrics, '\n color-city pair counts:', metrics2);
 };
 
 const round = (num) => {
