@@ -130,9 +130,11 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
-            file_drag: true,
-            answer_choice: [],
+            text: 'I need your help with this: can you send me the CVs of all applicants you’ve evaluated so far?',
+            answer_choice: [{
+                text: 'Attach folder with applicant CVs',
+                response: '',
+            }],
         },
         {
             dialogue_step: 5,

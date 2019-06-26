@@ -1269,7 +1269,7 @@ module.exports = function (it) {
 };
 
 },{"./_is-object":40}],30:[function(require,module,exports){
-var core = module.exports = { version: '2.6.6' };
+var core = module.exports = { version: '2.6.8' };
 if (typeof __e == 'number') __e = core; // eslint-disable-line no-undef
 
 },{}],31:[function(require,module,exports){
@@ -6837,7 +6837,7 @@ var SymbolRegistry = shared('symbol-registry');
 var AllSymbols = shared('symbols');
 var OPSymbols = shared('op-symbols');
 var ObjectProto = Object[PROTOTYPE];
-var USE_NATIVE = typeof $Symbol == 'function';
+var USE_NATIVE = typeof $Symbol == 'function' && !!$GOPS.f;
 var QObject = global.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var setter = !QObject || !QObject[PROTOTYPE] || !QObject[PROTOTYPE].findChild;
@@ -99711,7 +99711,6 @@ function (_Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(Replica).apply(this, arguments));
     _this._step = parseInt(_this.el.dataset.step);
-    _this._fileDrag = _this.el.dataset.file_drag !== undefined ? true : false;
     _this._datasetChoice = _this.el.dataset.dataset_choice !== undefined ? true : false;
     console.log("step ".concat(_this._step, " ").concat(_this._datasetChoice ? 'has' : 'does not have', " a dataset choice"));
     _this._revealReplica = _this._revealReplica.bind(_assertThisInitialized(_this));
@@ -99727,7 +99726,6 @@ function (_Component) {
     if (_this._step === 0) {
       _this._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-      if (_this._fileDrag) _this._addFileClickListener();
       if (_this._datasetChoice) _this._addChoiceListener();
     }
 
@@ -99744,8 +99742,7 @@ function (_Component) {
 
         this._typeIcon.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
-        this.scrollHandler(); // sound.schedule(SOUNDS.WRITING_MESSAGE, 0.3);
-
+        this.scrollHandler();
         (0, _utils.waitForSeconds)(Math.round((Math.random() + 1) * 15) / 10).then(function () {
           _this2._replicaContent.classList.remove(_constants.CLASSES.IS_INACTIVE);
 
@@ -99755,15 +99752,13 @@ function (_Component) {
 
           _this2.scrollHandler();
 
-          if (_this2._fileDrag) _this2._addFileClickListener();
           if (_this2._datasetChoice) _this2._addChoiceListener();
 
           _this2.publish(_constants.EVENTS.GREY_OUT_REPLICA, {
             step: _this2._step - 1
           });
 
-          console.log('play new message!'); // sound.stop(SOUNDS.WRITING_MESSAGE);
-
+          console.log('play new message!');
           sound.play(_constants.SOUNDS.NEW_MESSAGE);
         });
       }
@@ -99783,37 +99778,7 @@ function (_Component) {
   }, {
     key: "getButtonSelector",
     value: function getButtonSelector() {
-      if (this._fileDrag) {
-        return '.data-list';
-      } else {
-        return '.replica__buttons';
-      }
-    }
-  }, {
-    key: "_addFileClickListener",
-    value: function _addFileClickListener() {
-      var _this3 = this;
-
-      var $datafile = (0, _jquery["default"])('#js-cv-all-file');
-      $datafile.addClass(_constants.CLASSES.FILE_PULSE); // sound.play(SOUNDS.WRITING_MESSAGE);
-
-      $datafile.on('click', function () {
-        sound.play(_constants.SOUNDS.BUTTON_CLICK);
-
-        var $fileInstructions = _this3.el.querySelector('.replica__send-instructions');
-
-        $fileInstructions.classList.add(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
-        $fileInstructions.innerHTML = 'Attached cv_all.zip';
-
-        _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
-          choice_response: '',
-          step: _this3._step + 1
-        }); // sound.stop(SOUNDS.WRITING_MESSAGE);
-
-
-        $datafile.off();
-        $datafile.remove();
-      });
+      return '.replica__buttons';
     }
   }, {
     key: "scrollHandler",
@@ -99828,7 +99793,7 @@ function (_Component) {
   }, {
     key: "_addChoiceListener",
     value: function _addChoiceListener() {
-      var _this4 = this;
+      var _this3 = this;
 
       // console.log('we added a choice listener!');
       (0, _jquery["default"])('.data-list__choice').on('click', function (e) {
@@ -99843,9 +99808,9 @@ function (_Component) {
         $choice.removeClass(_constants.CLASSES.IS_INACTIVE).addClass(_constants.CLASSES.CONVERSATION_STEP_COMPLETED);
         $choice.find('.data-list__icon').addClass(_constants.CLASSES.IS_INACTIVE);
 
-        _this4.publish(_constants.EVENTS.REVEAL_REPLICA, {
+        _this3.publish(_constants.EVENTS.REVEAL_REPLICA, {
           choice_response: '',
-          step: _this4._step + 1
+          step: _this3._step + 1
         });
 
         (0, _jquery["default"])('.data-list__choice').off();
@@ -104983,9 +104948,9 @@ var gameFSM = new machina.Fsm({
   states: {
     uninitialized: {
       startGame: function startGame() {
-        this.transition('titleStage'); // this.transition('smallOfficeStage');
-        // this.transition('mlTransitionStage');
-        // this.transition('mlTrainingStage');
+        // this.transition('titleStage');
+        // this.transition('smallOfficeStage');
+        this.transition('mlTransitionStage'); // this.transition('mlTrainingStage');
         // this.transition('mlLabStage');
         // this.transition('gameBreakdown');
       }

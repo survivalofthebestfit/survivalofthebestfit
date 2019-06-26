@@ -13,10 +13,6 @@ include ../file/file.pug
         include ../replica/replica.pug
         +replica(index, replica, conversation.length)
     div(class="conversationBox-fadebox")
-  div(class="file-grid")
-    +file('calendar.doc')
-    +file('cv_all.zip')(id="js-cv-all-file" class="is-clickable")
-    +file('best-fit.pdf')(class="offset")
 
 
     

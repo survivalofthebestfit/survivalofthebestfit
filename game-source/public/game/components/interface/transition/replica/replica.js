@@ -11,7 +11,6 @@ export default class Replica extends Component {
         super(...arguments);
 
         this._step = parseInt(this.el.dataset.step);
-        this._fileDrag = this.el.dataset.file_drag !== undefined ? true : false;
         this._datasetChoice = this.el.dataset.dataset_choice !== undefined ? true : false;
         console.log(`step ${this._step} ${this._datasetChoice ? 'has' : 'does not have'} a dataset choice`);
         this._revealReplica = this._revealReplica.bind(this);
@@ -23,7 +22,6 @@ export default class Replica extends Component {
         this.subscribe(EVENTS.GREY_OUT_REPLICA, this._greyOutReplica);
         if (this._step === 0) {
             this._replicaContent.classList.remove(CLASSES.IS_INACTIVE);
-            if (this._fileDrag) this._addFileClickListener();
             if (this._datasetChoice) this._addChoiceListener();
         }
     }
@@ -33,17 +31,14 @@ export default class Replica extends Component {
             this.el.classList.remove(CLASSES.IS_INACTIVE);
             this._typeIcon.classList.remove(CLASSES.IS_INACTIVE);
             this.scrollHandler();
-            // sound.schedule(SOUNDS.WRITING_MESSAGE, 0.3);
             waitForSeconds(Math.round((Math.random()+1)*15)/10).then(() => {
                 this._replicaContent.classList.remove(CLASSES.IS_INACTIVE);
                 this._typeIcon.classList.add(CLASSES.IS_INACTIVE);
                 this._textContainer.innerHTML = data.choice_response + this._textContainer.innerHTML;
                 this.scrollHandler();
-                if (this._fileDrag) this._addFileClickListener();
                 if (this._datasetChoice) this._addChoiceListener();
                 this.publish(EVENTS.GREY_OUT_REPLICA, {step: this._step -1});
                 console.log('play new message!');
-                // sound.stop(SOUNDS.WRITING_MESSAGE);
                 sound.play(SOUNDS.NEW_MESSAGE);
             });
         }
@@ -60,27 +55,7 @@ export default class Replica extends Component {
     }
 
     getButtonSelector() {
-        if (this._fileDrag) {
-            return '.data-list';
-        } else {
-            return '.replica__buttons';
-        }
-    }
-
-    _addFileClickListener() {
-        const $datafile = $('#js-cv-all-file');
-        $datafile.addClass(CLASSES.FILE_PULSE);
-        // sound.play(SOUNDS.WRITING_MESSAGE);
-        $datafile.on('click', () => {
-            sound.play(SOUNDS.BUTTON_CLICK);
-            const $fileInstructions = this.el.querySelector('.replica__send-instructions');
-            $fileInstructions.classList.add(CLASSES.CONVERSATION_STEP_COMPLETED);
-            $fileInstructions.innerHTML = 'Attached cv_all.zip';
-            this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
-            // sound.stop(SOUNDS.WRITING_MESSAGE);
-            $datafile.off();
-            $datafile.remove();
-        });
+        return '.replica__buttons';
     }
 
     scrollHandler() {

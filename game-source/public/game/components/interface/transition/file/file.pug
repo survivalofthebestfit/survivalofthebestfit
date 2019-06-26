@@ -1,6 +1,6 @@
-mixin file(txt)
+mixin file(txt, filetype)
     div(draggable='true' class="datafile")&attributes(attributes)
-        div(class="datafile-svg")
+        div(class="datafile-svg datafile--"+filetype)
         //- <svg class="datafile-svg" viewBox = "0 0 100 110" version = "1.1">
         //-     <polygon class="datafile-shape" stroke="none" points="0,30 0,110 100,110 100,0 30,0"/>
         //- </svg>

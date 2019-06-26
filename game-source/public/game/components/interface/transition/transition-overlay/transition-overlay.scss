@@ -109,7 +109,20 @@
   &-svg {
     height: 50px;
     width:50px;
-    background: url(../assets/img/file-icon-alt.svg) center / contain no-repeat;
+    // background: url(../assets/img/file-icon-alt.svg) center / contain no-repeat;
+  }
+
+  &--zip {
+    background: url(../assets/img/file-icon-zip.png) center / contain no-repeat;
+  }
+
+  &--pdf {
+    background: url(../assets/img/file-icon-pdf.png) center / contain no-repeat;
+
+  }
+
+  &--doc {
+    background: url(../assets/img/file-icon-doc.png) center / contain no-repeat;
   }
 
   &.offset {
