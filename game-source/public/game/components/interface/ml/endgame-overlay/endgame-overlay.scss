@@ -2,19 +2,30 @@
   @include textBox();
   @include buttonBox();
 
+
   display: flex;
   z-index: 10;
   background-color: color(shadow-rose-light);
   justify-content: center;
   align-items: center;
 
+  .button-row {
+    img { 
+      width: 3rem; 
+      padding: 0.3rem; 
+      border: 0; 
+      box-shadow: 0; 
+      margin: auto;
+      display: inline; 
+    }
+  }
   .button {
     min-width: 5rem;
     padding: padding(sm) padding(sm) padding(sm) + 3px padding(sm); 
     height: 1rem; 
     float: left;
     margin-bottom: 3%;
-
+    margin-right: 0.5rem;
 
     &__choice {
       margin-left: margin(sm);
@@ -27,7 +38,7 @@
       @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
       color: white;
 
-      a{
+      a {
         color: white;
       }
     }

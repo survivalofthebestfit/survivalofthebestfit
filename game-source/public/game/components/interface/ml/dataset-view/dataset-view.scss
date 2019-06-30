@@ -105,16 +105,17 @@
   @include boxColors($bg-color: #f56b6bf7, $shadow-color: 'darkred');
 
   position: absolute;
-  top: margin(sm);
-  right: 8%;
-  padding: padding(xxs) padding(xs);
+  top: 80%;
+  right: 80%;
+  padding: padding(sm) padding(sm);
   text-align: center;
   transition: all 0.5s ease-in-out;
 
   @include mq($until: mobile-landscape) {
     @include buttonBox();
-    right: margin(sm);
-    top: margin(xs);
+    top: 79%;
+    right: 62%;
+    padding: padding(xxs) padding(xs);
   }
 
   &_Notificaiton {
