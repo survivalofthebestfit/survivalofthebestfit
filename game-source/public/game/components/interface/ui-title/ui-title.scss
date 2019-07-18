@@ -27,7 +27,7 @@
       font-weight: 700;
       @include mq($until: mobile-landscape) {
         font-size: 2rem;
-        padding-bottom: padding(xs);
+        padding: padding(xs);
       }
     }
 
