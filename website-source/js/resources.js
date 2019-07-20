@@ -14,9 +14,10 @@ for (var i=1; i<pages.length; i++) {
 }
 
 function boxClicked(page) {
-    $(page + " h2").toggleClass("mb-0");
-    $(page + " h4").toggle();
-    $(page + " p, " + page + " iframe").toggle();
+    $(page + " h2").show("mb-0");
+    $(page + " p, " + page + " iframe").show();
+
+    $(page + " h4").remove();
 
     var gtagEventName = "open-resources-{n}"
     gtag('event', gtagEventName.replace('{n}', page), {'event_category': 'progress', 'event_label': 'resources-page'});

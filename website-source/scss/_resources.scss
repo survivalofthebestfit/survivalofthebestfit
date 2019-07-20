@@ -4,6 +4,17 @@
 
 .resources-section {
     margin-bottom: 5rem;
+
+    h2 {
+        margin-bottom: 2rem;
+    }
+
+    h4 {
+        font-family: 'VT323', monospace;
+        text-align: center;
+        font-size: 1.2rem;
+        color: #666;
+    }
     
     ul {
         text-align: left;
@@ -86,12 +97,4 @@
     h3 {
         font-weight: bold;
     }
-}
-
-.clickMe {
-    font-family: 'VT323', monospace;
-    text-align: center;
-    font-size: 1.2rem;
-    color: #666;
-    margin-top: 1rem;
 }
