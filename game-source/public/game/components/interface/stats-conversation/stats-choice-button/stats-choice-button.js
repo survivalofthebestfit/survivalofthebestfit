@@ -1,12 +1,11 @@
 import {Component} from 'component-loader-js';
 import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
-import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
 
 
 // publishing custom event to any registered listener
-export default class ChoiceButton extends Component {
+export default class StatsConvChoiceButton extends Component {
     constructor() {
         super(...arguments);
         this._totalSteps = parseInt(this.el.dataset.totalsteps);
@@ -27,7 +26,7 @@ export default class ChoiceButton extends Component {
         sound.play(SOUNDS.BUTTON_CLICK);
         // add 'chosen' styling to the button
         if (this._step+1 === this._totalSteps) {
-            eventEmitter.emit(EVENTS.EXIT_TRANSITION_STAGE, {});
+            eventEmitter.emit(EVENTS.EXIT_STATS_CONVERSATION, {});
             // gameFSM.nextStage();
             return;
         };

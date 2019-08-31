@@ -1,0 +1,22 @@
+include ../../ui-overlay/ui-overlay.pug
+include ../../ui-desktop/ui-desktop.pug
+include ../file/file.pug
+
++overlay()(id="StatsConversation")
+  +desktop()
+  div(class="conversationBox")
+    div(id="transition-conversation-log" class="conversationBox-inner")
+      div(class="conversationBox__head")
+        p From: software-engineer@bestfit.com
+        p Subject: Hiring Algorithm
+      each replica,index in stats_conversation
+        include ../replica/replica.pug
+        +replica(index, replica, stats_conversation.length)
+    div(class="conversationBox-fadebox")
+  div(class="file-grid")
+    +file('calendar.doc')
+    +file('cv_all.zip')(id="js-cv-all-file" class="is-clickable")
+    +file('best-fit.pdf')(class="offset")
+
+
+    

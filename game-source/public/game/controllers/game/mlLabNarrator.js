@@ -3,11 +3,10 @@ import {EVENTS, CLASSES, SOUNDS} from '~/public/game/controllers/constants';
 import TextboxUI from '~/public/game/components/interface/ui-textbox/ui-textbox';
 import InfoTooltip from '~/public/game/components/interface/ml/info-tooltip/info-tooltip';
 import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
-
 import NewsFeedUI from '~/public/game/components/interface/ml/news-feed/news-feed.js';
 import MlLabAnimator from '~/public/game/controllers/game/mlLabAnimator.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
-import {dataModule} from '~/public/game/controllers/machine-learning/dataModule';
+import StatsConversation from '~/public/game/components/interface/stats-conversation/transition-overlay/transition-overlay';
 import * as sound from '~/public/game/controllers/game/sound.js';
 import * as state from '~/public/game/controllers/common/state.js';
 import TaskUI from '~/public/game/components/interface/ui-task/ui-task';
@@ -35,13 +34,13 @@ export default class MlLabNarrator {
 
     populateHiringGoals() {
         // You can use this to debug so that ML lab stage progresses faster
-        const debugMode = false;
+        const debugMode = true;
         
         let hiringCount = 0;
 
         if (debugMode) {
             for (let i = 0; i < this.ML_TIMELINE.length; i++) {
-                this.ML_TIMELINE[i].delay = ++hiringCount;
+                this.ML_TIMELINE[i].delay = i + 1;
             }
         } else {
             const stageGoal = 3;
@@ -83,7 +82,7 @@ export default class MlLabNarrator {
     
     _showNewMessage(msg) {
         if (!msg.hasOwnProperty('messageFromVc') || !msg.hasOwnProperty('responses')) throw new Error('message object does not have valid properties!');
-        let callback = this.textAckCallback.bind({}, msg, this.animator, this.newsFeed);
+        let callback = this.textAckCallback.bind(this, msg, this.animator, this.newsFeed);
         if (msg.tooltip) callback = this.showTooltipCallback.bind({}, msg, this.newsFeed, callback);
         
         this.animator.pauseAnimation();
@@ -119,10 +118,8 @@ export default class MlLabNarrator {
             sound.play(SOUNDS.BREAKING_NEWS);
         }
 
-
         if (msg.launchMachineInspector) {
-            animator.datasetView.swapToStatistics();
-            animator.datasetView.show();
+            this.statsConversation = new StatsConversation({show: true, endCallback: this.textAckCallback});
             return;
         }
         // if we are not inspecting anything, continue playing the background sound
@@ -171,12 +168,17 @@ export default class MlLabNarrator {
         eventEmitter.on(EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
         eventEmitter.on(EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
         eventEmitter.on(EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
+        eventEmitter.on(EVENTS.EXIT_STATS_CONVERSATION, function() {
+            this.statsConversation.destroy(); 
+            this.textAckCallback({launchCVInspector: false, breaking: false, launchMachineInspector: false, isLastMessage: false}, this.animator, this.newsFeed);
+        }.bind(this));
     }
 
     _removeEventListeners() {
         eventEmitter.off(EVENTS.EMAIL_REPLY, this._handleEmailReply.bind(this));
         eventEmitter.off(EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
         eventEmitter.off(EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
+        eventEmitter.off(EVENTS.EXIT_STATS_CONVERSATION, this.textAckCallback.bind({}, {launchCVInspector: false, breaking: false, launchMachineInspector: false, isLastMessage: false}, this.animator, this.newsFeed));
     }
 
     destroy() {

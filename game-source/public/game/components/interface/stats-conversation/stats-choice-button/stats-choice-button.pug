@@ -1,0 +1,3 @@
+include ../../../universal/button/button
+mixin statsChoiceButton(index, text, totalSteps)
+  +button(text)(class="choiceButton", data-totalsteps=totalSteps data-component="StatsConvChoiceButton", data-step=index)

@@ -30,5 +30,6 @@ export default {
     REVEAL_REPLICEA: 'reveal-next-replica',
     GREY_OUT_REPLICA: 'grey-out-previous-replica',
     HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons',
-    EMAIL_REPLY: 'email-reply'
+    EMAIL_REPLY: 'email-reply',
+    EXIT_STATS_CONVERSATION: 'exit-stats-conversation',
 };

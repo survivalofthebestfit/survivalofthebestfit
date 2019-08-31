@@ -154,6 +154,38 @@ const english = {
             ],
         },
     ],
+
+    stats_conversation: [
+        {
+            dialogue_step: 1,
+            text: 'You asked us how we can hire faster. So we built a hiring algorithm using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
+            answer_choice: [
+                {
+                    text: 'How does that work?',
+                    response: '',
+                },
+                {
+                    text: 'That\'s great.',
+                    response: 'Perfect! ',
+ 
+                },
+            ],
+        },
+        {
+            dialogue_step: 2,
+            text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then learn what makes a candidate good or bad by <u>copying your hiring decision process</u>!',
+            answer_choice: [
+                {
+                    text: 'A machine will think like me?',
+                    response: 'Thinking is a strong word. ',
+                },
+                {
+                    text: 'Works for me ',
+                    response: 'We have to be careful though.',
+                },
+            ],
+        },
+    ],
  
     mlLabStage: {
         onboarding: [
