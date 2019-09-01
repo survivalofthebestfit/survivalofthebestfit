@@ -1,17 +1,18 @@
 .StatisticsCard {
     @include textBox();
-    @include boxColors($bg-color: color(bg-washed-white), $shadow-color: 'grey');
-    padding: padding(sm) padding(sm) padding(md) padding(sm);
+    padding: padding(xs) 0 padding(sm) 0;
+    margin: 0 0 padding(sm) 0;
     @include mq($until: desktop) {
       @include buttonBox();
-      padding: padding(sm);
+      padding: padding(xs) 0 padding(sm) 0;
     }
 
     position: relative;
     min-width: 250px;
-    min-height: 300px;
-    max-height: 700px;
-    max-width: 400px;
+    max-width: 600px;
+    width:100%;  
+    color: color(txt-dark-grey);
+  
 
     &-title {
       @include mq($until: desktop) {
@@ -21,23 +22,35 @@
       }
     }
 }
+
+.FlexContainer {
+  display: inline-block;
+  width: 50%;
+  min-width: 240px;
+}
+
+.FlexContainer > div {
+  padding-right: padding(sm);
+}
+
 .stats-category {
 
     &__name {
-      padding: padding(xs) 0;
-      margin-top: margin(sm);
+      padding: 0 0 padding(xs) 0;
       font-size: 1.2rem;
       @include mq($until: mobile-landscape) {
         font-size: 1rem;
         padding: padding(xxs) 0;
-        margin-top: 12px;
       }
     }
   
     &__skillbar {
       height: 7px;
       width: 100%;
-  
+      margin-bottom: margin(xs);
+      @include mq($until: mobile-landscape) {
+        margin-bottom: 12px;
+      }
       .AverageOrange & {
         background-color: color(stats-bg-grey);
       }

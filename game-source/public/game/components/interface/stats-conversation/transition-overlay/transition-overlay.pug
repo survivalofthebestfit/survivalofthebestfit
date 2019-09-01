@@ -11,7 +11,7 @@ include ../file/file.pug
         p Subject: Hiring Algorithm
       each replica,index in stats_conversation
         include ../replica/replica.pug
-        +replica(index, replica, stats_conversation.length)
+        +stats_replica(index, replica, stats_conversation.length)
     div(class="conversationBox-fadebox")
   div(class="file-grid")
     +file('calendar.doc')

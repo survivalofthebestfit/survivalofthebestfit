@@ -5,12 +5,15 @@ import EVENTS from '~/public/game/controllers/constants/events';
 import UIBase from '~/public/game/components/interface/ui-base/ui-base';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import {getDateString} from '~/public/game/controllers/common/utils';
+import StatisticsCard from '~/public/game/components/interface/ml/statistics-card/statistics-card';
 
 export default class extends UIBase {
     constructor(options) {
         super();
         this._removeEventListeners();
         this.$el = $('#StatsConversation');
+        new StatisticsCard(true);
+        new StatisticsCard(false);  
         this.$conversationBox = this.$el.find('.conversationBox');
         this.$date = this.$el.find('.header__date');
         if (options && options.show) {

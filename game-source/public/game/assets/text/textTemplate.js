@@ -158,30 +158,77 @@ const english = {
     stats_conversation: [
         {
             dialogue_step: 1,
-            text: 'You asked us how we can hire faster. So we built a hiring algorithm using <i>machine learning</i>. Basically, we will teach a computer to hire like you, but way faster!',
+            text: 'Hey, we need to figure out what\'s wrong with the algorithm.',
             answer_choice: [
                 {
-                    text: 'How does that work?',
+                    text: 'Yeah, let\'s break down the algo\'s decisions by orange and blue?',
                     response: '',
-                },
-                {
-                    text: 'That\'s great.',
-                    response: 'Perfect! ',
- 
                 },
             ],
         },
         {
             dialogue_step: 2,
-            text: 'First, the algorithm will read through past applicants\' CVs and whether they were hired or not. It will then learn what makes a candidate good or bad by <u>copying your hiring decision process</u>!',
+            text: 'What do you think?',
+            stats: true,
+            manualStats: false,
             answer_choice: [
                 {
-                    text: 'A machine will think like me?',
-                    response: 'Thinking is a strong word. ',
+                    text: 'WHAT!? How can we reject more blues? They\'re equally qualified.',
+                    response: '',
                 },
                 {
-                    text: 'Works for me ',
-                    response: 'We have to be careful though.',
+                    text: 'So... How is this discrimination?',
+                    response: 'If you look carefully, we have an equal number of equally qualified blue and orange candidates and yet the algorithm accepts more orange. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 3,
+            text: 'Let\s find out how! Do you remember how we trained the algorithm?',
+            answer_choice: [
+                {
+                    text: 'Uhm, I sent you my decisions and the algo mimics me?',
+                    response: 'Correct. ',
+                },
+                {
+                    text: 'I don\'t care, fix it!',
+                    response: 'The machine was created using your decision, so I need your help. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 4,
+            text: 'Let\'s analyze your decisions.',
+            answer_choice: [
+                {
+                    text: 'Ok',
+                    response: '',
+                },
+                {
+                    text: 'Sure, but I wasn\'t biased',
+                    response: 'Yes, you probably weren\'t, but maybe your applicant pool was biased. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 5,
+            text: 'Please take a look: ',
+            stats: true,
+            manualStats: true,
+            answer_choice: [
+                {
+                    text: 'We didn\'t have many blue applicants before. Also, who knows what was in the big company dataset I sent you.',
+                    response: '',
+                },
+            ],
+        },
+        {
+            dialogue_step: 6,
+            text: 'You should have checked the data! How am I supposed to understand hiring decisions? I\'m a software engineer...',
+            answer_choice: [
+                {
+                    text: 'Sorry, we completely messed up... We should have worked more together.',
+                    response: '',
                 },
             ],
         },
@@ -203,7 +250,7 @@ const english = {
             },
             {
                 text: 'Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!',
-            }
+            },
  
         ],
        

@@ -18,7 +18,8 @@ export default class {
             const skillScore = cv[index];
             const skillClass = `.${feature}`;
             const $skillEl = this.$el.find(skillClass);
-            $skillEl.find(`.${CLASSES.STATS_CATEGORY}__progress`).css('width', `${clamp(skillScore, 5, 100)}%`);
+            const width = clamp(skillScore, 5, 100);
+            $skillEl.find(`.${CLASSES.STATS_CATEGORY}__progress`).css('width', `${width}%`);
         });
     }
 }

@@ -1,6 +1,5 @@
 import {Component} from 'component-loader-js';
 import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
-import {gameFSM} from '~/public/game/controllers/game/stateManager.js';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import * as sound from '~/public/game/controllers/game/sound.js';
 
@@ -20,15 +19,12 @@ export default class ChoiceButton extends Component {
         this._addEventListeners();
     };
 
-    // on button click
-
     _onBtnClick(e) {
         if (this.clicked) return;
         sound.play(SOUNDS.BUTTON_CLICK);
         // add 'chosen' styling to the button
         if (this._step+1 === this._totalSteps) {
             eventEmitter.emit(EVENTS.EXIT_TRANSITION_STAGE, {});
-            // gameFSM.nextStage();
             return;
         };
         // make the text above less prominent 
@@ -39,7 +35,6 @@ export default class ChoiceButton extends Component {
         // show next replica
         const choiceButtonResponse = this._getChoiceResponse(this._step, this._textContainer.innerHTML);
         this.publish(EVENTS.REVEAL_REPLICA, {choice_response: choiceButtonResponse, step: this._step+1});
-        // remove the event listeners on the clicked button and turn the boolean value
         this._removeEventListeners();
         this.clicked = true;
     }

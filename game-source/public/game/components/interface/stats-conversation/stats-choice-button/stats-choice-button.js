@@ -53,8 +53,6 @@ export default class StatsConvChoiceButton extends Component {
         this.unsubscribe(EVENTS.HIDE_UNCHOSEN_BUTTONS, this._hideBtn);
     }
 
-    // hide the unchosen button
-
     _hideBtn(conversationStep) {
         if (this._step === conversationStep && !this._btn.classList.contains(CLASSES.BUTTON_CLICKED)) {
             this.el.classList.add(CLASSES.IS_INACTIVE);
@@ -63,10 +61,8 @@ export default class StatsConvChoiceButton extends Component {
         };
     }
 
-    // get response text to a given choice
-
     _getChoiceResponse(step, text) {
-        const choice = txt.conversation[step].answer_choice.find((choice) => choice.text === text);
+        const choice = txt.stats_conversation[step].answer_choice.find((choice) => choice.text === text);
         return choice ? choice.response : '';
     }
 }

@@ -7,7 +7,7 @@ import * as sound from '../game/sound.js';
 import ChoiceButton from '../../components/interface/transition/choice-button/choice-button';
 import Replica from '../../components/interface/transition/replica/replica';
 import StatsConvChoiceButton from '../../components/interface/stats-conversation/stats-choice-button/stats-choice-button';
-import StatsConvReplica from '../../components/interface/stats-conversation/replica/replica';
+import StatsReplica from '../../components/interface/stats-conversation/replica/replica';
 import Footer from '../../components/interface/footer/footer';
 
 
@@ -16,7 +16,7 @@ const componentLoader = new ComponentLoader({
     Replica,
     Footer,
     StatsConvChoiceButton,
-    StatsConvReplica,
+    StatsReplica,
 });
 
 document.getElementById('gameCanvas').appendChild(pixiApp.view);

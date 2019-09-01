@@ -1,8 +1,14 @@
-mixin replica(index, replica, totalSteps)
-  div(class=index === 0 ? '' : 'is-inactive', class="replica replica--"+index, data-step=index, data-file_drag=replica.file_drag, data-dataset_choice=replica.dataset_choice,  data-component="Replica")
+mixin stats_replica(index, replica, totalSteps)
+  div(class=index === 0 ? '' : 'is-inactive', class="replica replica--"+index, data-step=index, data-file_drag=replica.file_drag, data-dataset_choice=replica.dataset_choice,  data-component="StatsReplica")
     div(class="replica__typeIcon is-inactive")
     div(class="replica__content is-inactive")
       p(class="replica__paragraph")!=replica.text
+      if replica.stats
+        include ../../ml/statistics-card/statistics-card.pug
+        if replica.manualStats
+          +stats("Your Hiring Decisions")(id="statistics-card-manual")
+        else
+          +stats("Algorithm's Decisions")(id="statistics-card-mllab")
       div(class="replica__buttons")
         if replica.file_drag
           p(class="replica__send-instructions") Status: no attachments

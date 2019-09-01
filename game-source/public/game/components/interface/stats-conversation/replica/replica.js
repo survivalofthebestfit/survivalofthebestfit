@@ -6,7 +6,7 @@ import * as state from '~/public/game/controllers/common/state';
 import * as sound from '~/public/game/controllers/game/sound.js';
 
 // publishing custom event to any registered listener
-export default class Replica extends Component {
+export default class StatsReplica extends Component {
     constructor() {
         super(...arguments);
 
