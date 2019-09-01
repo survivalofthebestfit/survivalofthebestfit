@@ -27,9 +27,12 @@ export default {
     HIDE_MANUAL_INSTRUCTIONS: 'hide-instructions',
     EXIT_TRANSITION_STAGE: 'exit-transition-stage',
     TITLE_STAGE_COMPLETED: 'title-stage-completed',
-    REVEAL_REPLICEA: 'reveal-next-replica',
+    REVEAL_REPLICA: 'reveal-next-replica',
     GREY_OUT_REPLICA: 'grey-out-previous-replica',
     HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-buttons',
+    STATS_REVEAL_REPLICA: 'reveal-next-stats-replica',
+    STATS_GREY_OUT_REPLICA: 'grey-out-previous-stats-replica',
+    STATS_HIDE_UNCHOSEN_BUTTONS: 'hide-unchosen-stats-buttons',
     EMAIL_REPLY: 'email-reply',
     EXIT_STATS_CONVERSATION: 'exit-stats-conversation',
 };

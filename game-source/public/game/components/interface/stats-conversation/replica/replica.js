@@ -19,8 +19,8 @@ export default class StatsReplica extends Component {
         this._replicaContent = this.el.querySelector('.replica__content');
         this._dropzone = this.el.querySelector('.replica__dropzone');
         this._typeIcon = this.el.querySelector('.replica__typeIcon');
-        this.subscribe(EVENTS.REVEAL_REPLICA, this._revealReplica);
-        this.subscribe(EVENTS.GREY_OUT_REPLICA, this._greyOutReplica);
+        this.subscribe(EVENTS.STATS_REVEAL_REPLICA, this._revealReplica);
+        this.subscribe(EVENTS.STATS_GREY_OUT_REPLICA, this._greyOutReplica);
         if (this._step === 0) {
             this._replicaContent.classList.remove(CLASSES.IS_INACTIVE);
             if (this._fileDrag) this._addFileClickListener();
@@ -41,7 +41,7 @@ export default class StatsReplica extends Component {
                 this.scrollHandler();
                 if (this._fileDrag) this._addFileClickListener();
                 if (this._datasetChoice) this._addChoiceListener();
-                this.publish(EVENTS.GREY_OUT_REPLICA, {step: this._step -1});
+                this.publish(EVENTS.STATS_GREY_OUT_REPLICA, {step: this._step -1});
                 console.log('play new message!');
                 // sound.stop(SOUNDS.WRITING_MESSAGE);
                 sound.play(SOUNDS.NEW_MESSAGE);
@@ -76,7 +76,7 @@ export default class StatsReplica extends Component {
             const $fileInstructions = this.el.querySelector('.replica__send-instructions');
             $fileInstructions.classList.add(CLASSES.CONVERSATION_STEP_COMPLETED);
             $fileInstructions.innerHTML = 'Attached cv_all.zip';
-            this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
+            this.publish(EVENTS.STATS_REVEAL_REPLICA, {choice_response: '', step: this._step+1});
             // sound.stop(SOUNDS.WRITING_MESSAGE);
             $datafile.off();
             $datafile.remove();
@@ -84,7 +84,7 @@ export default class StatsReplica extends Component {
     }
 
     scrollHandler() {
-        const $conversation = document.getElementById('transition-conversation-log');
+        const $conversation = document.getElementById('stats-conversation-log');
         const isScrolled = $conversation.scrollHeight - $conversation.scrollTop === $conversation.clientHeight;
         if (!isScrolled) {
             $conversation.scrollTop = $conversation.scrollHeight;
@@ -92,16 +92,6 @@ export default class StatsReplica extends Component {
     }
 
     _addChoiceListener() {
-        // console.log('we added a choice listener!');
-        $('.data-list__choice').on('click', (e) => {
-            sound.play(SOUNDS.BUTTON_CLICK);
-            const $choice = $(`#${e.target.id}`);
-            state.set('big-tech-company', $choice.text());
-            [...$('.data-list__choice')].map((choice) => $(choice).addClass(CLASSES.IS_INACTIVE));
-            $choice.removeClass(CLASSES.IS_INACTIVE).addClass(CLASSES.CONVERSATION_STEP_COMPLETED);
-            $choice.find('.data-list__icon').addClass(CLASSES.IS_INACTIVE);
-            this.publish(EVENTS.REVEAL_REPLICA, {choice_response: '', step: this._step+1});
-            $('.data-list__choice').off();
-        });
+        
     }
 }

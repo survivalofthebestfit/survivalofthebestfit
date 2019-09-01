@@ -130,7 +130,7 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u><b>Click</b> on the folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
+            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u><b>Click</b> on the file</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
             file_drag: true,
             answer_choice: [],
         },
@@ -170,7 +170,6 @@ const english = {
             dialogue_step: 2,
             text: 'What do you think?',
             stats: true,
-            manualStats: false,
             answer_choice: [
                 {
                     text: 'WHAT!? How can we reject more blues? They\'re equally qualified.',
@@ -187,7 +186,7 @@ const english = {
             text: 'Let\s find out how! Do you remember how we trained the algorithm?',
             answer_choice: [
                 {
-                    text: 'Uhm, I sent you my decisions and the algo mimics me?',
+                    text: 'I sent you my decisions and your algo mimics me?',
                     response: 'Correct. ',
                 },
                 {
@@ -217,14 +216,18 @@ const english = {
             manualStats: true,
             answer_choice: [
                 {
-                    text: 'We didn\'t have many blue applicants before. Also, who knows what was in the big company dataset I sent you.',
-                    response: '',
+                    text: 'We had very few blue applicants before.',
+                    response: 'Yes, the algorithm had too few samples so the decisions are unreliable for them. ',
+                },
+                {
+                    text: 'Was I or the applicant pool biased?',
+                    response: 'I\'m sure you had good intentions, but we had very few blue applicants, which the algo misunderstood. ',
                 },
             ],
         },
         {
             dialogue_step: 6,
-            text: 'You should have checked the data! How am I supposed to understand hiring decisions? I\'m a software engineer...',
+            text: 'You should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions? I\'m a software engineer...',
             answer_choice: [
                 {
                     text: 'Sorry, we completely messed up... We should have worked more together.',
@@ -309,7 +312,7 @@ const english = {
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Review our evaluation metrics to see if you can go public.',
                 responses: [
-                    'I\'ll check stats in the data inspector!',
+                    'Let me talk to our software engineer again!',
                     'Um, actually... We might have a problem.',
                 ],
                 tooltip: {

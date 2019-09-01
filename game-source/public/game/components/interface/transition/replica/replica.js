@@ -97,6 +97,9 @@ export default class Replica extends Component {
             sound.play(SOUNDS.BUTTON_CLICK);
             const $choice = $(`#${e.target.id}`);
             state.set('big-tech-company', $choice.text());
+            $('.replica__paragraph').each(function(index) {
+                this.innerHTML = this.innerHTML.replace('big company dataset', state.get('big-tech-company') + ' dataset');
+            });
             [...$('.data-list__choice')].map((choice) => $(choice).addClass(CLASSES.IS_INACTIVE));
             $choice.removeClass(CLASSES.IS_INACTIVE).addClass(CLASSES.CONVERSATION_STEP_COMPLETED);
             $choice.find('.data-list__icon').addClass(CLASSES.IS_INACTIVE);

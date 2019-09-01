@@ -41,16 +41,36 @@ class Statistics {
         // [0] hired orange %, [1] rejected orange %, [2] orange average skills, [3] blue average skills
         
         const onlyPersonalStats = this.getCardStats(cvCollection.cvData.slice(0, dataModule.getLastIndex()));
-        if (onlyPersonalStats[0] > 75 && onlyPersonalStats[1] < 40 && onlyPersonalStats[2] - onlyPersonalStats[3] > 30) {
-            return onlyPersonalStats;
-        } 
-        
         const fullDatasetStats = this.getCardStats(cvCollection.cvData);
-        if (fullDatasetStats[1] > 75 && fullDatasetStats[1] < 40 && fullDatasetStats[3] - fullDatasetStats[4] > 30) {
-            return fullDatasetStats;
+        let result = [];
+        if (onlyPersonalStats[0] > 75) {
+            result.push(onlyPersonalStats[0]);
+        } else if (fullDatasetStats[0] > 75) {
+            result.push(fullDatasetStats[0]);
+        } else {
+            result.push(80);
+        }
+
+        if (onlyPersonalStats[1] > 65) {
+            result.push(onlyPersonalStats[1]);
+        } else if (fullDatasetStats[1] > 65) {
+            result.push(fullDatasetStats[1]);
+        } else {
+            result.push(70);
+        }
+
+        if (onlyPersonalStats[2] - onlyPersonalStats[3] < 25) {
+            result.push(onlyPersonalStats[2]);
+            result.push(onlyPersonalStats[3]);
+        } else if (fullDatasetStats[2] - fullDatasetStats[3] < 25) {
+            result.push(fullDatasetStats[2]);
+            result.push(fullDatasetStats[3]);
+        } else {
+            result.push(65);
+            result.push(60);
         }
         
-        return [80, 30, 70, 35];
+        return result;
     }
 
     getMlLabStats() {
@@ -62,10 +82,29 @@ class Statistics {
         });
         
         const mlLabStats = this.getCardStats(cvCollection.cvDataEqual.slice(0, acceptance.length));
-        if (mlLabStats[1] > 75 && mlLabStats[1] < 40 && mlLabStats[3] - mlLabStats[4] > 30) {
-            return mlLabStats;
+        console.log('MLLabStats: ', mlLabStats);
+
+        let result = [];
+        if (mlLabStats[0] > 75) {
+            result.append(mlLabStats[0]);
+        } else {
+            result.append(82);
+        }
+        
+        if (mlLabStats[1] < 40) {
+            result.append(mlLabStats[1]);
+        } else {
+            result.append(82);
         }
 
+        if (mlLabStats[2] - mlLabStats[3] > 30) {
+            result.append(mlLabStats[2]);
+            result.append(mlLabStats[3]);
+        } else {
+            result.append(55);
+            result.append(60);
+        }
+        
         return [82, 26, 60, 63];
     }
 
