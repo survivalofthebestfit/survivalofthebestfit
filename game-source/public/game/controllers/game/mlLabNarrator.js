@@ -169,7 +169,6 @@ export default class MlLabNarrator {
         eventEmitter.on(EVENTS.RESUME_TIMELINE, this.scheduleTimelineUpdate);
         eventEmitter.on(EVENTS.ACCEPTED, this._triggerTimelineUpdate.bind(this));
         eventEmitter.on(EVENTS.EXIT_STATS_CONVERSATION, function() {
-            this.statsConversation.destroy(); 
             this.textAckCallback({launchCVInspector: false, breaking: false, launchMachineInspector: false, isLastMessage: false}, this.animator, this.newsFeed);
         }.bind(this));
     }

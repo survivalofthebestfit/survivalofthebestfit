@@ -13,7 +13,6 @@ export default class {
             cv = statistics.getMlLabStats();
             this.$el = $('#statistics-card-mllab');
         }
-        console.log(cv);
         statistics.getFeatures().forEach((feature, index) => {
             const skillScore = cv[index];
             const skillClass = `.${feature}`;

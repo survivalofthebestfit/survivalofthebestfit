@@ -3,7 +3,7 @@ import {CLASSES, EVENTS, SOUNDS} from '~/public/game/controllers/constants';
 import {eventEmitter} from '~/public/game/controllers/game/gameSetup.js';
 import * as state from '~/public/game/controllers/common/state';
 import * as sound from '~/public/game/controllers/game/sound.js';
-
+import {waitForSeconds} from '~/public/game/controllers/common/utils.js';
 
 // publishing custom event to any registered listener
 export default class StatsConvChoiceButton extends Component {
@@ -28,8 +28,9 @@ export default class StatsConvChoiceButton extends Component {
         sound.play(SOUNDS.BUTTON_CLICK);
         // add 'chosen' styling to the button
         if (this._step+1 === this._totalSteps) {
-            eventEmitter.emit(EVENTS.EXIT_STATS_CONVERSATION, {});
-            // gameFSM.nextStage();
+            waitForSeconds(1).then(() => {
+                eventEmitter.emit(EVENTS.EXIT_STATS_CONVERSATION, {});
+            });
             return;
         };
         // make the text above less prominent 

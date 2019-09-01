@@ -269,10 +269,6 @@ const english = {
                     'Machines can\'t be biased, right?',
                     'Not sure, I\'ll keep an eye on the machine\'s decisions.',
                 ],
-                tooltip: {
-                    parent: 'machine',
-                    text: 'The algorithm is only as good as the data humans trained it on. New CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
-                },
                 news: [
                     'Techountability: Research shows hiring algorithms can inherit human biases against minorities',
                     'Tech Junkies: How do hiring algorithms work?',
@@ -285,10 +281,6 @@ const english = {
                     'Let me talk to our software engineer again!',
                     'Um, actually... We might have a problem.',
                 ],
-                tooltip: {
-                    parent: 'scanray',
-                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. People choosing the wrong datasets can lead to the algorithm learning to reject these people...',
-                },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
                     'We trained on more good orange candidates than blue. That made it biased towards orange.',

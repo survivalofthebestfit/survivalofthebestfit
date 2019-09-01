@@ -29,6 +29,7 @@
 
     &__choice {
       margin-left: margin(sm);
+      cursor: pointer;
       &:nth-child(1)  {
         margin-left: 0;
       }

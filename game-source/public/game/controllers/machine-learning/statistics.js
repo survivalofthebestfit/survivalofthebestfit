@@ -40,9 +40,27 @@ class Statistics {
     getManualStats() {
         // [0] hired orange %, [1] rejected orange %, [2] orange average skills, [3] blue average skills
         
-        const onlyPersonalStats = this.getCardStats(cvCollection.cvData.slice(0, dataModule.getLastIndex()));
+        const cvManualDecisions = [];
+ 
+        const accepted = dataModule.getAcceptedPeople();
+    
+        cvCollection.cvData.slice(0, dataModule.getLastIndex()).forEach(function(cvCollectionElem, cvCollectionInd) {
+            if (accepted.some(function(acceptedElem) {
+                return acceptedElem == cvCollectionInd;
+            })) {
+                const modified = JSON.parse(JSON.stringify([cvCollectionElem]))[0];
+                modified.empl = 1;
+                cvManualDecisions.push(modified);
+            } else {
+                const modified = JSON.parse(JSON.stringify([cvCollectionElem]))[0];
+                modified.empl = 0;
+                cvManualDecisions.push(modified);
+            }
+        });
+    
+        const onlyPersonalStats = this.getCardStats(cvManualDecisions);
         const fullDatasetStats = this.getCardStats(cvCollection.cvData);
-        let result = [];
+        const result = [];
         if (onlyPersonalStats[0] > 75) {
             result.push(onlyPersonalStats[0]);
         } else if (fullDatasetStats[0] > 75) {
@@ -59,32 +77,31 @@ class Statistics {
             result.push(70);
         }
 
-        if (onlyPersonalStats[2] - onlyPersonalStats[3] < 25) {
+        if (onlyPersonalStats[2] - onlyPersonalStats[3] < 10) {
             result.push(onlyPersonalStats[2]);
             result.push(onlyPersonalStats[3]);
-        } else if (fullDatasetStats[2] - fullDatasetStats[3] < 25) {
+        } else if (fullDatasetStats[2] - fullDatasetStats[3] < 10) {
             result.push(fullDatasetStats[2]);
             result.push(fullDatasetStats[3]);
         } else {
             result.push(65);
             result.push(60);
         }
-        
+        console.log('personalStats: ', onlyPersonalStats, ' Fulldataset: ', fullDatasetStats, ' Result:', result);
         return result;
     }
 
     getMlLabStats() {
         // [0] hired orange %, [1] rejected orange %, [2] orange average skills, [3] blue average skills
 
-        let acceptance = dataModule.getAcceptanceByTheAlgo();
+        const acceptance = dataModule.getAcceptanceByTheAlgo();
         acceptance.forEach((element, index) => {
             cvCollection.cvDataEqual[index].empl = element[0];
         });
         
         const mlLabStats = this.getCardStats(cvCollection.cvDataEqual.slice(0, acceptance.length));
-        console.log('MLLabStats: ', mlLabStats);
-
-        let result = [];
+        
+        const result = [];
         if (mlLabStats[0] > 75) {
             result.push(mlLabStats[0]);
         } else {
@@ -94,10 +111,10 @@ class Statistics {
         if (mlLabStats[1] < 40) {
             result.push(mlLabStats[1]);
         } else {
-            result.push(82);
+            result.push(39);
         }
 
-        if (mlLabStats[2] - mlLabStats[3] > 30) {
+        if (mlLabStats[2] - mlLabStats[3] < 10) {
             result.push(mlLabStats[2]);
             result.push(mlLabStats[3]);
         } else {
@@ -105,7 +122,8 @@ class Statistics {
             result.push(60);
         }
         
-        return [82, 26, 60, 63];
+        console.log('MLLabStats: ', mlLabStats, ' Result:', result);
+        return result;
     }
 
     getFeatures() {
