@@ -86,23 +86,23 @@ class Statistics {
 
         let result = [];
         if (mlLabStats[0] > 75) {
-            result.append(mlLabStats[0]);
+            result.push(mlLabStats[0]);
         } else {
-            result.append(82);
+            result.push(82);
         }
         
         if (mlLabStats[1] < 40) {
-            result.append(mlLabStats[1]);
+            result.push(mlLabStats[1]);
         } else {
-            result.append(82);
+            result.push(82);
         }
 
         if (mlLabStats[2] - mlLabStats[3] > 30) {
-            result.append(mlLabStats[2]);
-            result.append(mlLabStats[3]);
+            result.push(mlLabStats[2]);
+            result.push(mlLabStats[3]);
         } else {
-            result.append(55);
-            result.append(60);
+            result.push(55);
+            result.push(60);
         }
         
         return [82, 26, 60, 63];

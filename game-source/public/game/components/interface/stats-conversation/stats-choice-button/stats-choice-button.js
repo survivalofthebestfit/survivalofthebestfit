@@ -24,6 +24,7 @@ export default class StatsConvChoiceButton extends Component {
 
     _onBtnClick(e) {
         if (this.clicked) return;
+        this.clicked = true;
         sound.play(SOUNDS.BUTTON_CLICK);
         // add 'chosen' styling to the button
         if (this._step+1 === this._totalSteps) {
@@ -41,7 +42,6 @@ export default class StatsConvChoiceButton extends Component {
         this.publish(EVENTS.STATS_REVEAL_REPLICA, {choice_response: choiceButtonResponse, step: this._step+1});
         // remove the event listeners on the clicked button and turn the boolean value
         this._removeEventListeners();
-        this.clicked = true;
     }
 
     _addEventListeners() {

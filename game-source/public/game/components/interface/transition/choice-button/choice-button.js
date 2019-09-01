@@ -21,6 +21,7 @@ export default class ChoiceButton extends Component {
 
     _onBtnClick(e) {
         if (this.clicked) return;
+        this.clicked = true;
         sound.play(SOUNDS.BUTTON_CLICK);
         // add 'chosen' styling to the button
         if (this._step+1 === this._totalSteps) {
@@ -36,7 +37,6 @@ export default class ChoiceButton extends Component {
         const choiceButtonResponse = this._getChoiceResponse(this._step, this._textContainer.innerHTML);
         this.publish(EVENTS.REVEAL_REPLICA, {choice_response: choiceButtonResponse, step: this._step+1});
         this._removeEventListeners();
-        this.clicked = true;
     }
 
     _addEventListeners() {

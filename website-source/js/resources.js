@@ -14,6 +14,7 @@ for (var i=1; i<pages.length; i++) {
 }
 
 function boxClicked(page) {
+    $(page).toggleClass("clickable");
     $(page + " h2").show("mb-0");
     $(page + " p, " + page + " iframe").show();
 

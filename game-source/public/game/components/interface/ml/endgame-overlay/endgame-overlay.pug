@@ -26,9 +26,11 @@ script(src='../scripts-website.min.js')
 
 			#part2
 
-				p(style="float: left") When the engineering team contacted you, they asked you for <i> your </i> decisions, in <b> cv_all.zip </b>, because software requires human input. <br>
+				p This is a simplified simulation, but we hope it got you thinking. Now imagine how difficult it is to choose for a real-life recruiter! <br>
 
-				p That means if you had biases, the software would replicate them, and if you were careless, the outputs would be messy! But what if you were as objective as you could be? <br>
+				p When there are many unknowns, people tend to rely on their gut feelings, which is just an expression of their biases and preconceptions. <br>
+			
+				p You might not be consciously discriminative, but in the early days of your company you received more highly qualified orange applicants. The unknowns and the biased environment can make well-intentioned decisions biased. This is what the industry needs to realize. <br>
 
 				div(class="button button__proceed" onClick="next1()")
 					p(style="font-size: 1.2rem") NEXT
@@ -36,15 +38,17 @@ script(src='../scripts-website.min.js')
 			
 			#part3
 				
-				h3 Training the Algorithm
+				h3 Training the Biased Algorithm
 
-				p Your data alone wasn't enough to build a machine learning (ML) algorithm, because ML only works on large amounts of data, so you were asked to choose a larger dataset. The problem is, these historical datasets can have all sorts of inequalities built in. <br>
+				p When the engineering team contacted you, they asked you for <b>your</b> decisions, in <b>cv_all.zip</b> , because a machine learning (ML) algorithm requires human input. <br>
 
 				img.center-block(src='assets/img/sotbf-training.gif')
 
-				p In this case, it largely consisted of applicants from Orange Valley, where more people were historically allowed to work in tech. In the real world, this could mean your data reflects a history of injustice, like favoring a certain race, gender, or socio-economic background. <br> 
+				p That means if you had biases, the software would replicate them! But what if you were as objective as you could be? <br> 
 
-				p What if you ask your algorithm to disregard looking at these differentiators? <br>
+				p Your data alone wasn't enough to build a ML algorithm, because machine learning works only on large amounts of data. That’s why the software engineer asked you to choose a larger dataset. The problem is, all datasets are built by humans who tend to be biased, so datasets often capture historical biases. <br>
+
+				p In this case, it largely consisted of applicants from Orange Valley, where more people were historically allowed to work in tech. We need to devote more energy to understand trends in these large datasets before using them. <br>
 
 				div(class="button button__proceed" onClick="next2()")
 					p(style="font-size: 1.2rem; color: white") NEXT
@@ -52,9 +56,11 @@ script(src='../scripts-website.min.js')
 			
 			#part4
 
-				h3 Behind the Code
+				h3 Behind the Difficulties
 
-				p There is no on-off switch to ask automated decision-making programs to do the right thing. In hiring, for example, it's not just that data is categorized by race or gender, but that it also represents the colleges, societies, and organizations certain demographics were allowed to be a part of. <br>
+				p Can we disregard race or gender? <br>
+
+				p There are no buttons on ML algorithms and the input data is often difficult to debias. While applicants don’t put race or gender explicitly on their CVs, they are often manifested through the colleges, communities, and organizations certain demographics are usually a part of. <br>
 
 				img.center-block(src='assets/img/sotbf-automated.gif', style="width: 60%; margin-right: auto; clear: right; margin-top: 3%;")
 

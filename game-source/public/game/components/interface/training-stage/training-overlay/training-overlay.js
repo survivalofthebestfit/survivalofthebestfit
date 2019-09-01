@@ -99,9 +99,11 @@ export default class extends UIBase {
             TweenLite.set('.js-email', {y: 10, yPercent: -50, opacity: 0});
             TweenLite.to('.js-email', 0.3, {y: 0, opacity: 1, ease: Power1.easeInOut});
             this.$stageEndBtn.on('click', () => {
-                this.$stageEndBtn.find('.button').addClass('step-completed');
-                this.exit();
-                sound.play(SOUNDS.BUTTON_CLICK);
+                if (!this.$stageEndBtn.find('.button').hasClass('step-completed')) {
+                    this.$stageEndBtn.find('.button').addClass('step-completed');
+                    this.exit();
+                    sound.play(SOUNDS.BUTTON_CLICK);
+                }
             });
         });
     }

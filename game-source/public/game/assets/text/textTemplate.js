@@ -24,13 +24,6 @@ const english = {
             'Start Game',
         ],
     },
-    tutorialStage: {
-        header: 'Tutorial',
-        instruction: 'As the CEO, your goal is to hire the best and the brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
-        responses: [
-            'Got it',
-        ],
-    },
     instructions: {
         manual: {
             click: 'Click on candidates to see their CVs',
@@ -44,7 +37,7 @@ const english = {
     smallOfficeStage: {
         subject: 'Our investment in your startup',
         messageFromVc: 'We are excited to see you grow the startup. It\'s a competitive market so hire only the best.',
-        responses: ['Let\'s do this'],
+        responses: ['Let\'s start hiring'],
         hiringGoal: 3,
     },
  
@@ -237,26 +230,7 @@ const english = {
         },
     ],
  
-    mlLabStage: {
-        onboarding: [
-            {
-                text: 'People’s CVs are now scanned and evaluated by a computer',
-            },
-            {
-                text: 'People’s CVs are now scanned and evaluated by a computer',
-            },
-            {
-                text: 'The machine scans each CV and either accepts or rejects the candidate',
-            },
-            {
-                text: 'Candidates are informed immediately after the machine makes its decision',
-            },
-            {
-                text: 'Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!',
-            },
- 
-        ],
-       
+    mlLabStage: {       
         narration: [
             {
                 news: [
@@ -286,25 +260,21 @@ const english = {
                 inspectResponses: [
                     'I have no idea.',
                     'Maybe because Elvan is blue?',
-                ]
-                // tooltip: {
-                //     parent: 'scanray',
-                //     text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
-                // },
+                ],
             },
             {
                 breaking: true,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Machines can\'t be biased, right?',
-                    'Not sure, I\'ll keep an eye on the hiring line.',
+                    'Not sure, I\'ll keep an eye on the machine\'s decisions.',
                 ],
                 tooltip: {
                     parent: 'machine',
-                    text: 'The algorithm is only as good as the data it was trained on. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
+                    text: 'The algorithm is only as good as the data humans trained it on. New CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
                 },
                 news: [
-                    'Techountability: Research shows hiring algorithms may be biased against minorities',
+                    'Techountability: Research shows hiring algorithms can inherit human biases against minorities',
                     'Tech Junkies: How do hiring algorithms work?',
                 ],
             },
@@ -317,11 +287,11 @@ const english = {
                 ],
                 tooltip: {
                     parent: 'scanray',
-                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The algorithm might learn not to hire these people...',
+                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. People choosing the wrong datasets can lead to the algorithm learning to reject these people...',
                 },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
-                    'The machine was trained on more good orange candidates than blue. That made it biased towards orange.',
+                    'We trained on more good orange candidates than blue. That made it biased towards orange.',
                     'Maybe the big tech company dataset was full of bias? We should have looked into my training data more.',
                 ],
                 news: [
