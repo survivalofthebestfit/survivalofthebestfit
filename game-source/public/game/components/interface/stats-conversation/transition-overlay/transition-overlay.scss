@@ -23,14 +23,8 @@
     top: 53%;
   }
 
-  @include mq($from: mobile-landscape) {
-    &-inner::-webkit-scrollbar { 
-      display: none;
-    }
-  }
-
   &-inner {
-    overflow-y: scroll;
+    overflow-y: auto;
     height: 100%;
     padding-right: 10px;
 

@@ -194,7 +194,7 @@ export default class MlLabAnimator {
         this.destroyTweens();
         // this.conversationManager.destroy(); // unimplemented
         // this.newsFeed.destroy();
-        this.datasetView.destroy();
+        // this.datasetView.destroy();
         this.firstFloor.destroy();
         this.groundFloor.destroy();
         // this.door.destroy(); // unimplemented

@@ -74,8 +74,10 @@
   }
   
   // TODO how about other browsers?
-  &::-webkit-scrollbar { 
-    width: 0 !important 
+  @include mq($from: mobile-landscape) {
+    &::-webkit-scrollbar { 
+      width: 0 !important 
+    }
   }
   
   &-title {

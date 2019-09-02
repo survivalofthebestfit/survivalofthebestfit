@@ -12,8 +12,8 @@ export default class {
         this.container = new PIXI.Container();
         this.container.name = ML_PEOPLE_CONTAINER;
         this.numOfPeople = Math.floor(uv2px(0.85, 'w')/70) * 2;
-        this.mlStartIndex = dataModule.getLastIndex() || 0;
-        this.mlLastIndex = dataModule.getLastIndex() || 0;
+        this.mlStartIndex = 0;
+        this.mlLastIndex = 0;
         this.peopleLine = [];
         this.mlLabRejected = [];
 

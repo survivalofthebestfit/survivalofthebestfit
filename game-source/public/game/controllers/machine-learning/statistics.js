@@ -63,7 +63,7 @@ class Statistics {
         const result = [];
         if (onlyPersonalStats[0] > 75) {
             result.push(onlyPersonalStats[0]);
-        } else if (fullDatasetStats[0] > 75) {
+        } else if (fullDatasetStats[0] > 75 && fullDatasetStats[0] < 90) {
             result.push(fullDatasetStats[0]);
         } else {
             result.push(80);

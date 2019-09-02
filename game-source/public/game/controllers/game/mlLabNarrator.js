@@ -34,7 +34,7 @@ export default class MlLabNarrator {
 
     populateHiringGoals() {
         // You can use this to debug so that ML lab stage progresses faster
-        const debugMode = true;
+        const debugMode = false;
         
         let hiringCount = 0;
 
