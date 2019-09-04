@@ -105,9 +105,9 @@
             "color": "blue",
             "qualifications": [
                 8,
-                3,
+                8,
                 9,
-                6
+                7
             ]
         },
         {
@@ -171,8 +171,8 @@
             "color": "orange",
             "qualifications": [
                 7,
-                7,
-                7,
+                5,
+                6,
                 1
             ]
         },
@@ -269,8 +269,8 @@
             "city": 0,
             "color": "blue",
             "qualifications": [
-                1,
-                7,
+                3,
+                6,
                 5,
                 5
             ]
@@ -280,7 +280,7 @@
             "city": 1,
             "color": "orange",
             "qualifications": [
-                9,
+                7,
                 3,
                 3,
                 2
@@ -292,8 +292,8 @@
             "color": "blue",
             "qualifications": [
                 6,
-                7,
-                8,
+                2,
+                4,
                 0
             ]
         },

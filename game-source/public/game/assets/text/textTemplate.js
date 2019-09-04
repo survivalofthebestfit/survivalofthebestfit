@@ -165,7 +165,7 @@ const english = {
             stats: true,
             answer_choice: [
                 {
-                    text: 'WHAT!? How can we reject more blues? They\'re equally qualified.',
+                    text: 'WHAT!? How can we reject more blues? They\'re equally qualified!',
                     response: '',
                 },
                 {
@@ -210,7 +210,7 @@ const english = {
             answer_choice: [
                 {
                     text: 'We had very few blue applicants before.',
-                    response: 'Yes, the algorithm had too few samples so the decisions are unreliable for them. ',
+                    response: 'Yes, the algorithm had too few samples for blue people so the decisions are unreliable and unfavorable for them. ',
                 },
                 {
                     text: 'Was I or the applicant pool biased?',
@@ -220,10 +220,28 @@ const english = {
         },
         {
             dialogue_step: 6,
+            text: ' ',
+            answer_choice: [
+                {
+                    text: 'We should have checked the data.',
+                    response: 'Yes, I\'m reading an article that tells us to first filter out indirect biases, feedback loops, sampling errors, etc... ',
+                },
+                {
+                    text: 'But the CVs didn\'t have colors on them!',
+                    response: 'It could indirectly learn it, since Orange people usually attend University College Orange Valley while blue people attend Bluetown University. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 7,
             text: 'You should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions? I\'m a software engineer...',
             answer_choice: [
                 {
-                    text: 'Sorry, we completely messed up... We should have worked more together.',
+                    text: 'Sorry, we completely messed up...',
+                    response: '',
+                },
+                {
+                    text: 'We should have worked more together.',
                     response: '',
                 },
             ],
