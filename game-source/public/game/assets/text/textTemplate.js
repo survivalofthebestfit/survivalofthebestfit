@@ -151,35 +151,35 @@ const english = {
     stats_conversation: [
         {
             dialogue_step: 1,
-            text: 'Hey, we need to figure out what\'s wrong with the algorithm.',
+            text: 'We\'re to figure out what\'s wrong with the algorithm.',
             answer_choice: [
                 {
-                    text: 'Yeah, let\'s break down the algo\'s decisions by orange and blue?',
+                    text: 'Let\'s break down the algorithm\'s decisions by orange and blue?',
                     response: '',
                 },
             ],
         },
         {
             dialogue_step: 2,
-            text: 'What do you think?',
+            text: 'Here they are; what do you think?',
             stats: true,
             answer_choice: [
                 {
-                    text: 'WHAT!? How can we reject more blues? They\'re equally qualified!',
+                    text: 'How are we rejecting more blue people?',
                     response: '',
                 },
                 {
-                    text: 'So... How is this discrimination?',
-                    response: 'If you look carefully, we have an equal number of equally qualified blue and orange candidates and yet the algorithm accepts more orange. ',
+                    text: 'How\'s this biased?',
+                    response: 'If you look carefully, we have an similar number of equally qualified blue and orange candidates and yet the algorithm accepts a lot more orange. ',
                 },
             ],
         },
         {
             dialogue_step: 3,
-            text: 'Let\s find out how! Do you remember how we trained the algorithm?',
+            text: 'Let\s find out how! Do you remember how we first trained the algorithm?',
             answer_choice: [
                 {
-                    text: 'I sent you my decisions and your algo mimics me?',
+                    text: 'I sent you my own decisions to train the algorithm',
                     response: 'Correct. ',
                 },
                 {
@@ -198,13 +198,13 @@ const english = {
                 },
                 {
                     text: 'Sure, but I wasn\'t biased',
-                    response: 'Yes, you probably weren\'t, but maybe your applicant pool was biased. ',
+                    response: 'You might\'ve not been, but maybe your applicant pool was. ',
                 },
             ],
         },
         {
             dialogue_step: 5,
-            text: 'Please take a look: ',
+            text: 'Look at our data from the manual hiring: ',
             stats: true,
             manualStats: true,
             answer_choice: [
@@ -214,7 +214,7 @@ const english = {
                 },
                 {
                     text: 'Was I or the applicant pool biased?',
-                    response: 'I\'m sure you had good intentions, but we had very few blue applicants, which the algo misunderstood. ',
+                    response: 'I\'m sure you had good intentions, but we had very few blue applicants, which the algorithm misunderstood. ',
                 },
             ],
         },
