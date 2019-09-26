@@ -224,26 +224,26 @@ const english = {
             answer_choice: [
                 {
                     text: 'We should have checked the data.',
-                    response: 'Yes, I\'m reading an article that tells us to first filter out indirect biases, feedback loops, sampling errors, etc... ',
+                    response: 'Yes, I\'m reading that we need to be more careful about the data we include or exclude, and what it may represent.', 
                 },
                 {
                     text: 'But the CVs didn\'t have colors on them!',
-                    response: 'It could indirectly learn it, since Orange people usually attend University College Orange Valley while blue people attend Bluetown University. ',
+                    response: 'It could indirectly learn other elements that differentiate Orange and Blue People, e.g. Orange people usually attend University College Orange Valley while Blue people attend Bluetown University. ',
                 },
             ],
         },
         {
             dialogue_step: 7,
-            text: 'You should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions? I\'m a software engineer...',
+            text: 'We should have also checked the quality of the big company dataset you sent me!',
             answer_choice: [
                 {
-                    text: 'Sorry, we completely messed up...',
+                    text: 'We should\'ve done better...',
                     response: '',
                 },
-                {
-                    text: 'We should have worked more together.',
-                    response: '',
-                },
+                // {
+                //     text: 'We should have worked more together.',
+                //     response: '',
+                // },
             ],
         },
     ],
