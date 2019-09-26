@@ -151,10 +151,10 @@ const english = {
     stats_conversation: [
         {
             dialogue_step: 1,
-            text: 'We\'re to figure out what\'s wrong with the algorithm.',
+            text: 'We\'re trying to figure out what\'s wrong with the algorithm.',
             answer_choice: [
                 {
-                    text: 'Let\'s break down the algorithm\'s decisions by orange and blue?',
+                    text: 'Let\'s break down it\'s decisions by orange and blue?',
                     response: '',
                 },
             ],
@@ -165,12 +165,12 @@ const english = {
             stats: true,
             answer_choice: [
                 {
-                    text: 'How are we rejecting more blue people?',
+                    text: 'We\'re rejecting more blue people.',
                     response: '',
                 },
                 {
-                    text: 'How\'s this biased?',
-                    response: 'If you look carefully, we have an similar number of equally qualified blue and orange candidates and yet the algorithm accepts a lot more orange. ',
+                    text: 'This isn\'t biased.',
+                    response: 'If you look carefully, we have a similar number of equally qualified blue and orange candidates and yet the algorithm accepts a lot more orange. ',
                 },
             ],
         },
@@ -179,7 +179,7 @@ const english = {
             text: 'Let\s find out how! Do you remember how we first trained the algorithm?',
             answer_choice: [
                 {
-                    text: 'I sent you my own decisions to train the algorithm',
+                    text: 'I sent you my decisions to train the algorithm',
                     response: 'Correct. ',
                 },
                 {
@@ -188,33 +188,33 @@ const english = {
                 },
             ],
         },
-        {
-            dialogue_step: 4,
-            text: 'Let\'s analyze your decisions.',
-            answer_choice: [
-                {
-                    text: 'Ok',
-                    response: '',
-                },
-                {
-                    text: 'Sure, but I wasn\'t biased',
-                    response: 'You might\'ve not been, but maybe your applicant pool was. ',
-                },
-            ],
-        },
+        // {
+        //     dialogue_step: 4,
+        //     text: 'Let\'s analyze your decisions.',
+        //     answer_choice: [
+        //         {
+        //             text: 'Ok',
+        //             response: '',
+        //         },
+        //         {
+        //             text: 'Sure, but I wasn\'t biased',
+        //             response: 'You might\'ve not been, but maybe your applicant pool was. ',
+        //         },
+        //     ],
+        // },
         {
             dialogue_step: 5,
-            text: 'Look at our data from the manual hiring: ',
+            text: 'Look at our data from manual hiring: ',
             stats: true,
             manualStats: true,
             answer_choice: [
                 {
-                    text: 'We had very few blue applicants before.',
-                    response: 'Yes, the algorithm had too few samples for blue people so the decisions are unreliable and unfavorable for them. ',
+                    text: 'I hired a lot more orange people.',
+                    response: 'Our algorithm tries to copy our previous hiring, so if you hired more orange people, it \'learns\' to favor them. ',
                 },
                 {
-                    text: 'Was I or the applicant pool biased?',
-                    response: 'I\'m sure you had good intentions, but we had very few blue applicants, which the algorithm misunderstood. ',
+                    text: 'I\'m sure I wasn\'t biased!',
+                    response: 'I\'m sure you had good intentions, but we had very few blue applicants in our first stage, and so much less were accepted. The algorithm mis-interpreted that as them being unfavorable candidates.',
                 },
             ],
         },
