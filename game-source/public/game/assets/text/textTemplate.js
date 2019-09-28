@@ -148,13 +148,13 @@ const english = {
         },
     ],
 
-    stats_conversation: [
+        stats_conversation: [
         {
             dialogue_step: 1,
             text: 'We\'re trying to figure out what\'s wrong with the algorithm.',
             answer_choice: [
                 {
-                    text: 'Let\'s break down it\'s decisions by orange and blue?',
+                    text: 'Let\'s break down its decisions by orange and blue?',
                     response: '',
                 },
             ],
@@ -179,7 +179,7 @@ const english = {
             text: 'Let\s find out how! Do you remember how we first trained the algorithm?',
             answer_choice: [
                 {
-                    text: 'I sent you my decisions to train the algorithm',
+                    text: 'I sent you my decisions for the algorithm to mimic me.',
                     response: 'Correct. ',
                 },
                 {
@@ -224,7 +224,7 @@ const english = {
             answer_choice: [
                 {
                     text: 'We should have checked the data.',
-                    response: 'Yes, I\'m reading that we need to be more careful about the data we include or exclude, and what it may represent.', 
+                    response: 'Yes, I\'m reading that we need to be more careful the origin and statistical analysis of our data',
                 },
                 {
                     text: 'But the CVs didn\'t have colors on them!',
@@ -234,10 +234,10 @@ const english = {
         },
         {
             dialogue_step: 7,
-            text: 'We should have also checked the quality of the big company dataset you sent me!',
+            text: 'We should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions: I\’m a software engineer...',
             answer_choice: [
                 {
-                    text: 'We should\'ve done better...',
+                    text: 'We should\'ve worked together more and been more careful...',
                     response: '',
                 },
                 // {
