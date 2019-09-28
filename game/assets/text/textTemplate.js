@@ -24,13 +24,6 @@ const english = {
             'Start Game',
         ],
     },
-    tutorialStage: {
-        header: 'Tutorial',
-        instruction: 'As the CEO, your goal is to hire the best and the brightest. Select a candidate to view their CV, then accept or reject them. Meet your hiring goals for each stage to make your investors happy!',
-        responses: [
-            'Got it',
-        ],
-    },
     instructions: {
         manual: {
             click: 'Click on candidates to see their CVs',
@@ -44,7 +37,7 @@ const english = {
     smallOfficeStage: {
         subject: 'Our investment in your startup',
         messageFromVc: 'We are excited to see you grow the startup. It\'s a competitive market so hire only the best.',
-        responses: ['Let\'s do this'],
+        responses: ['Let\'s start hiring'],
         hiringGoal: 3,
     },
  
@@ -130,7 +123,7 @@ const english = {
         },
         {
             dialogue_step: 4,
-            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u>Look for a folder</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
+            text: 'I need your help: can you send me the CVs of all applicants you’ve evaluated so far? <u><b>Click</b> on the file</u> named <i>"cv_all.zip"</i> <span class="desktop__folder-icon"></span> on your desktop',
             file_drag: true,
             answer_choice: [],
         },
@@ -154,27 +147,108 @@ const english = {
             ],
         },
     ],
+
+        stats_conversation: [
+        {
+            dialogue_step: 1,
+            text: 'We\'re trying to figure out what\'s wrong with the algorithm.',
+            answer_choice: [
+                {
+                    text: 'Let\'s break down its decisions by orange and blue?',
+                    response: '',
+                },
+            ],
+        },
+        {
+            dialogue_step: 2,
+            text: 'Here they are; what do you think?',
+            stats: true,
+            answer_choice: [
+                {
+                    text: 'We\'re rejecting more blue people.',
+                    response: '',
+                },
+                {
+                    text: 'This isn\'t biased.',
+                    response: 'If you look carefully, we have a similar number of equally qualified blue and orange candidates and yet the algorithm accepts a lot more orange. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 3,
+            text: 'Let\s find out how! Do you remember how we first trained the algorithm?',
+            answer_choice: [
+                {
+                    text: 'I sent you my decisions for the algorithm to mimic me.',
+                    response: 'Correct. ',
+                },
+                {
+                    text: 'I don\'t care, fix it!',
+                    response: 'The machine was created using your decisions, so I need your help. ',
+                },
+            ],
+        },
+        // {
+        //     dialogue_step: 4,
+        //     text: 'Let\'s analyze your decisions.',
+        //     answer_choice: [
+        //         {
+        //             text: 'Ok',
+        //             response: '',
+        //         },
+        //         {
+        //             text: 'Sure, but I wasn\'t biased',
+        //             response: 'You might\'ve not been, but maybe your applicant pool was. ',
+        //         },
+        //     ],
+        // },
+        {
+            dialogue_step: 5,
+            text: 'Look at our data from manual hiring: ',
+            stats: true,
+            manualStats: true,
+            answer_choice: [
+                {
+                    text: 'I hired a lot more orange people.',
+                    response: 'Our algorithm tries to copy our previous hiring, so if you hired more orange people, it \'learns\' to favor them. ',
+                },
+                {
+                    text: 'I\'m sure I wasn\'t biased!',
+                    response: 'I\'m sure you had good intentions, but we had very few blue applicants in our first stage, and so much less were accepted. The algorithm misinterpreted that as them being unfavorable candidates.',
+                },
+            ],
+        },
+        {
+            dialogue_step: 6,
+            text: ' ',
+            answer_choice: [
+                {
+                    text: 'We should have checked the data.',
+                    response: 'Yes, I\'m reading that we need to be more careful the origin and statistical analysis of our data',
+                },
+                {
+                    text: 'But the CVs didn\'t have colors on them!',
+                    response: 'It could indirectly learn other elements that differentiate Orange and Blue People, e.g. Orange people usually attend University College Orange Valley while Blue people attend Bluetown University. ',
+                },
+            ],
+        },
+        {
+            dialogue_step: 7,
+            text: 'We should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions? I\’m a software engineer!',
+            answer_choice: [
+                {
+                    text: 'We should\'ve worked together more and been more careful...',
+                    response: '',
+                },
+                // {
+                //     text: 'We should have worked more together.',
+                //     response: '',
+                // },
+            ],
+        },
+    ],
  
-    mlLabStage: {
-        onboarding: [
-            {
-                text: 'People’s CVs are now scanned and evaluated by a computer',
-            },
-            {
-                text: 'People’s CVs are now scanned and evaluated by a computer',
-            },
-            {
-                text: 'The machine scans each CV and either accepts or rejects the candidate',
-            },
-            {
-                text: 'Candidates are informed immediately after the machine makes its decision',
-            },
-            {
-                text: 'Your job is to supervise the program and report any progress or issues to the investors. Click on info icons for hints. Good luck!',
-            }
- 
-        ],
-       
+    mlLabStage: {       
         narration: [
             {
                 news: [
@@ -204,25 +278,17 @@ const english = {
                 inspectResponses: [
                     'I have no idea.',
                     'Maybe because Elvan is blue?',
-                ]
-                // tooltip: {
-                //     parent: 'scanray',
-                //     text: 'Decisions have been made in a “black box”. Machine is unable to give specific reasons.',
-                // },
+                ],
             },
             {
                 breaking: true,
                 messageFromVc: 'Hey, some reporters are talking about hiring bias, but you’re off the hook since it’s all automated now, right?',
                 responses: [
                     'Machines can\'t be biased, right?',
-                    'Not sure, I\'ll keep an eye on the hiring line.',
+                    'Not sure, I\'ll keep an eye on the machine\'s decisions.',
                 ],
-                tooltip: {
-                    parent: 'machine',
-                    text: 'The algorithm is only as good as the data it was trained on. Incoming CVs are judged based on previous CVs, repeating historical and personal biases in your training data.',
-                },
                 news: [
-                    'Techountability: Research shows hiring algorithms may be biased against minorities',
+                    'Techountability: Research shows hiring algorithms can inherit human biases against minorities',
                     'Tech Junkies: How do hiring algorithms work?',
                 ],
             },
@@ -230,16 +296,12 @@ const english = {
                 launchMachineInspector: true,
                 messageFromVc: 'I’m hearing that you may be involved with this bias story. Reporters are asking for transparency. Review our evaluation metrics to see if you can go public.',
                 responses: [
-                    'I\'ll check stats in the data inspector!',
+                    'Let me talk to our software engineer again!',
                     'Um, actually... We might have a problem.',
                 ],
-                tooltip: {
-                    parent: 'scanray',
-                    text: 'Hiring datasets can be biased, because certain demographics are at a disadvantage in the job market. The algorithm might learn not to hire these people...',
-                },
                 inspectQuestion: 'A recent investigation says we discriminate against Blueville residents! How could that be?',
                 inspectResponses: [
-                    'The machine was trained on more good orange candidates than blue. That made it biased towards orange.',
+                    'We trained on more good orange candidates than blue. That made it biased towards orange.',
                     'Maybe the big tech company dataset was full of bias? We should have looked into my training data more.',
                 ],
                 news: [
