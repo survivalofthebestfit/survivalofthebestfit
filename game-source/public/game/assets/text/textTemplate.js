@@ -184,7 +184,7 @@ const english = {
                 },
                 {
                     text: 'I don\'t care, fix it!',
-                    response: 'The machine was created using your decision, so I need your help. ',
+                    response: 'The machine was created using your decisions, so I need your help. ',
                 },
             ],
         },
@@ -214,7 +214,7 @@ const english = {
                 },
                 {
                     text: 'I\'m sure I wasn\'t biased!',
-                    response: 'I\'m sure you had good intentions, but we had very few blue applicants in our first stage, and so much less were accepted. The algorithm mis-interpreted that as them being unfavorable candidates.',
+                    response: 'I\'m sure you had good intentions, but we had very few blue applicants in our first stage, and so much less were accepted. The algorithm misinterpreted that as them being unfavorable candidates.',
                 },
             ],
         },
@@ -234,7 +234,7 @@ const english = {
         },
         {
             dialogue_step: 7,
-            text: 'We should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions: I\’m a software engineer...',
+            text: 'We should have also checked the quality of the big company dataset you sent me! How am I supposed to understand hiring decisions? I\’m a software engineer!',
             answer_choice: [
                 {
                     text: 'We should\'ve worked together more and been more careful...',
