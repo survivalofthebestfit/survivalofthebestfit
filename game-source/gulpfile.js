@@ -68,7 +68,6 @@ function css() {
             includePaths: ['./node_modules/sass-mq', './public/**/*.scss'],
         }))
         .pipe(autoprefixer({
-            browsers: ['last 2 versions'],
             cascade: false,
         }))
         .pipe(rename('styles-game.min.css'))

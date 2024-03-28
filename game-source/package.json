@@ -34,7 +34,7 @@
     "pixi.js": "^4.8.5",
     "pug": "^2.0.3",
     "requirejs": "^2.3.6",
-    "sass-mq": "^5.0.0",
+    "sass-mq": "^6.0.0",
     "screenfull": "^4.1.0"
   },
   "devDependencies": {
@@ -69,6 +69,9 @@
     "vinyl-source-stream": "^2.0.0",
     "watchify": "^3.11.1"
   },
+  "browserslist": [
+   "last 2 versions"
+  ],
   "author": "",
   "license": "MIT"
 }
