@@ -11,7 +11,7 @@ const header = require("gulp-header");
 const merge = require("merge-stream");
 const plumber = require("gulp-plumber");
 const rename = require("gulp-rename");
-const sass = require("gulp-sass");
+const sass = require('gulp-sass')(require('sass'));
 const uglify = require("gulp-uglify");
 const pug = require("gulp-pug")
 
