@@ -25,6 +25,8 @@ We would also like to share the survey of the connection of society and algorith
 ## Contributing
 If you'd like to join the team or can contribute with ideas/feedback, please feel free to shoot any of us an email.
 
+Deploy a new version to Github Pages by merging all changes to the master branch and then run `deploy-gh-pages.sh` which is in the root folder.
+
 ## Acknowledgements
 * NYUAD Interactive Media and the Politics of Code class for educating us and bringing us together
 * Moz://a foundation for its continuous support through the Creative Media Award
