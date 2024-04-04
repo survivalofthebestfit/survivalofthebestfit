@@ -25,7 +25,9 @@ We would also like to share the survey of the connection of society and algorith
 ## Contributing
 If you'd like to join the team or can contribute with ideas/feedback, please feel free to shoot any of us an email.
 
-Deploy a new version to Github Pages by merging all changes to the master branch and then run `deploy-gh-pages.sh` which is in the root folder.
+The project has two components: game-source (everything related to the game) and website-source (the rest of the website). They are managed and built separately (see more in the respective folder's README).
+
+Deploy a new version of the entire project to Github Pages by merging all changes to the master branch and then running `deploy-gh-pages.sh` which is in the root folder.
 
 ## Acknowledgements
 * NYUAD Interactive Media and the Politics of Code class for educating us and bringing us together
