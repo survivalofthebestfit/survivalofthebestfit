@@ -147,6 +147,15 @@ function copyImg() {
     .pipe(gulp.dest('../dist/img-website/'));
 }
 
+// Copy retrospective report
+function copyReports() {
+  return gulp
+    .src([
+      './reports/**/*.pdf',
+    ])
+    .pipe(gulp.dest('../dist/reports/'));
+}
+
 // Watch files
 function watchFiles() {
   gulp.watch("./scss/**/*", css).on('add', function(path, stats) {
@@ -172,7 +181,7 @@ function watchFiles() {
 
 // Define complex tasks
 const vendor = gulp.series(clean, modules);
-const build = gulp.series(vendor, gulp.parallel(css, js, copyHtml, copyImg, pugCompile));
+const build = gulp.series(vendor, gulp.parallel(css, js, copyHtml, copyImg, copyReports, pugCompile));
 const watch = gulp.series(build, gulp.parallel(watchFiles, browserSync));
 
 // Export tasks
